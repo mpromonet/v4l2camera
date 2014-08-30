@@ -63,7 +63,17 @@ int add_ctrl(int fd, int i, Json::Value & json)
 			value["step"] = qctrl.step;
 			value["default_value"] = qctrl.default_value;
 			value["value"] = control.value;
-			if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+
+			Json::Value flags;
+			if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED) flags.append("V4L2_CTRL_FLAG_DISABLED");
+			if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED) flags.append("V4L2_CTRL_FLAG_GRABBED");
+			if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY) flags.append("V4L2_CTRL_FLAG_READ_ONLY");
+			if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE) flags.append("V4L2_CTRL_FLAG_UPDATE");
+			if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER) flags.append("V4L2_CTRL_FLAG_SLIDER");
+			if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
+			value["flags"]   = flags;
+			
+			if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) || (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU) )
 			{
 				Json::Value menu;
 				struct v4l2_querymenu querymenu;
@@ -75,7 +85,14 @@ int add_ctrl(int fd, int i, Json::Value & json)
 					{
 						Json::Value label;
 						label["value"] = querymenu.index;
-						label["label"] = (const char*)querymenu.name;
+						if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+						{
+							label["label"] = (const char*)querymenu.name;
+						}
+						else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+						{
+							label["label"] = querymenu.value;
+						}
 						menu.append(label);
 					}
 				}
