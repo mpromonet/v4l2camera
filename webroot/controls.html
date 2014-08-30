@@ -11,6 +11,13 @@
 		// controller
 		angular.module('App.controllers', []).controller('AppController', function($scope, Controls) {
 			Controls.query(function(data) { $scope.controlList = data; } );
+			
+			$scope.update = function(controlid,controlvalue) {
+				alert(controlid+"/"+controlvalue);
+				var param = {};
+				param[controlid] = controlvalue;
+				Controls.get(param, function(data) { if (data.errno != 0) alert(data.error);} );
+			}			
 		});
 		
 		// service
@@ -20,8 +27,8 @@
 		]);	
 	</script>
 </head>
-<body ng-cloak ng-app="App" ng-controller="AppController">
-	<table>
+<body ng-cloak ng-app="App">
+	<table ng-controller="AppController">
 		<h1><center>V4L2 Controls</center></h1>
 		<thead>
 			<tr>
@@ -33,14 +40,24 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="control in controlList">
+			<tr ng-repeat="control in controlList track by $index">
 				<td>{{control.name}}</td>
 				<td>{{control.value}}</td>
 				<td>{{control.minimum}}</td>
 				<td>{{control.maximum}}</td>
 				<td>
-					<select ng-show="{{control.menu}}" ng-init="choice = ( control.menu | filter:{value:control.value}:true ) [0]" ng-model="choice" ng-options="menu.label for menu in control.menu" style="width: 300px"/>
-					<input ng-show="!{{control.menu}}"type="text" value="{{control.value}}" ng-model="text" ng-pattern="word" ng-trim="false" style="width: 300px"/>
+					<select ng-if="control.menu" 
+							ng-init="choice = ( control.menu | filter:{value:control.value}:true ) [0]" 
+							ng-model="choice" 
+							ng-options="menu.label for menu in control.menu"
+							ng-change="update(control.id,choice.value)"
+							style="width: 300px"/>
+					<input ng-if="!control.menu"
+							ng-model="controlList[$index].value"
+							ng-trim="false" 
+							ng-keypress="($event.which === 13)?update(control.id,controlList[$index].value):0"
+							type="text" 
+							style="width: 300px"/>
 				</td>
 			</tr>      
 		</tbody>
