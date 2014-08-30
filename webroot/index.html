@@ -40,11 +40,10 @@
 	img.onload = function()
 	{
 		document.getElementById('canvas').getContext("2d").drawImage(this,0,0);
-	}
-	
+	}	
         num_messages++;
       }
-      if (num_messages > 30) {
+      if (num_messages > 300) {
         websocket.send('exit');
       }
     };

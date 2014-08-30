@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Angular test</title>
+</head>
+
+<body ng-app="App" ng-controller="AppController">
+  <table>
+    <thead>
+      <tr><th colspan="4">Controls</th></tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="control in controlList">
+        <td>{{$index + 1}}</td>
+        <td>{{control}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <script src="angular.min.js"></script>
+  <script src="angular-resource.min.js"></script>
+  <script>
+	// app
+	angular.module('App', ['App.controllers','App.services']);
+  
+	// controller
+	angular.module('App.controllers', []).controller('AppController', function($scope, Controls) {
+		Controls.query(function(data) { $scope.controlList = data; } );
+	});
+	
+	// service
+	angular.module('App.services', ['ngResource']).factory('Controls', ['$resource', function($resource){ 
+			return $resource('/controls');
+		} 
+	]);
+	
+  </script>
+</body>
+</html>
