@@ -211,17 +211,17 @@ static int send_reply(struct mg_connection *conn)
 				char * value = strtok(NULL, "=");
 				if (value == NULL)
 				{
-					add_ctrl(fd,strtol(key, NULL, 16),json);
+					add_ctrl(fd,strtol(key, NULL, 10),json);
 				}
 				else
 				{
 					struct v4l2_control control;  
 					memset(&control,0,sizeof(control));
-					control.id = strtol(key, NULL, 16);
+					control.id = strtol(key, NULL, 10);
 					control.value = strtol(value, NULL, 10);
 					errno=0;
 					ioctl(fd,VIDIOC_S_CTRL,&control);
-					json["erno"]  = errno;
+					json["errno"]  = errno;
 					json["error"] = strerror(errno);
 				}
 			}
@@ -269,7 +269,7 @@ static int send_reply(struct mg_connection *conn)
 					format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
 					errno=0;
 					ioctl(fd,VIDIOC_S_FMT,&format);
-					json["erno"]  = errno;
+					json["errno"]  = errno;
 					json["error"] = strerror(errno);					
 				}
 				
