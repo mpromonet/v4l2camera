@@ -60,6 +60,7 @@ int add_ctrl(int fd, int i, Json::Value & json)
 			value["type"] = qctrl.type;
 			value["minimum"] = qctrl.minimum;
 			value["maximum"] = qctrl.maximum;
+			value["step"] = qctrl.step;
 			value["default_value"] = qctrl.default_value;
 			value["value"] = control.value;
 			if (qctrl.type == V4L2_CTRL_TYPE_MENU)
@@ -68,14 +69,15 @@ int add_ctrl(int fd, int i, Json::Value & json)
 				struct v4l2_querymenu querymenu;
 				memset(&querymenu,0,sizeof(querymenu));
 				querymenu.id = qctrl.id;
-				for (querymenu.index = 0; querymenu.index < qctrl.maximum; querymenu.index++) 
+				for (querymenu.index = 0; querymenu.index <= qctrl.maximum; querymenu.index++) 
 				{
-					if (-1 == ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
-						break;
-					Json::Value label;
-					label["value"] = querymenu.index;
-					label["label"] = (const char*)querymenu.name;
-					menu.append(label);
+					if (-1 != ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
+					{
+						Json::Value label;
+						label["value"] = querymenu.index;
+						label["label"] = (const char*)querymenu.name;
+						menu.append(label);
+					}
 				}
 				value["menu"] = menu;
 			}

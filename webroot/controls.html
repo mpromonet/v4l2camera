@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>V4L2 Controls</title>
+	<script src="angular.min.js"></script>
+	<script src="angular-resource.min.js"></script>
+	<script>
+		// app
+		angular.module('App', ['App.controllers','App.services']);
+		
+		// controller
+		angular.module('App.controllers', []).controller('AppController', function($scope, Controls) {
+			Controls.query(function(data) { $scope.controlList = data; } );
+		});
+		
+		// service
+		angular.module('App.services', ['ngResource']).factory('Controls', ['$resource', function($resource){ 
+				return $resource('/controls');
+			} 
+		]);	
+	</script>
+</head>
+<body ng-cloak ng-app="App" ng-controller="AppController">
+	<table>
+		<h1><center>V4L2 Controls</center></h1>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Current</th>
+				<th>Min</th>
+				<th>Max</th>
+				<th>Value</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="control in controlList">
+				<td>{{control.name}}</td>
+				<td>{{control.value}}</td>
+				<td>{{control.minimum}}</td>
+				<td>{{control.maximum}}</td>
+				<td>
+					<select ng-show="{{control.menu}}" ng-init="choice = ( control.menu | filter:{value:control.value}:true ) [0]" ng-model="choice" ng-options="menu.label for menu in control.menu" style="width: 300px"/>
+					<input ng-show="!{{control.menu}}"type="text" value="{{control.value}}" ng-model="text" ng-pattern="word" ng-trim="false" style="width: 300px"/>
+				</td>
+			</tr>      
+		</tbody>
+	</table>
+</body>
+</html>
