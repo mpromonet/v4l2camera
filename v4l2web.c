@@ -114,10 +114,199 @@ std::string get_fourcc(unsigned int pixelformat)
 	return fourcc;
 }
 
-static int send_reply(struct mg_connection *conn) 
+static int send_capabilities_reply(struct mg_connection *conn) 
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	int fd = dev->getFd();		
+	Json::Value json;
+	v4l2_capability cap;
+	memset(&cap,0,sizeof(cap));
+	if (-1 != ioctl(fd,VIDIOC_QUERYCAP,&cap))
+	{
+		json["driver"]     = (const char*)cap.driver;
+		json["card"]       = (const char*)cap.card;
+		json["bus_info"]   = (const char*)cap.bus_info;
+		Json::Value capabilities;
+		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT) capabilities.append("V4L2_CAP_VIDEO_OUTPUT");
+		if (cap.device_caps & V4L2_CAP_READWRITE) capabilities.append("V4L2_CAP_READWRITE");
+		if (cap.device_caps & V4L2_CAP_ASYNCIO) capabilities.append("V4L2_CAP_ASYNCIO");
+		if (cap.device_caps & V4L2_CAP_STREAMING) capabilities.append("V4L2_CAP_STREAMING");
+		json["capabilities"]   = capabilities;
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());		
+	return MG_TRUE;
+}
+
+static int send_inputs_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	for (int i = 0;; i++) 
+	{
+		v4l2_input input;
+		memset(&input,0,sizeof(input));
+		input.index = i;
+		if (-1 == ioctl(fd,VIDIOC_ENUMINPUT,&input))
+			break;
+		
+		Json::Value value;
+		value["name"]   = (const char*)input.name;
+		value["type"]   = input.type;
+		value["status"] = input.status;			
+		json.append(value);
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());		
+	return MG_TRUE;
+}
+
+static int send_formats_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	for (int i = 0;; i++) 
+	{
+		struct v4l2_fmtdesc     fmtdesc;
+		memset(&fmtdesc,0,sizeof(fmtdesc));
+		fmtdesc.index = i;
+		fmtdesc.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		if (-1 == ioctl(fd,VIDIOC_ENUM_FMT,&fmtdesc))
+			break;
+		
+		Json::Value value;
+		value["description"] = fmtdesc.description;
+		value["type"]        = fmtdesc.type;
+		value["format"]      = get_fourcc(fmtdesc.pixelformat);			
+		json.append(value);
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());		
+	return MG_TRUE;
+}
+
+static int send_controls_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	if (conn->query_string == NULL)
+	{
+		for (int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; i++) 
+		{
+			if (add_ctrl(fd,i,json))
+			{
+				break;
+			}
+		}		
+
+		for (int i = V4L2_CID_PRIVATE_BASE ;; i++) 
+		{
+			if (add_ctrl(fd,i,json))
+			{
+				break;
+			}
+		}				
+		for (int i = V4L2_CTRL_FLAG_NEXT_CTRL ;; i++) 
+		{
+			if (add_ctrl(fd,i,json))
+			{
+				break;
+			}
+		}	
+	}
+	else
+	{
+		char * query = strdup(conn->query_string);
+		char * key = strtok(query, "=");
+		if (key == query)
+		{
+			char * value = strtok(NULL, "=");
+			if (value == NULL)
+			{
+				add_ctrl(fd,strtol(key, NULL, 10),json);
+			}
+			else
+			{
+				struct v4l2_control control;  
+				memset(&control,0,sizeof(control));
+				control.id = strtol(key, NULL, 10);
+				control.value = strtol(value, NULL, 10);
+				errno=0;
+				ioctl(fd,VIDIOC_S_CTRL,&control);
+				json["errno"]  = errno;
+				json["error"] = strerror(errno);
+			}
+		}
+		free(query);
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());		
+	return MG_TRUE;
+}
+
+static int send_format_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	if (conn->query_string == NULL)
+	{
+		struct v4l2_format     format;
+		memset(&format,0,sizeof(format));
+		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		if (-1 != ioctl(fd,VIDIOC_G_FMT,&format))
+		{
+			json["width"]     = format.fmt.pix.width;
+			json["height"]    = format.fmt.pix.height;
+			json["sizeimage"] = format.fmt.pix.sizeimage;
+			json["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
+			
+		}
+	}
+	else
+	{
+		char * query = strdup(conn->query_string);
+		char * key = strtok(query, "=");
+		if (key == query)
+		{
+			char * width = strtok(NULL, ",");
+			char * height = strtok(NULL, ",");
+			char * fourcc = strtok(NULL, ",");
+
+			if (width && height && fourcc && strlen(fourcc) <5)
+			{
+				struct v4l2_format     format;
+				memset(&format,0,sizeof(format));
+				format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				format.fmt.pix.width = strtol(width, NULL, 10);
+				format.fmt.pix.height = strtol(height, NULL, 10);
+				format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
+				errno=0;
+				ioctl(fd,VIDIOC_S_FMT,&format);
+				json["errno"]  = errno;
+				json["error"] = strerror(errno);					
+			}
+			
+		}
+		free(query);
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());
+	return MG_TRUE;
+}
+
+static int send_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	if (conn->is_websocket) 
 	{	
 		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
@@ -125,186 +314,33 @@ static int send_reply(struct mg_connection *conn)
 	} 
 	else if (strcmp(conn->uri,"/capabilities") ==0)
 	{
-		Json::Value json;
-		v4l2_capability cap;
-		memset(&cap,0,sizeof(cap));
-		if (-1 != ioctl(fd,VIDIOC_QUERYCAP,&cap))
-		{
-			json["driver"]     = (const char*)cap.driver;
-			json["card"]       = (const char*)cap.card;
-			json["bus_info"]   = (const char*)cap.bus_info;
-			Json::Value capabilities;
-			if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
-			if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT) capabilities.append("V4L2_CAP_VIDEO_OUTPUT");
-			if (cap.device_caps & V4L2_CAP_READWRITE) capabilities.append("V4L2_CAP_READWRITE");
-			if (cap.device_caps & V4L2_CAP_ASYNCIO) capabilities.append("V4L2_CAP_ASYNCIO");
-			if (cap.device_caps & V4L2_CAP_STREAMING) capabilities.append("V4L2_CAP_STREAMING");
-			json["capabilities"]   = capabilities;
-		}
-		Json::StyledWriter styledWriter;
-		std::string str (styledWriter.write(json));
-		mg_printf_data(conn, str.c_str());		
-		return MG_TRUE;
+		return send_capabilities_reply(conn);
 	}
 	else if (strcmp(conn->uri,"/inputs") ==0)
 	{
-		Json::Value json;
-		for (int i = 0;; i++) 
-		{
-			v4l2_input input;
-			memset(&input,0,sizeof(input));
-			input.index = i;
-			if (-1 == ioctl(fd,VIDIOC_ENUMINPUT,&input))
-				break;
-			
-			Json::Value value;
-			value["name"]   = (const char*)input.name;
-			value["type"]   = input.type;
-			value["status"] = input.status;			
-			json.append(value);
-		}
-		Json::StyledWriter styledWriter;
-		std::string str (styledWriter.write(json));
-		mg_printf_data(conn, str.c_str());		
-		return MG_TRUE;
+		return send_inputs_reply(conn);
 	}
 	else if (strcmp(conn->uri,"/formats") ==0)
 	{	
-		Json::Value json;
-		for (int i = 0;; i++) 
-		{
-			struct v4l2_fmtdesc     fmtdesc;
-			memset(&fmtdesc,0,sizeof(fmtdesc));
-			fmtdesc.index = i;
-			fmtdesc.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			if (-1 == ioctl(fd,VIDIOC_ENUM_FMT,&fmtdesc))
-				break;
-			
-			Json::Value value;
-			value["description"] = fmtdesc.description;
-			value["type"]        = fmtdesc.type;
-			value["format"]      = get_fourcc(fmtdesc.pixelformat);			
-			json.append(value);
-		}
-		Json::StyledWriter styledWriter;
-		std::string str (styledWriter.write(json));
-		mg_printf_data(conn, str.c_str());		
-		return MG_TRUE;
+		return send_formats_reply(conn);
 	}
 	else if (strcmp(conn->uri,"/controls") ==0)
 	{	
-		Json::Value json;
-		if (conn->query_string == NULL)
-		{
-			for (int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; i++) 
-			{
-				if (add_ctrl(fd,i,json))
-				{
-					break;
-				}
-			}		
-
-			for (int i = V4L2_CID_PRIVATE_BASE ;; i++) 
-			{
-				if (add_ctrl(fd,i,json))
-				{
-					break;
-				}
-			}				
-			for (int i = V4L2_CTRL_FLAG_NEXT_CTRL ;; i++) 
-			{
-				if (add_ctrl(fd,i,json))
-				{
-					break;
-				}
-			}	
-		}
-		else
-		{
-			char * query = strdup(conn->query_string);
-			char * key = strtok(query, "=");
-			if (key == query)
-			{
-				char * value = strtok(NULL, "=");
-				if (value == NULL)
-				{
-					add_ctrl(fd,strtol(key, NULL, 10),json);
-				}
-				else
-				{
-					struct v4l2_control control;  
-					memset(&control,0,sizeof(control));
-					control.id = strtol(key, NULL, 10);
-					control.value = strtol(value, NULL, 10);
-					errno=0;
-					ioctl(fd,VIDIOC_S_CTRL,&control);
-					json["errno"]  = errno;
-					json["error"] = strerror(errno);
-				}
-			}
-			free(query);
-		}
-		Json::StyledWriter styledWriter;
-		std::string str (styledWriter.write(json));
-		mg_printf_data(conn, str.c_str());		
-		return MG_TRUE;
+		return send_controls_reply(conn);
 	}	
 	else if (strcmp(conn->uri,"/format") ==0)
 	{	
-		Json::Value json;
-		if (conn->query_string == NULL)
-		{
-			struct v4l2_format     format;
-			memset(&format,0,sizeof(format));
-			format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			if (-1 != ioctl(fd,VIDIOC_G_FMT,&format))
-			{
-				json["width"]     = format.fmt.pix.width;
-				json["height"]    = format.fmt.pix.height;
-				json["sizeimage"] = format.fmt.pix.sizeimage;
-				json["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
-				
-			}
-		}
-		else
-		{
-			char * query = strdup(conn->query_string);
-			char * key = strtok(query, "=");
-			if (key == query)
-			{
-				char * width = strtok(NULL, ",");
-				char * height = strtok(NULL, ",");
-				char * fourcc = strtok(NULL, ",");
-
-				if (width && height && fourcc && strlen(fourcc) <5)
-				{
-					struct v4l2_format     format;
-					memset(&format,0,sizeof(format));
-					format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-					format.fmt.pix.width = strtol(width, NULL, 10);
-					format.fmt.pix.height = strtol(height, NULL, 10);
-					format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
-					errno=0;
-					ioctl(fd,VIDIOC_S_FMT,&format);
-					json["errno"]  = errno;
-					json["error"] = strerror(errno);					
-				}
-				
-			}
-			free(query);
-		}
-		Json::StyledWriter styledWriter;
-		std::string str (styledWriter.write(json));
-		mg_printf_data(conn, str.c_str());
-		return MG_TRUE;
+		return send_format_reply(conn);
 	}
 	else if (strcmp(conn->uri,"/start") ==0)
 	{	
-		videoCapture->captureStart();
+		dev->captureStart();
+		return MG_TRUE;
 	}
 	else if (strcmp(conn->uri,"/stop") ==0)
 	{	
-		videoCapture->captureStop();
+		dev->captureStop();
+		return MG_TRUE;
 	}
 	
 	return MG_FALSE;
