@@ -64,10 +64,6 @@ int V4L2Device::initdevice(const char *dev_name, unsigned int mandatoryCapabilit
 	{
 		return -1;
 	}
-	if (!this->captureStart())
-	{
-		return -1;
-	}
 	
 	return m_fd;
 }

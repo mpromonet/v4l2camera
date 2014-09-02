@@ -91,7 +91,7 @@ int add_ctrl(int fd, int i, Json::Value & json)
 						}
 						else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
 						{
-							label["label"] = querymenu.value;
+							label["label"] = (int)querymenu.value;
 						}
 						menu.append(label);
 					}
@@ -204,14 +204,14 @@ static int send_reply(struct mg_connection *conn)
 				}
 			}		
 
-			for (int i = V4L2_CID_MPEG_BASE ;; i++) 
+			for (int i = V4L2_CID_PRIVATE_BASE ;; i++) 
 			{
 				if (add_ctrl(fd,i,json))
 				{
 					break;
 				}
 			}				
-			for (int i = V4L2_CID_CAMERA_CLASS_BASE ;; i++) 
+			for (int i = V4L2_CTRL_FLAG_NEXT_CTRL ;; i++) 
 			{
 				if (add_ctrl(fd,i,json))
 				{
@@ -298,6 +298,14 @@ static int send_reply(struct mg_connection *conn)
 		mg_printf_data(conn, str.c_str());
 		return MG_TRUE;
 	}
+	else if (strcmp(conn->uri,"/start") ==0)
+	{	
+		videoCapture->captureStart();
+	}
+	else if (strcmp(conn->uri,"/stop") ==0)
+	{	
+		videoCapture->captureStop();
+	}
 	
 	return MG_FALSE;
 }
@@ -318,10 +326,38 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 	}
 }
 
-int main(void) 
+int main(int argc, char* argv[]) 
 {	
 	int verbose=0;
-	V4L2DeviceParameters param("/dev/video0",V4L2_PIX_FMT_JPEG,640,480,25,1);
+	const char *dev_name = "/dev/video0";	
+	int width = 640;
+	int height = 480;	
+	int c = 0;     
+	while ((c = getopt (argc, argv, "hW:H:Q:P:F:v::O:T:mM")) != -1)
+	{
+		switch (c)
+		{
+			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
+			case 'W':	width = atoi(optarg); break;
+			case 'H':	height = atoi(optarg); break;
+			case 'h':
+			{
+				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] [device]" << std::endl;
+				std::cout << "\t -v       : verbose " << std::endl;
+				std::cout << "\t -v v     : very verbose " << std::endl;
+				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
+				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
+				exit(0);
+			}
+		}
+	}
+	if (optind<argc)
+	{
+		dev_name = argv[optind];
+	}	
+	
+	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,25,verbose);
 	V4L2Device* videoCapture = V4L2MMAPDeviceSource::createNew(param);
 	
 	struct mg_server *server = mg_create_server(videoCapture, ev_handler);
@@ -345,6 +381,7 @@ int main(void)
 		{
 			char buf[videoCapture->getBufferSize()];
 			ssize_t size = videoCapture->read(buf, sizeof(buf));
+			ssize_t size = 0;
 			if (verbose)
 			{
 				fprintf(stderr, "read size:%d\n", size);
