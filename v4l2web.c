@@ -182,7 +182,46 @@ static int send_formats_reply(struct mg_connection *conn)
 		Json::Value value;
 		value["description"] = fmtdesc.description;
 		value["type"]        = fmtdesc.type;
-		value["format"]      = get_fourcc(fmtdesc.pixelformat);			
+		value["format"]      = get_fourcc(fmtdesc.pixelformat);		
+
+		struct v4l2_frmsizeenum frmsize;
+		memset(&frmsize,0,sizeof(fmtdesc));
+		frmsize.pixel_format = fmtdesc.pixelformat;
+		frmsize.index = 0;
+		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) >= 0) 
+		{
+			Json::Value frameSize;
+			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
+			{				
+				frameSize["width"] = frmsize.discrete.width;
+				frameSize["height"] = frmsize.discrete.height;
+				
+				struct v4l2_frmivalenum frmival;
+				frmival.index = 0;
+				frmival.pixel_format = frmsize.pixel_format;
+				frmival.width = frmsize.discrete.width;
+				frmival.height = frmsize.discrete.height;
+				while (ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0) 
+				{
+					Json::Value frameIntervals;
+					if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
+					{
+						frameIntervals["numerator"] = frmival.discrete.numerator;
+						frameIntervals["denominator"] = frmival.discrete.denominator;
+					}
+					frameSize.append(frameIntervals);
+				}
+			}
+			else 
+			{
+				frameSize["min_width"] = frmsize.stepwise.min_width;
+				frameSize["max_width"] = frmsize.stepwise.max_width;
+				frameSize["min_height"] = frmsize.stepwise.min_height;
+				frameSize["max_height"] = frmsize.stepwise.max_height;
+			}
+			value.append(frameSize);
+		}
+
 		json.append(value);
 	}
 	Json::StyledWriter styledWriter;
@@ -213,13 +252,6 @@ static int send_controls_reply(struct mg_connection *conn)
 				break;
 			}
 		}				
-		for (int i = V4L2_CTRL_FLAG_NEXT_CTRL ;; i++) 
-		{
-			if (add_ctrl(fd,i,json))
-			{
-				break;
-			}
-		}	
 	}
 	else
 	{
@@ -395,44 +427,48 @@ int main(int argc, char* argv[])
 	
 	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,25,verbose);
 	V4L2Device* videoCapture = V4L2MMAPDeviceSource::createNew(param);
-	
-	struct mg_server *server = mg_create_server(videoCapture, ev_handler);
-	mg_set_option(server, "listening_port", "8080");
-	std::string currentPath(get_current_dir_name());
-	currentPath += "/webroot";
-	mg_set_option(server, "document_root", currentPath.c_str());
-	
-	chdir(mg_get_option(server, "document_root"));
-	printf("Started on port %s root:%s\n", mg_get_option(server, "listening_port"), mg_get_option(server, "document_root"));	
-	for (;;) 
-	{
-		mg_poll_server(server, 10);
-		int fd = videoCapture->getFd();
-		struct timeval tv;
-		timerclear(&tv);
-		fd_set read_set;
-		FD_ZERO(&read_set);
-		FD_SET(fd,&read_set);
-		if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
+	if (videoCapture)
+	{	
+		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
+		mg_set_option(server, "listening_port", "8080");
+		std::string currentPath(get_current_dir_name());
+		currentPath += "/webroot";
+		mg_set_option(server, "document_root", currentPath.c_str());
+		
+		chdir(mg_get_option(server, "document_root"));
+		printf("Started on port %s root:%s\n", mg_get_option(server, "listening_port"), mg_get_option(server, "document_root"));	
+		for (;;) 
 		{
-			char buf[videoCapture->getBufferSize()];
-			ssize_t size = videoCapture->read(buf, sizeof(buf));
-			if (verbose)
+			mg_poll_server(server, 10);
+			int fd = videoCapture->getFd();
+			struct timeval tv;
+			timerclear(&tv);
+			fd_set read_set;
+			FD_ZERO(&read_set);
+			FD_SET(fd,&read_set);
+			if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
 			{
-				fprintf(stderr, "read size:%d\n", size);
-			}
-			if (size>0)
-			{
-				image img(buf, size);
-				mg_iterate_over_connections(server, iterate_callback, &img);
+				if (FD_ISSET(fd,&read_set))
+				{
+					char buf[videoCapture->getBufferSize()];
+					ssize_t size = videoCapture->read(buf, sizeof(buf));
+					if (verbose)
+					{
+						fprintf(stderr, "read size:%d\n", size);
+					}
+					if (size>0)
+					{
+						image img(buf, size);
+						mg_iterate_over_connections(server, iterate_callback, &img);
+					}
+				}
 			}
 		}
+		mg_destroy_server(&server);
+		
+		videoCapture->captureStop();
+		delete videoCapture;
 	}
-
-	mg_destroy_server(&server);
-	
-	videoCapture->captureStop();
-	delete videoCapture;
 	
 	return 0;
 }
