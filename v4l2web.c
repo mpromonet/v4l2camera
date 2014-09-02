@@ -381,7 +381,6 @@ int main(int argc, char* argv[])
 		{
 			char buf[videoCapture->getBufferSize()];
 			ssize_t size = videoCapture->read(buf, sizeof(buf));
-			ssize_t size = 0;
 			if (verbose)
 			{
 				fprintf(stderr, "read size:%d\n", size);
