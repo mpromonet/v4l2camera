@@ -1,3 +1,12 @@
+/* ---------------------------------------------------------------------------
+** This software is in the public domain, furnished "as is", without technical
+** support, and with no warranty, express or implied, as to its usefulness for
+** any purpose.
+**
+** v4l2web.cpp
+** 
+** -------------------------------------------------------------------------*/
+
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
@@ -180,10 +189,11 @@ static int send_formats_reply(struct mg_connection *conn)
 			break;
 		
 		Json::Value value;
-		value["description"] = fmtdesc.description;
+		value["description"] = (const char*)fmtdesc.description;
 		value["type"]        = fmtdesc.type;
 		value["format"]      = get_fourcc(fmtdesc.pixelformat);		
 
+		Json::Value frameSizeList;
 		struct v4l2_frmsizeenum frmsize;
 		memset(&frmsize,0,sizeof(fmtdesc));
 		frmsize.pixel_format = fmtdesc.pixelformat;
@@ -196,6 +206,7 @@ static int send_formats_reply(struct mg_connection *conn)
 				frameSize["width"] = frmsize.discrete.width;
 				frameSize["height"] = frmsize.discrete.height;
 				
+				Json::Value frameIntervals;
 				struct v4l2_frmivalenum frmival;
 				frmival.index = 0;
 				frmival.pixel_format = frmsize.pixel_format;
@@ -203,14 +214,20 @@ static int send_formats_reply(struct mg_connection *conn)
 				frmival.height = frmsize.discrete.height;
 				while (ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0) 
 				{
-					Json::Value frameIntervals;
+					Json::Value frameInter;
 					if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
 					{
-						frameIntervals["numerator"] = frmival.discrete.numerator;
-						frameIntervals["denominator"] = frmival.discrete.denominator;
+						frameInter["fps"] = 1.0*frmival.discrete.numerator/frmival.discrete.denominator;
 					}
-					frameSize.append(frameIntervals);
+					else
+					{
+						frameInter["min_fps"] = 1.0*frmival.stepwise.min.numerator/frmival.stepwise.min.denominator;
+						frameInter["max_fps"] = 1.0*frmival.stepwise.max.numerator/frmival.stepwise.max.denominator;
+					}
+					frameIntervals.append(frameInter);
+					frmival.index++;
 				}
+				frameSize["intervals"] = frameIntervals;
 			}
 			else 
 			{
@@ -219,8 +236,10 @@ static int send_formats_reply(struct mg_connection *conn)
 				frameSize["min_height"] = frmsize.stepwise.min_height;
 				frameSize["max_height"] = frmsize.stepwise.max_height;
 			}
-			value.append(frameSize);
+			frameSizeList.append(frameSize);
+			frmsize.index++;
 		}
+		value["frameSizes"]     = frameSizeList;
 
 		json.append(value);
 	}
@@ -244,14 +263,6 @@ static int send_controls_reply(struct mg_connection *conn)
 				break;
 			}
 		}		
-
-		for (int i = V4L2_CID_PRIVATE_BASE ;; i++) 
-		{
-			if (add_ctrl(fd,i,json))
-			{
-				break;
-			}
-		}				
 	}
 	else
 	{
@@ -429,6 +440,8 @@ int main(int argc, char* argv[])
 	V4L2Device* videoCapture = V4L2MMAPDeviceSource::createNew(param);
 	if (videoCapture)
 	{	
+		videoCapture->captureStart();
+
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
 		mg_set_option(server, "listening_port", "8080");
 		std::string currentPath(get_current_dir_name());
