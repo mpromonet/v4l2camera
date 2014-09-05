@@ -39,76 +39,69 @@ static int iterate_callback(struct mg_connection *c, enum mg_event )
 	return MG_TRUE;
 }
 
-int add_ctrl(int fd, int i, Json::Value & json) 
+unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
-	int ret=0;
+	unsigned int ret=0;
 	struct v4l2_queryctrl   qctrl;
 	memset(&qctrl,0,sizeof(qctrl));
 	qctrl.id = i;
-	if (-1 == ioctl(fd,VIDIOC_QUERYCTRL,&qctrl))
+	if (0 == ioctl(fd,VIDIOC_QUERYCTRL,&qctrl))
 	{
-		if (errno != EINVAL) 
+		if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
 		{
-			ret=1;
-		}
-	}
-	else if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED))
-	{
-		struct v4l2_control control;  
-		memset(&control,0,sizeof(control));
-		control.id = qctrl.id;
-		if (-1 == ioctl(fd,VIDIOC_G_CTRL,&control))
-		{
-			ret=1;
-		}
-		else
-		{
-			Json::Value value;
-			value["id"] = i;
-			value["name"] = (const char*)qctrl.name;
-			value["type"] = qctrl.type;
-			value["minimum"] = qctrl.minimum;
-			value["maximum"] = qctrl.maximum;
-			value["step"] = qctrl.step;
-			value["default_value"] = qctrl.default_value;
-			value["value"] = control.value;
-
-			Json::Value flags;
-			if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED) flags.append("V4L2_CTRL_FLAG_DISABLED");
-			if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED) flags.append("V4L2_CTRL_FLAG_GRABBED");
-			if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY) flags.append("V4L2_CTRL_FLAG_READ_ONLY");
-			if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE) flags.append("V4L2_CTRL_FLAG_UPDATE");
-			if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER) flags.append("V4L2_CTRL_FLAG_SLIDER");
-			if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
-			value["flags"]   = flags;
-			
-			if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) || (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU) )
+			struct v4l2_control control;  
+			memset(&control,0,sizeof(control));
+			control.id = qctrl.id;
+			if (0 == ioctl(fd,VIDIOC_G_CTRL,&control))
 			{
-				Json::Value menu;
-				struct v4l2_querymenu querymenu;
-				memset(&querymenu,0,sizeof(querymenu));
-				querymenu.id = qctrl.id;
-				for (querymenu.index = 0; querymenu.index <= qctrl.maximum; querymenu.index++) 
+				Json::Value value;
+				value["id"] = i;
+				value["name"] = (const char*)qctrl.name;
+				value["type"] = qctrl.type;
+				value["minimum"] = qctrl.minimum;
+				value["maximum"] = qctrl.maximum;
+				value["step"] = qctrl.step;
+				value["default_value"] = qctrl.default_value;
+				value["value"] = control.value;
+
+				Json::Value flags;
+				if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED) flags.append("V4L2_CTRL_FLAG_DISABLED");
+				if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED) flags.append("V4L2_CTRL_FLAG_GRABBED");
+				if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY) flags.append("V4L2_CTRL_FLAG_READ_ONLY");
+				if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE) flags.append("V4L2_CTRL_FLAG_UPDATE");
+				if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER) flags.append("V4L2_CTRL_FLAG_SLIDER");
+				if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
+				value["flags"]   = flags;
+				
+				if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) || (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU) )
 				{
-					if (-1 != ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
+					Json::Value menu;
+					struct v4l2_querymenu querymenu;
+					memset(&querymenu,0,sizeof(querymenu));
+					querymenu.id = qctrl.id;
+					for (querymenu.index = 0; querymenu.index <= qctrl.maximum; querymenu.index++) 
 					{
-						Json::Value label;
-						label["value"] = querymenu.index;
-						if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+						if (0 == ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
 						{
-							label["label"] = (const char*)querymenu.name;
+							Json::Value label;
+							label["value"] = querymenu.index;
+							if (qctrl.type == V4L2_CTRL_TYPE_MENU)
+							{
+								label["label"] = (const char*)querymenu.name;
+							}
+							else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+							{
+								label["label"] = (int)querymenu.value;
+							}
+							menu.append(label);
 						}
-						else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
-						{
-							label["label"] = (int)querymenu.value;
-						}
-						menu.append(label);
 					}
+					value["menu"] = menu;
 				}
-				value["menu"] = menu;
+				json.append(value);
 			}
-			json.append(value);
 		}
+		ret = qctrl.id;
 	}
 	return ret;
 }
@@ -195,7 +188,7 @@ static int send_formats_reply(struct mg_connection *conn)
 
 		Json::Value frameSizeList;
 		struct v4l2_frmsizeenum frmsize;
-		memset(&frmsize,0,sizeof(fmtdesc));
+		memset(&frmsize,0,sizeof(frmsize));
 		frmsize.pixel_format = fmtdesc.pixelformat;
 		frmsize.index = 0;
 		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) >= 0) 
@@ -256,13 +249,9 @@ static int send_controls_reply(struct mg_connection *conn)
 	Json::Value json;
 	if (conn->query_string == NULL)
 	{
-		for (int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; i++) 
-		{
-			if (add_ctrl(fd,i,json))
-			{
-				break;
-			}
-		}		
+		for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
+		for (unsigned int i = V4L2_CID_PRIVATE_BASE; add_ctrl(fd,i,json) != 0 ; i++);
+		for (unsigned int i = V4L2_CTRL_FLAG_NEXT_CTRL; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
 	}
 	else
 	{
