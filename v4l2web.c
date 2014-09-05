@@ -232,8 +232,8 @@ static int send_formats_reply(struct mg_connection *conn)
 			else 
 			{
 				frameSize["min_width"] = frmsize.stepwise.min_width;
-				frameSize["max_width"] = frmsize.stepwise.max_width;
 				frameSize["min_height"] = frmsize.stepwise.min_height;
+				frameSize["max_width"] = frmsize.stepwise.max_width;
 				frameSize["max_height"] = frmsize.stepwise.max_height;
 			}
 			frameSizeList.append(frameSize);
