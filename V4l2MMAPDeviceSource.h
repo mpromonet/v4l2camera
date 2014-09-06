@@ -29,6 +29,7 @@ class V4L2MMAPDeviceSource : public V4L2Device
 		virtual bool captureStart();
 		virtual size_t read(char* buffer, size_t bufferSize);
 		virtual bool captureStop();
+		bool isRunning() { return (n_buffers != 0);};
 	
 	protected:
 		int n_buffers;

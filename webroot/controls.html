@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="App">
 <head>
 	<title>V4L2 Controls</title>
 	<script src="angular.min.js"></script>
@@ -13,7 +13,6 @@
 			Controls.query(function(data) { $scope.controlList = data; } );
 			
 			$scope.update = function(controlid,controlvalue) {
-				alert(controlid+"/"+controlvalue);
 				var param = {};
 				param[controlid] = controlvalue;
 				Controls.get(param, function(data) { if (data.errno != 0) alert(data.error);} );
@@ -27,8 +26,8 @@
 		]);	
 	</script>
 </head>
-<body ng-cloak ng-app="App">
-	<table ng-controller="AppController">
+<body ng-controller="AppController">
+	<table>
 		<h1><center>V4L2 Controls</center></h1>
 		<thead>
 			<tr>

@@ -29,13 +29,22 @@ struct image
 	ssize_t m_length;
 };
 
-static int iterate_callback(struct mg_connection *c, enum mg_event ) 
+static int iterate_callback(struct mg_connection *conn, enum mg_event ) 
 {
-	if (c->is_websocket) 
+	image* img = (image*)conn->callback_param;
+	if (conn->is_websocket) 
 	{
-		image* img = (image*)c->callback_param;
-		mg_websocket_write(c, WEBSOCKET_OPCODE_BINARY, img->m_buffer, img->m_length);
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, img->m_buffer, img->m_length);
 	}
+	else if (conn->uri && strcmp(conn->uri,"jpeg") == 0)		
+	{
+		fprintf(stderr, "mjpeg\n");
+		mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
+			"Content-Length: %llu\r\n\r\n", (unsigned long long) img->m_length);
+		mg_write(conn, img->m_buffer, img->m_length);
+		mg_write(conn, "\r\n", 2);
+	}
+    
 	return MG_TRUE;
 }
 
@@ -167,6 +176,32 @@ static int send_inputs_reply(struct mg_connection *conn)
 	return MG_TRUE;
 }
 
+void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
+{
+	Json::Value frameIntervals;
+	struct v4l2_frmivalenum frmival;
+	frmival.index = 0;
+	frmival.pixel_format = pixelformat;
+	frmival.width = width;
+	frmival.height = height;
+	while (ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == 0) 
+	{
+		Json::Value frameInter;
+		if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
+		{
+			frameInter["fps"] = 1.0*frmival.discrete.numerator/frmival.discrete.denominator;
+		}
+		else
+		{
+			frameInter["min_fps"] = 1.0*frmival.stepwise.min.numerator/frmival.stepwise.min.denominator;
+			frameInter["max_fps"] = 1.0*frmival.stepwise.max.numerator/frmival.stepwise.max.denominator;
+		}
+		frameIntervals.append(frameInter);
+		frmival.index++;
+	}
+	frameSize["intervals"] = frameIntervals;
+}
+				
 static int send_formats_reply(struct mg_connection *conn) 
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
@@ -191,7 +226,7 @@ static int send_formats_reply(struct mg_connection *conn)
 		memset(&frmsize,0,sizeof(frmsize));
 		frmsize.pixel_format = fmtdesc.pixelformat;
 		frmsize.index = 0;
-		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) >= 0) 
+		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
 		{
 			Json::Value frameSize;
 			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
@@ -199,28 +234,7 @@ static int send_formats_reply(struct mg_connection *conn)
 				frameSize["width"] = frmsize.discrete.width;
 				frameSize["height"] = frmsize.discrete.height;
 				
-				Json::Value frameIntervals;
-				struct v4l2_frmivalenum frmival;
-				frmival.index = 0;
-				frmival.pixel_format = frmsize.pixel_format;
-				frmival.width = frmsize.discrete.width;
-				frmival.height = frmsize.discrete.height;
-				while (ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) >= 0) 
-				{
-					Json::Value frameInter;
-					if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
-					{
-						frameInter["fps"] = 1.0*frmival.discrete.numerator/frmival.discrete.denominator;
-					}
-					else
-					{
-						frameInter["min_fps"] = 1.0*frmival.stepwise.min.numerator/frmival.stepwise.min.denominator;
-						frameInter["max_fps"] = 1.0*frmival.stepwise.max.numerator/frmival.stepwise.max.denominator;
-					}
-					frameIntervals.append(frameInter);
-					frmival.index++;
-				}
-				frameSize["intervals"] = frameIntervals;
+				add_frameIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height, frameSize);
 			}
 			else 
 			{
@@ -228,6 +242,10 @@ static int send_formats_reply(struct mg_connection *conn)
 				frameSize["min_height"] = frmsize.stepwise.min_height;
 				frameSize["max_width"] = frmsize.stepwise.max_width;
 				frameSize["max_height"] = frmsize.stepwise.max_height;
+				frameSize["step_width"] = frmsize.stepwise.step_width;
+				frameSize["step_height"] = frmsize.stepwise.step_height;
+
+				add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);				
 			}
 			frameSizeList.append(frameSize);
 			frmsize.index++;
@@ -271,9 +289,9 @@ static int send_controls_reply(struct mg_connection *conn)
 				control.id = strtol(key, NULL, 10);
 				control.value = strtol(value, NULL, 10);
 				errno=0;
-				ioctl(fd,VIDIOC_S_CTRL,&control);
+				json["ioctl"] = ioctl(fd,VIDIOC_S_CTRL,&control);
 				json["errno"]  = errno;
-				json["error"] = strerror(errno);
+				json["error"]  = strerror(errno);
 			}
 		}
 		free(query);
@@ -288,50 +306,61 @@ static int send_format_reply(struct mg_connection *conn)
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	int fd = dev->getFd();		
-	Json::Value json;
-	if (conn->query_string == NULL)
+	Json::Value output;
+	
+	// set format POST
+	if ( (conn->content_len != 0) && (conn->content != NULL) )
 	{
+		std::string content(conn->content, conn->content_len);
+		Json::Value input;
+		Json::Reader reader;
+		reader.parse(content,input);
+		
+		Json::StyledWriter writer;
+		std::cout << writer.write(input) << std::endl;		
+		
 		struct v4l2_format     format;
 		memset(&format,0,sizeof(format));
 		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		if (-1 != ioctl(fd,VIDIOC_G_FMT,&format))
+		if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
 		{
-			json["width"]     = format.fmt.pix.width;
-			json["height"]    = format.fmt.pix.height;
-			json["sizeimage"] = format.fmt.pix.sizeimage;
-			json["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
-			
-		}
-	}
-	else
-	{
-		char * query = strdup(conn->query_string);
-		char * key = strtok(query, "=");
-		if (key == query)
-		{
-			char * width = strtok(NULL, ",");
-			char * height = strtok(NULL, ",");
-			char * fourcc = strtok(NULL, ",");
-
-			if (width && height && fourcc && strlen(fourcc) <5)
+			format.fmt.pix.width = input.get("width",format.fmt.pix.width).asUInt();
+			format.fmt.pix.height = input.get("height",format.fmt.pix.height).asUInt();
+			std::string formatstr = input.get("format","").asString();
+			if (!formatstr.empty())
 			{
-				struct v4l2_format     format;
-				memset(&format,0,sizeof(format));
-				format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-				format.fmt.pix.width = strtol(width, NULL, 10);
-				format.fmt.pix.height = strtol(height, NULL, 10);
+				const char* fourcc[4];
+				memset(&fourcc,0, sizeof(fourcc));
+				unsigned len = sizeof(format);
+				if (formatstr.size()<len) len = formatstr.size();
+				memcpy(&fourcc,formatstr.c_str(),len);
 				format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
-				errno=0;
-				ioctl(fd,VIDIOC_S_FMT,&format);
-				json["errno"]  = errno;
-				json["error"] = strerror(errno);					
 			}
-			
-		}
-		free(query);
+			errno=0;
+			output["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
+			output["errno"]  = errno;
+			output["error"]  = strerror(errno);								
+		}		
 	}
+
+	// query the format
+	struct v4l2_format     format;
+	memset(&format,0,sizeof(format));
+	format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
+	{
+		output["width"]     = format.fmt.pix.width;
+		output["height"]    = format.fmt.pix.height;
+		output["sizeimage"] = format.fmt.pix.sizeimage;
+		output["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
+		
+	}
+	
 	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
+	std::string str (styledWriter.write(output));
+	std::cerr << str << std::endl;	
+	mg_send_header(conn,"Pragma","no-cache");
+	mg_send_header(conn,"Cache-Control:","no-cache, no-store");
 	mg_printf_data(conn, str.c_str());
 	return MG_TRUE;
 }
@@ -340,9 +369,16 @@ static int send_reply(struct mg_connection *conn)
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	if (conn->is_websocket) 
-	{	
-		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
-		return conn->content_len == 4 && !memcmp(conn->content, "exit", 4) ? MG_FALSE : MG_TRUE;
+	{			
+		if (conn->content_len == 4 && !memcmp(conn->content, "exit", 4))
+		{
+			mg_websocket_write(conn, WEBSOCKET_OPCODE_CONNECTION_CLOSE, conn->content, conn->content_len);
+		}
+		else
+		{
+			mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
+		}
+		return MG_TRUE;
 	} 
 	else if (strcmp(conn->uri,"/capabilities") ==0)
 	{
@@ -374,6 +410,16 @@ static int send_reply(struct mg_connection *conn)
 		dev->captureStop();
 		return MG_TRUE;
 	}
+	else if (strcmp(conn->uri,"/jpeg") ==0)
+	{	
+		mg_printf(conn, "%s",
+		      "HTTP/1.0 200 OK\r\n" "Cache-Control: no-cache\r\n"
+		      "Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
+		      "Connection: close\r\nContent-Type: multipart/x-mixed-replace; "
+		      "boundary=--myboundary\r\n\r\n");	
+				
+		return MG_TRUE;
+	}
 	
 	return MG_FALSE;
 }
@@ -384,6 +430,10 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 	{
 		return send_reply(conn);
 	} 
+	else if (ev == MG_CLOSE) 
+	{
+		return MG_TRUE;
+	}	
 	else if (ev == MG_AUTH) 
 	{
 		return MG_TRUE;
@@ -426,11 +476,9 @@ int main(int argc, char* argv[])
 	}	
 	
 	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,25,verbose);
-	V4L2Device* videoCapture = V4L2MMAPDeviceSource::createNew(param);
+	V4L2MMAPDeviceSource* videoCapture = V4L2MMAPDeviceSource::createNew(param);
 	if (videoCapture)
 	{	
-		videoCapture->captureStart();
-
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
 		mg_set_option(server, "listening_port", "8080");
 		std::string currentPath(get_current_dir_name());
@@ -442,33 +490,35 @@ int main(int argc, char* argv[])
 		for (;;) 
 		{
 			mg_poll_server(server, 10);
-			int fd = videoCapture->getFd();
-			struct timeval tv;
-			timerclear(&tv);
-			fd_set read_set;
-			FD_ZERO(&read_set);
-			FD_SET(fd,&read_set);
-			if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
+			if (videoCapture->isRunning())
 			{
-				if (FD_ISSET(fd,&read_set))
+				int fd = videoCapture->getFd();
+				struct timeval tv;
+				timerclear(&tv);
+				fd_set read_set;
+				FD_ZERO(&read_set);
+				FD_SET(fd,&read_set);
+				if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
 				{
-					char buf[videoCapture->getBufferSize()];
-					ssize_t size = videoCapture->read(buf, sizeof(buf));
-					if (verbose)
+					if (FD_ISSET(fd,&read_set))
 					{
-						fprintf(stderr, "read size:%d\n", size);
-					}
-					if (size>0)
-					{
-						image img(buf, size);
-						mg_iterate_over_connections(server, iterate_callback, &img);
+						char buf[videoCapture->getBufferSize()];
+						ssize_t size = videoCapture->read(buf, sizeof(buf));
+						if (verbose)
+						{
+							fprintf(stderr, "read size:%d\n", size);
+						}
+						if (size>0)
+						{
+							image img(buf, size);
+							mg_iterate_over_connections(server, iterate_callback, &img);
+						}
 					}
 				}
 			}
 		}
 		mg_destroy_server(&server);
 		
-		videoCapture->captureStop();
 		delete videoCapture;
 	}
 	

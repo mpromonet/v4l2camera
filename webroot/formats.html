@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html ng-app="App">
+<head>
+	<title>V4L2 Controls</title>
+	<script src="angular.min.js"></script>
+	<script src="angular-resource.min.js"></script>
+	<script>
+		// app
+		angular.module('App', ['App.controllers','App.services']);
+		
+		// controller
+		angular.module('App.controllers', []).controller('AppController', function($scope, Api) {
+			Api.format.query(function(data) { 
+				$scope.currentformat = data; 
+				Api.formatList.query(function(data) { 
+					$scope.formatList = data; 
+					$scope.updateSelectedFormat();
+				} );	
+			} );
+			
+			$scope.update= function(format) {
+				$scope.currentformat.format = format;
+				$scope.currentformat.$save(function(data) {
+					$scope.updateSelectedFormat();
+				});
+			}
+
+			$scope.updateSelectedFormat= function(format) {
+				$scope.selectedFormat = $scope.formatList.filter(function(item) { return item.format == $scope.currentformat.format; }) [0];
+			}
+		});
+		
+		// service
+		angular.module('App.services', ['ngResource']).factory('Api', ['$resource', function($resource){ 
+				return { 
+						formatList : $resource('/formats'), 
+						format : $resource('/format', {}, 
+									{'query':{method:'GET', isArray:false} },
+									{'update':{method:'GET'} }
+								  ) 
+					};
+			} 
+		]);	
+	</script>
+</head>
+<body ng-controller="AppController">
+	<h1><center>V4L2 Formats</center></h1>
+	<table>
+		<thead>
+			<tr>
+				<th>Format</th>
+				<th>Width</th>
+				<th>Height</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<select 
+						ng-model="selectedFormat"
+						ng-change="update(selectedFormat.format)" 					
+						ng-options="format.format for format in formatList"/>
+				</td>
+				<td>{{currentformat.width}}</td>
+				<td>{{currentformat.height}}</td>
+			</tr>
+		</tbody>
+	</table>
+	<table>
+		<thead>
+			<tr>
+				<th>Fourcc</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="format in formatList track by $index">
+				<td>{{format.format}}</td>
+				<td>{{format.description}}</td>
+			</tr>      
+		</tbody>
+	</table>
+</body>
+</html>
