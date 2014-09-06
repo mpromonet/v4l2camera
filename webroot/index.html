@@ -17,7 +17,7 @@
     websocket.binaryType = 'arraybuffer';
     websocket.onopen = function(ev) {
       out('CONNECTED');
-      var msg = 'sub';
+      var msg = 'start';
       out('SENT: ' + msg);
       websocket.send(msg);
     };
@@ -28,7 +28,7 @@
       if (!ev.data) {
         out('<span style="color: blue;">PING... </span>');
       } else if (typeof(ev.data)=="string") {
-        out('<span style="color: blue;">'+ev.data+'</span>');
+        out('<span style="color: blue;">RECV:'+ev.data+'</span>');
       } else {
       
 	var bytes = new Uint8Array(ev.data);	
@@ -43,8 +43,10 @@
 	}	
         num_messages++;
       }
-      if (num_messages > 300) {
-        websocket.send('exit');
+      if (num_messages > 60) {
+        var msg = 'stop';
+        out('SENT: ' + msg);
+        websocket.send(msg);
       }
     };
     websocket.onerror = function(ev) {

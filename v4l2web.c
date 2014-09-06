@@ -16,8 +16,9 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
+#include <stdexcept>
+	
 #include <json/json.h>
-
 #include "mongoose.h"
 
 #include "V4l2MMAPDeviceSource.h"
@@ -260,48 +261,6 @@ static int send_formats_reply(struct mg_connection *conn)
 	return MG_TRUE;
 }
 
-static int send_controls_reply(struct mg_connection *conn) 
-{
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
-	int fd = dev->getFd();		
-	Json::Value json;
-	if (conn->query_string == NULL)
-	{
-		for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
-		for (unsigned int i = V4L2_CID_PRIVATE_BASE; add_ctrl(fd,i,json) != 0 ; i++);
-		for (unsigned int i = V4L2_CTRL_FLAG_NEXT_CTRL; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
-	}
-	else
-	{
-		char * query = strdup(conn->query_string);
-		char * key = strtok(query, "=");
-		if (key == query)
-		{
-			char * value = strtok(NULL, "=");
-			if (value == NULL)
-			{
-				add_ctrl(fd,strtol(key, NULL, 10),json);
-			}
-			else
-			{
-				struct v4l2_control control;  
-				memset(&control,0,sizeof(control));
-				control.id = strtol(key, NULL, 10);
-				control.value = strtol(value, NULL, 10);
-				errno=0;
-				json["ioctl"] = ioctl(fd,VIDIOC_S_CTRL,&control);
-				json["errno"]  = errno;
-				json["error"]  = strerror(errno);
-			}
-		}
-		free(query);
-	}
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
-}
-
 static int send_format_reply(struct mg_connection *conn) 
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
@@ -359,9 +318,78 @@ static int send_format_reply(struct mg_connection *conn)
 	Json::StyledWriter styledWriter;
 	std::string str (styledWriter.write(output));
 	std::cerr << str << std::endl;	
-	mg_send_header(conn,"Pragma","no-cache");
-	mg_send_header(conn,"Cache-Control:","no-cache, no-store");
 	mg_printf_data(conn, str.c_str());
+	return MG_TRUE;
+}
+
+static int send_controls_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
+	for (unsigned int i = V4L2_CID_PRIVATE_BASE; add_ctrl(fd,i,json) != 0 ; i++);
+	for (unsigned int i = V4L2_CTRL_FLAG_NEXT_CTRL; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	mg_printf_data(conn, str.c_str());		
+	return MG_TRUE;
+}
+
+static int send_control_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int fd = dev->getFd();		
+	Json::Value json;
+	
+	
+	if ( (conn->content_len != 0) && (conn->content != NULL) )
+	{
+		std::string content(conn->content, conn->content_len);
+		Json::Value input;
+		Json::Reader reader;
+		reader.parse(content,input);
+		
+		Json::StyledWriter writer;
+		std::cout << writer.write(input) << std::endl;		
+			
+		try
+		{
+			unsigned int key = input["id"].asUInt();
+			
+			struct v4l2_control control;  
+			memset(&control,0,sizeof(control));
+			control.id = key;
+			if (input.isMember("value"))
+			{
+				int value = input["value"].asInt();
+				control.value = value;
+				errno=0;
+				json["ioctl"] = ioctl(fd,VIDIOC_S_CTRL,&control);
+				json["errno"]  = errno;
+				json["error"]  = strerror(errno);
+			}
+			else
+			{
+				errno=0;
+				json["ioctl"] = ioctl(fd,VIDIOC_G_CTRL,&control);
+				json["errno"]  = errno;
+				json["error"]  = strerror(errno);
+			}
+			json["id"] = control.id;
+			json["value"] = control.value;
+			
+		}
+		catch (const std::runtime_error &e)
+		{
+			json["exception"]  = e.what();
+		}
+		
+	}
+	Json::StyledWriter styledWriter;
+	std::string str (styledWriter.write(json));
+	std::cerr << str << std::endl;		
+	mg_printf_data(conn, str.c_str());		
 	return MG_TRUE;
 }
 
@@ -370,8 +398,14 @@ static int send_reply(struct mg_connection *conn)
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	if (conn->is_websocket) 
 	{			
-		if (conn->content_len == 4 && !memcmp(conn->content, "exit", 4))
+		if (conn->content_len == 5 && !memcmp(conn->content, "start", 5))
 		{
+			dev->captureStart();
+			mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
+		}
+		else if (conn->content_len == 4 && !memcmp(conn->content, "stop", 4))
+		{
+			dev->captureStop();
 			mg_websocket_write(conn, WEBSOCKET_OPCODE_CONNECTION_CLOSE, conn->content, conn->content_len);
 		}
 		else
@@ -392,14 +426,18 @@ static int send_reply(struct mg_connection *conn)
 	{	
 		return send_formats_reply(conn);
 	}
-	else if (strcmp(conn->uri,"/controls") ==0)
-	{	
-		return send_controls_reply(conn);
-	}	
 	else if (strcmp(conn->uri,"/format") ==0)
 	{	
 		return send_format_reply(conn);
 	}
+	else if (strcmp(conn->uri,"/controls") ==0)
+	{	
+		return send_controls_reply(conn);
+	}	
+	else if (strcmp(conn->uri,"/control") ==0)
+	{	
+		return send_control_reply(conn);
+	}	
 	else if (strcmp(conn->uri,"/start") ==0)
 	{	
 		dev->captureStart();

@@ -9,19 +9,23 @@
 		angular.module('App', ['App.controllers','App.services']);
 		
 		// controller
-		angular.module('App.controllers', []).controller('AppController', function($scope, Controls) {
-			Controls.query(function(data) { $scope.controlList = data; } );
+		angular.module('App.controllers', []).controller('AppController', function($scope, Api) {
+			Api.controlList.query(function(data) { $scope.controlList = data; } );
 			
-			$scope.update = function(controlid,controlvalue) {
-				var param = {};
-				param[controlid] = controlvalue;
-				Controls.get(param, function(data) { if (data.errno != 0) alert(data.error);} );
+			$scope.update = function(controlid,controlvalue,idx) {
+				var ctrl = {};
+				ctrl.id = parseInt(controlid);
+				ctrl.value = parseInt(controlvalue); 
+				Api.control.update(ctrl,function(data) { $scope.controlList[idx].value = data.value; } );
 			}			
 		});
 		
 		// service
-		angular.module('App.services', ['ngResource']).factory('Controls', ['$resource', function($resource){ 
-				return $resource('/controls');
+		angular.module('App.services', ['ngResource']).factory('Api', ['$resource', function($resource){ 
+				return {
+						controlList : $resource('/controls'),
+						control : $resource('/control',{},{'update':{method:'POST'}})
+					}
 			} 
 		]);	
 	</script>
@@ -49,12 +53,12 @@
 							ng-init="choice = ( control.menu | filter:{value:control.value}:true ) [0]" 
 							ng-model="choice" 
 							ng-options="menu.label for menu in control.menu"
-							ng-change="update(control.id,choice.value)"
+							ng-change="update(control.id,choice.value,$index)"
 							style="width: 300px"/>
 					<input ng-if="!control.menu"
 							ng-model="controlList[$index].value"
 							ng-trim="false" 
-							ng-keypress="($event.which === 13)?update(control.id,controlList[$index].value):0"
+							ng-keypress="($event.which === 13)?update(control.id,controlList[$index].value,$index):0"
 							type="text" 
 							style="width: 300px"/>
 				</td>
