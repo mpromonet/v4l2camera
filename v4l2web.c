@@ -64,7 +64,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 			if (0 == ioctl(fd,VIDIOC_G_CTRL,&control))
 			{
 				Json::Value value;
-				value["id"] = i;
+				value["id"] = control.id;
 				value["name"] = (const char*)qctrl.name;
 				value["type"] = qctrl.type;
 				value["minimum"] = qctrl.minimum;
@@ -228,26 +228,29 @@ static int send_formats_reply(struct mg_connection *conn)
 		frmsize.index = 0;
 		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
 		{
-			Json::Value frameSize;
 			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
 			{				
+				Json::Value frameSize;
 				frameSize["width"] = frmsize.discrete.width;
 				frameSize["height"] = frmsize.discrete.height;
-				
 				add_frameIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height, frameSize);
+				frameSizeList.append(frameSize);
 			}
 			else 
 			{
-				frameSize["min_width"] = frmsize.stepwise.min_width;
-				frameSize["min_height"] = frmsize.stepwise.min_height;
-				frameSize["max_width"] = frmsize.stepwise.max_width;
-				frameSize["max_height"] = frmsize.stepwise.max_height;
-				frameSize["step_width"] = frmsize.stepwise.step_width;
-				frameSize["step_height"] = frmsize.stepwise.step_height;
-
-				add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);				
+				for (unsigned int width = frmsize.stepwise.min_width; width<frmsize.stepwise.max_width; width += frmsize.stepwise.step_width)
+				{
+					for (unsigned int height = frmsize.stepwise.min_height; height<frmsize.stepwise.max_height; height += frmsize.stepwise.step_height)
+					{
+						Json::Value frameSize;
+						frameSize["width"] = width;
+						frameSize["height"] = height;						
+						add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);				
+						frameSizeList.append(frameSize);
+					}
+				}
+				
 			}
-			frameSizeList.append(frameSize);
 			frmsize.index++;
 		}
 		value["frameSizes"]     = frameSizeList;
@@ -327,8 +330,7 @@ static int send_controls_reply(struct mg_connection *conn)
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
-	for (unsigned int i = V4L2_CID_PRIVATE_BASE; add_ctrl(fd,i,json) != 0 ; i++);
-	for (unsigned int i = V4L2_CTRL_FLAG_NEXT_CTRL; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
+	for (unsigned int i = V4L2_CID_LASTP1+1; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
 	Json::StyledWriter styledWriter;
 	std::string str (styledWriter.write(json));
 	mg_printf_data(conn, str.c_str());		
