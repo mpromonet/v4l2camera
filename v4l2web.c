@@ -37,14 +37,13 @@ static int iterate_callback(struct mg_connection *conn, enum mg_event )
 	{
 		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, img->m_buffer, img->m_length);
 	}
-	else if (conn->uri && strcmp(conn->uri,"jpeg") == 0)		
+	else if (conn->uri && strcmp(conn->uri,"/jpeg") == 0)		
 	{
-		fprintf(stderr, "mjpeg\n");
 		mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
 			"Content-Length: %llu\r\n\r\n", (unsigned long long) img->m_length);
 		mg_write(conn, img->m_buffer, img->m_length);
-		mg_write(conn, "\r\n", 2);
-	}
+		mg_write(conn,"\r\n",2);
+	}	
     
 	return MG_TRUE;
 }
@@ -453,10 +452,9 @@ static int send_reply(struct mg_connection *conn)
 		mg_printf(conn, "%s",
 		      "HTTP/1.0 200 OK\r\n" "Cache-Control: no-cache\r\n"
 		      "Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
-		      "Connection: close\r\nContent-Type: multipart/x-mixed-replace; "
-		      "boundary=--myboundary\r\n\r\n");	
+		      "Connection: close\r\nContent-Type: multipart/x-mixed-replace; boundary=--myboundary\r\n\r\n");	
 				
-		return MG_TRUE;
+		return MG_MORE;
 	}
 	
 	return MG_FALSE;
@@ -468,14 +466,10 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 	{
 		return send_reply(conn);
 	} 
-	else if (ev == MG_CLOSE) 
-	{
-		return MG_TRUE;
-	}	
 	else if (ev == MG_AUTH) 
 	{
 		return MG_TRUE;
-	} 
+	}
 	else 
 	{
 		return MG_FALSE;
@@ -486,8 +480,9 @@ int main(int argc, char* argv[])
 {	
 	int verbose=0;
 	const char *dev_name = "/dev/video0";	
-	int width = 640;
-	int height = 480;	
+	int width = 320;
+	int height = 240;	
+	int fps = 10;	
 	int c = 0;     
 	while ((c = getopt (argc, argv, "hW:H:Q:P:F:v::O:T:mM")) != -1)
 	{
@@ -496,6 +491,7 @@ int main(int argc, char* argv[])
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
+			case 'F':	fps = atoi(optarg); break;
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] [device]" << std::endl;
@@ -503,6 +499,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -v v     : very verbose " << std::endl;
 				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
 			}
@@ -513,7 +510,7 @@ int main(int argc, char* argv[])
 		dev_name = argv[optind];
 	}	
 	
-	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,25,verbose);
+	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,fps,verbose);
 	V4L2MMAPDeviceSource* videoCapture = V4L2MMAPDeviceSource::createNew(param);
 	if (videoCapture)
 	{	
