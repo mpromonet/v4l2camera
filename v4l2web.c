@@ -527,7 +527,7 @@ int main(int argc, char* argv[])
 		for (;;) 
 		{
 			mg_poll_server(server, 10);
-			if (videoCapture->isRunning())
+			if (videoCapture->isReady())
 			{
 				int fd = videoCapture->getFd();
 				struct timeval tv;
