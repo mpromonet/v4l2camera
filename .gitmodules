@@ -1,0 +1,6 @@
+[submodule "v4l2web/mongoose"]
+	path = mongoose
+	url = https://github.com/cesanta/mongoose.git
+[submodule "v4l2web/h264_v4l2_rtspserver"]
+	path = h264_v4l2_rtspserver
+	url = https://github.com/mpromonet/h264_v4l2_rtspserver.git
