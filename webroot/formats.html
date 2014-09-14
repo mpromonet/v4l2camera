@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html ng-app="App">
 <head>
-	<title>V4L2 Controls</title>
+	<title>V4L2 Formats</title>
 	<script src="angular.min.js"></script>
 	<script src="angular-resource.min.js"></script>
+	<script src="angular-ui-utils.min.js"></script>	
 	<script>
 		// app
-		angular.module('App', ['App.controllers','App.services']);
+		angular.module('App', ['App.controllers','App.services','ui.utils']);
 		
 		// controller
 		angular.module('App.controllers', []).controller('AppController', function($scope, Api) {
@@ -18,15 +19,19 @@
 				} );	
 			} );
 			
-			$scope.update= function(format) {
-				$scope.currentformat.format = format;
+			$scope.update= function(format,width,height) {
+				if (format) $scope.currentformat.format = format;
+				$scope.currentformat.width = parseInt(width);
+				$scope.currentformat.height = parseInt(height);
 				$scope.currentformat.$save(function(data) {
 					$scope.updateSelectedFormat();
 				});
 			}
 
 			$scope.updateSelectedFormat= function(format) {
-				$scope.selectedFormat = $scope.formatList.filter(function(item) { return item.format == $scope.currentformat.format; }) [0];
+				$scope.selectedFormat = $scope.formatList.filter(function(item) { return item.format === $scope.currentformat.format; }) [0];
+				$scope.selectedFormat.width = $scope.currentformat.width;
+				$scope.selectedFormat.height = $scope.currentformat.height;
 			}
 		});
 		
@@ -56,13 +61,32 @@
 		<tbody>
 			<tr>
 				<td>
-					<select 
-						ng-model="selectedFormat"
-						ng-change="update(selectedFormat.format)" 					
+					<select ng-model="selectedFormat"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)" 					
 						ng-options="format.format for format in formatList"/>
 				</td>
-				<td>{{currentformat.width}}</td>
-				<td>{{currentformat.height}}</td>
+				<td>
+					<input  ng-model="selectedFormat.width" 
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						type="text" size="5">
+					<input  ng-model="selectedFormat.width"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						type="range"
+						min="{{selectedFormat.frameSizes[0].width.min}}" 
+						max="{{selectedFormat.frameSizes[0].width.max}}" 
+						step="{{selectedFormat.frameSizes[0].width.step}}"/>
+				</td>
+				<td>
+					<input  ng-model="selectedFormat.height" 
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						type="text" size="5">
+					<input  ng-model="selectedFormat.height" 
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						type="range" 
+						min="{{selectedFormat.frameSizes[0].height.min}}" 
+						max="{{selectedFormat.frameSizes[0].height.max}}" 
+						step="{{selectedFormat.frameSizes[0].height.step}}"/>
+				</td>
 			</tr>
 		</tbody>
 	</table>

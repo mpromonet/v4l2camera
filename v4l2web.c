@@ -238,18 +238,21 @@ static int send_formats_reply(struct mg_connection *conn)
 			}
 			else 
 			{
-				for (unsigned int width = frmsize.stepwise.min_width; width<frmsize.stepwise.max_width; width += frmsize.stepwise.step_width)
-				{
-					for (unsigned int height = frmsize.stepwise.min_height; height<frmsize.stepwise.max_height; height += frmsize.stepwise.step_height)
-					{
-						Json::Value frameSize;
-						frameSize["width"] = width;
-						frameSize["height"] = height;						
-						add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);				
-						frameSizeList.append(frameSize);
-					}
-				}
+				Json::Value frameSize;
 				
+				Json::Value width;
+				width["min"] = frmsize.stepwise.min_width;
+				width["max"] = frmsize.stepwise.max_width;
+				width["step"] = frmsize.stepwise.step_width;				
+				frameSize["width"] = width;
+				
+				Json::Value height;
+				height["min"] = frmsize.stepwise.min_height;
+				height["max"] = frmsize.stepwise.max_height;
+				height["step"] = frmsize.stepwise.step_height;				
+				frameSize["height"] = height;
+				
+				frameSizeList.append(frameSize);				
 			}
 			frmsize.index++;
 		}
@@ -285,22 +288,29 @@ static int send_format_reply(struct mg_connection *conn)
 		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
 		{
-			format.fmt.pix.width = input.get("width",format.fmt.pix.width).asUInt();
-			format.fmt.pix.height = input.get("height",format.fmt.pix.height).asUInt();
-			std::string formatstr = input.get("format","").asString();
-			if (!formatstr.empty())
+			try
 			{
-				const char* fourcc[4];
-				memset(&fourcc,0, sizeof(fourcc));
-				unsigned len = sizeof(format);
-				if (formatstr.size()<len) len = formatstr.size();
-				memcpy(&fourcc,formatstr.c_str(),len);
-				format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
+				format.fmt.pix.width = input.get("width",format.fmt.pix.width).asUInt();
+				format.fmt.pix.height = input.get("height",format.fmt.pix.height).asUInt();
+				std::string formatstr = input.get("format","").asString();
+				if (!formatstr.empty())
+				{
+					const char* fourcc[4];
+					memset(&fourcc,0, sizeof(fourcc));
+					unsigned len = sizeof(format);
+					if (formatstr.size()<len) len = formatstr.size();
+					memcpy(&fourcc,formatstr.c_str(),len);
+					format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
+				}
+				errno=0;
+				output["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
+				output["errno"]  = errno;
+				output["error"]  = strerror(errno);	
 			}
-			errno=0;
-			output["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
-			output["errno"]  = errno;
-			output["error"]  = strerror(errno);								
+			catch (const std::runtime_error &e)
+			{
+				output["exception"]  = e.what();
+			}			
 		}		
 	}
 
@@ -315,6 +325,12 @@ static int send_format_reply(struct mg_connection *conn)
 		output["sizeimage"] = format.fmt.pix.sizeimage;
 		output["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
 		
+	}
+	struct v4l2_captureparm parm;
+	memset(&parm,0,sizeof(parm));
+	if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
+	{
+		output["fps"]     = 1.0*parm.timeperframe.numerator/parm.timeperframe.denominator; 
 	}
 	
 	Json::StyledWriter styledWriter;
@@ -341,9 +357,8 @@ static int send_control_reply(struct mg_connection *conn)
 {
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	int fd = dev->getFd();		
-	Json::Value json;
-	
-	
+	Json::Value output;
+		
 	if ( (conn->content_len != 0) && (conn->content != NULL) )
 	{
 		std::string content(conn->content, conn->content_len);
@@ -366,29 +381,29 @@ static int send_control_reply(struct mg_connection *conn)
 				int value = input["value"].asInt();
 				control.value = value;
 				errno=0;
-				json["ioctl"] = ioctl(fd,VIDIOC_S_CTRL,&control);
-				json["errno"]  = errno;
-				json["error"]  = strerror(errno);
+				output["ioctl"] = ioctl(fd,VIDIOC_S_CTRL,&control);
+				output["errno"]  = errno;
+				output["error"]  = strerror(errno);
 			}
 			else
 			{
 				errno=0;
-				json["ioctl"] = ioctl(fd,VIDIOC_G_CTRL,&control);
-				json["errno"]  = errno;
-				json["error"]  = strerror(errno);
+				output["ioctl"] = ioctl(fd,VIDIOC_G_CTRL,&control);
+				output["errno"]  = errno;
+				output["error"]  = strerror(errno);
 			}
-			json["id"] = control.id;
-			json["value"] = control.value;
+			output["id"] = control.id;
+			output["value"] = control.value;
 			
 		}
 		catch (const std::runtime_error &e)
 		{
-			json["exception"]  = e.what();
+			output["exception"]  = e.what();
 		}
 		
 	}
 	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
+	std::string str (styledWriter.write(output));
 	std::cerr << str << std::endl;		
 	mg_printf_data(conn, str.c_str());		
 	return MG_TRUE;
