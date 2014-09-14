@@ -326,11 +326,19 @@ static int send_format_reply(struct mg_connection *conn)
 		output["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
 		
 	}
-	struct v4l2_captureparm parm;
+	struct v4l2_streamparm parm;
 	memset(&parm,0,sizeof(parm));
+	parm.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
 	{
-		output["fps"]     = 1.0*parm.timeperframe.numerator/parm.timeperframe.denominator; 
+		Json::Value capabilities;
+		if (parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) capabilities.append("V4L2_CAP_TIMEPERFRAME");
+		output["capabilities"]   = capabilities;		
+		Json::Value capturemode;
+		if (parm.parm.capture.capturemode & V4L2_MODE_HIGHQUALITY) capturemode.append("V4L2_MODE_HIGHQUALITY");
+		output["capturemode"]   = capturemode;		
+		output["readbuffers"]   = parm.parm.capture.readbuffers;		
+		output["fps"]     = 1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator; 
 	}
 	
 	Json::StyledWriter styledWriter;
