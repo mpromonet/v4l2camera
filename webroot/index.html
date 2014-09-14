@@ -1,62 +1,90 @@
 <!DOCTYPE html>
-<meta charset="utf-8" />
-<title>WebSocket Test</title>
-<script language="javascript" type="text/javascript">
-
-  var out = function(message) {
-    var div = document.createElement('div');
-    div.innerHTML = message;
-    document.getElementById('output').appendChild(div);
-  };
-
-  window.onload = function() {
-    var url = 'ws://' + location.host + '/ws';
-    var num_messages = 0;
-
-    websocket = new WebSocket(url);
-    websocket.binaryType = 'arraybuffer';
-    websocket.onopen = function(ev) {
-      out('CONNECTED');
-      var msg = 'start';
-      out('SENT: ' + msg);
-      websocket.send(msg);
-    };
-    websocket.onclose = function(ev) {
-      out('DISCONNECTED');
-    };
-    websocket.onmessage = function(ev) {
-      if (!ev.data) {
-        out('<span style="color: blue;">PING... </span>');
-      } else if (typeof(ev.data)=="string") {
-        out('<span style="color: blue;">RECV:'+ev.data+'</span>');
-      } else {
-      
-	var bytes = new Uint8Array(ev.data);	
-	var binary = "";
-	for(i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
+<html ng-app="App">
+<head>
+	<title>V4L2</title>
+	<script src="angular.min.js"></script>
+	<script src="angular-resource.min.js"></script>	
+	<script>
+		// app
+		angular.module('App', ['App.controllers','App.services']);
+		
+		// controller
+		angular.module('App.controllers', []).controller('AppController', function($scope, Api) {
+			Api.capabilities.query(function(data) { $scope.capabilities = data; } );
+			Api.format.query(function(data) { $scope.format = data; } );
+			
+			$scope.captureStart= function() {
+				Api.start.query();
+			}
+			$scope.captureStop= function() {
+				Api.stop.query();
+			}
+		});
+		
+		// service
+		angular.module('App.services', ['ngResource']).factory('Api', ['$resource', function($resource){ 
+				return {
+						capabilities : $resource('/capabilities', {}, {'query':{isArray:false}}),
+						format : $resource('/format', {},  {'query':{isArray:false} }),
+						start : $resource('/start'),
+						stop : $resource('/stop')
+					}
+			} 
+		]);	
+	</script>	
 	
-      	var img = new Image();
-	img.src = 'data:image/jpeg;base64,' + btoa(binary);
-	img.onload = function()
-	{
-		document.getElementById('canvas').getContext("2d").drawImage(this,0,0);
-	}	
-        num_messages++;
-      }
-      if (num_messages > 60) {
-        var msg = 'stop';
-        out('SENT: ' + msg);
-        websocket.send(msg);
-      }
-    };
-    websocket.onerror = function(ev) {
-      out('<span style="color: red; ">ERROR: </span> ' + ev.data);
-    };
-  };
-</script>
-<style> div {font: small Verdana; } </style>
-<h2>Mongoose WebSocket Test</h2>
+	<script language="javascript" type="text/javascript">
+	  var out = function(message) {
+	    var iframe = document.getElementById('output');
+	    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-<canvas id="canvas" width="640"  height="480"></canvas>
-<div id="output"></div>
+	    var div = iframeDoc.createElement('div');
+	    div.innerHTML = message;
+	    iframeDoc.body.appendChild(div);
+	  };
+
+	  window.onload = function() {
+	    var url = 'ws://' + location.host + '/ws';
+
+	    websocket = new WebSocket(url);
+	    websocket.binaryType = 'arraybuffer';
+	    websocket.onopen = function(ev) {
+	      out('CONNECTED');
+	    };
+	    websocket.onclose = function(ev) {
+	      out('DISCONNECTED');
+	    };
+	    websocket.onmessage = function(ev) {
+	      if (!ev.data) {
+		out('<span style="color: blue;">PING... </span>');
+	      } else if (typeof(ev.data)=="string") {
+		out('<span style="color: blue;">RECV:'+ev.data+'</span>');
+	      } else {	      
+		var bytes = new Uint8Array(ev.data);	
+		var binary = "";
+		for(i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
+		
+		var img = new Image();
+		img.src = 'data:image/jpeg;base64,' + btoa(binary);
+		img.onload = function()
+		{
+			document.getElementById('canvas').getContext("2d").drawImage(this,0,0);
+		}	
+	      }
+	    };
+	    websocket.onerror = function(ev) {
+	      out('<span style="color: red; ">ERROR: </span> ' + ev.data);
+	    };
+	  };
+	</script>
+</head>
+<body ng-controller="AppController">
+	<h2>{{capabilities.driver}}</h2>
+	<div>
+		<button ng-click="captureStart()">Start</button>
+		<button ng-click="captureStop()">Stop</button>
+	<div>
+	<canvas id="canvas" width="{{format.width}}"  height="{{format.height}}"></canvas>
+	<iframe id="output" width="100%"></iframe>
+</body>
 </html>

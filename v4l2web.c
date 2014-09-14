@@ -423,20 +423,7 @@ static int send_reply(struct mg_connection *conn)
 	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	if (conn->is_websocket) 
 	{			
-		if (conn->content_len == 5 && !memcmp(conn->content, "start", 5))
-		{
-			dev->captureStart();
-			mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
-		}
-		else if (conn->content_len == 4 && !memcmp(conn->content, "stop", 4))
-		{
-			dev->captureStop();
-			mg_websocket_write(conn, WEBSOCKET_OPCODE_CONNECTION_CLOSE, conn->content, conn->content_len);
-		}
-		else
-		{
-			mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
-		}
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
 		return MG_TRUE;
 	} 
 	else if (strcmp(conn->uri,"/capabilities") ==0)
@@ -465,14 +452,21 @@ static int send_reply(struct mg_connection *conn)
 	}	
 	else if (strcmp(conn->uri,"/start") ==0)
 	{	
-		dev->captureStart();
+		bool ret = dev->captureStart();
+		mg_printf_data(conn, "%d", ret);
 		return MG_TRUE;
 	}
 	else if (strcmp(conn->uri,"/stop") ==0)
 	{	
-		dev->captureStop();
+		bool ret = dev->captureStop();
+		mg_printf_data(conn, "%d", ret);
 		return MG_TRUE;
 	}
+	else if (strcmp(conn->uri,"/isCapturing") ==0)
+	{	
+		mg_printf_data(conn, "%d", dev->isReady());
+		return MG_TRUE;
+	}	
 	else if (strcmp(conn->uri,"/jpeg") ==0)
 	{	
 		mg_printf(conn, "%s",
