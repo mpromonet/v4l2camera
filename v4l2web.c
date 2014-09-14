@@ -189,12 +189,12 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 		Json::Value frameInter;
 		if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
 		{
-			frameInter["fps"] = 1.0*frmival.discrete.numerator/frmival.discrete.denominator;
+			frameInter["fps"] = 1.0*frmival.discrete.denominator/frmival.discrete.numerator;
 		}
 		else
 		{
-			frameInter["min_fps"] = 1.0*frmival.stepwise.min.numerator/frmival.stepwise.min.denominator;
-			frameInter["max_fps"] = 1.0*frmival.stepwise.max.numerator/frmival.stepwise.max.denominator;
+			frameInter["min_fps"] = 1.0*frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
+			frameInter["max_fps"] = 1.0*frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
 		}
 		frameIntervals.append(frameInter);
 		frmival.index++;
@@ -252,6 +252,7 @@ static int send_formats_reply(struct mg_connection *conn)
 				height["step"] = frmsize.stepwise.step_height;				
 				frameSize["height"] = height;
 				
+				add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);
 				frameSizeList.append(frameSize);				
 			}
 			frmsize.index++;
