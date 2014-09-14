@@ -32,6 +32,7 @@
 				$scope.selectedFormat = $scope.formatList.filter(function(item) { return item.format === $scope.currentformat.format; }) [0];
 				$scope.selectedFormat.width = $scope.currentformat.width;
 				$scope.selectedFormat.height = $scope.currentformat.height;
+				$scope.selectedFormat.fps = $scope.currentformat.fps;
 			}
 		});
 		
@@ -56,6 +57,7 @@
 				<th>Format</th>
 				<th>Width</th>
 				<th>Height</th>
+				<th>Fps</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -68,7 +70,7 @@
 				<td>
 					<input  ng-model="selectedFormat.width" 
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
-						type="text" size="5">
+						type="text" size="5"/>
 					<input  ng-model="selectedFormat.width"
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
 						type="range"
@@ -79,13 +81,17 @@
 				<td>
 					<input  ng-model="selectedFormat.height" 
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
-						type="text" size="5">
+						type="text" size="5"/>
 					<input  ng-model="selectedFormat.height" 
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
 						type="range" 
 						min="{{selectedFormat.frameSizes[0].height.min}}" 
 						max="{{selectedFormat.frameSizes[0].height.max}}" 
 						step="{{selectedFormat.frameSizes[0].height.step}}"/>
+				</td>
+				<td>
+					<input  ng-model="selectedFormat.fps" 
+						type="text" size="5"/>
 				</td>
 			</tr>
 		</tbody>
