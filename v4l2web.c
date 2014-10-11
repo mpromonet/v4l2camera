@@ -461,11 +461,13 @@ static int send_reply(struct mg_connection *conn)
 	}	
 	else if (strcmp(conn->uri,"/jpeg") ==0)
 	{	
-		mg_printf(conn, "%s",
-		      "HTTP/1.0 200 OK\r\n" "Cache-Control: no-cache\r\n"
-		      "Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
-		      "Connection: close\r\nContent-Type: multipart/x-mixed-replace; boundary=--myboundary\r\n\r\n");	
-				
+		dev->captureStart();
+		mg_send_header(conn, "Cache-Control", "no-cache");
+		mg_send_header(conn, "Pragma", "no-cache");
+		mg_send_header(conn, "Expires", "Thu, 01 Dec 1994 16:00:00 GMT");
+		mg_send_header(conn, "Connection", "close");
+		mg_send_header(conn, "Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
+		mg_write(conn,"\r\n",2);
 		return MG_MORE;
 	}
 	
@@ -474,18 +476,20 @@ static int send_reply(struct mg_connection *conn)
 
 static int ev_handler(struct mg_connection *conn, enum mg_event ev) 
 {
-	if (ev == MG_REQUEST) 
+	int ret = MG_FALSE;
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	switch (ev) 
 	{
-		return send_reply(conn);
+		case MG_AUTH: ret = MG_TRUE; break;
+		case MG_REQUEST: ret = send_reply(conn); break;
+		case MG_CLOSE:
+		{
+			if (strcmp(conn->uri,"/jpeg")==0)  dev->captureStop();
+		}
+		break;
+		default: break;
 	} 
-	else if (ev == MG_AUTH) 
-	{
-		return MG_TRUE;
-	}
-	else 
-	{
-		return MG_FALSE;
-	}
+	return ret;
 }
 
 int main(int argc, char* argv[]) 
