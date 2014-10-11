@@ -410,81 +410,105 @@ static int send_control_reply(struct mg_connection *conn)
 	return MG_TRUE;
 }
 
-static int send_reply(struct mg_connection *conn) 
+static int send_ws_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	int ret = MG_FALSE;
 	if (conn->is_websocket) 
 	{			
 		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
-		return MG_TRUE;
+		ret=MG_TRUE;
 	} 
-	else if (strcmp(conn->uri,"/capabilities") ==0)
-	{
-		return send_capabilities_reply(conn);
-	}
-	else if (strcmp(conn->uri,"/inputs") ==0)
-	{
-		return send_inputs_reply(conn);
-	}
-	else if (strcmp(conn->uri,"/formats") ==0)
-	{	
-		return send_formats_reply(conn);
-	}
-	else if (strcmp(conn->uri,"/format") ==0)
-	{	
-		return send_format_reply(conn);
-	}
-	else if (strcmp(conn->uri,"/controls") ==0)
-	{	
-		return send_controls_reply(conn);
-	}	
-	else if (strcmp(conn->uri,"/control") ==0)
-	{	
-		return send_control_reply(conn);
-	}	
-	else if (strcmp(conn->uri,"/start") ==0)
-	{	
-		bool ret = dev->captureStart();
-		mg_printf_data(conn, "%d", ret);
-		return MG_TRUE;
-	}
-	else if (strcmp(conn->uri,"/stop") ==0)
-	{	
-		bool ret = dev->captureStop();
-		mg_printf_data(conn, "%d", ret);
-		return MG_TRUE;
-	}
-	else if (strcmp(conn->uri,"/isCapturing") ==0)
-	{	
-		mg_printf_data(conn, "%d", dev->isReady());
-		return MG_TRUE;
-	}	
-	else if (strcmp(conn->uri,"/jpeg") ==0)
-	{	
-		dev->captureStart();
-		mg_send_header(conn, "Cache-Control", "no-cache");
-		mg_send_header(conn, "Pragma", "no-cache");
-		mg_send_header(conn, "Expires", "Thu, 01 Dec 1994 16:00:00 GMT");
-		mg_send_header(conn, "Connection", "close");
-		mg_send_header(conn, "Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
-		mg_write(conn,"\r\n",2);
-		return MG_MORE;
-	}
-	
-	return MG_FALSE;
+	return ret;
 }
+
+static int send_start_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	dev->captureStart();
+	return MG_TRUE;
+}
+
+static int send_stop_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	dev->captureStop();
+	return MG_TRUE;
+}
+
+static int send_isCapturing_reply(struct mg_connection *conn) 
+{
+	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	mg_printf_data(conn, "%d", dev->isReady());
+	return MG_TRUE;
+}
+
+static int send_jpeg_reply(struct mg_connection *conn) 
+{
+	mg_send_header(conn, "Cache-Control", "no-cache");
+	mg_send_header(conn, "Pragma", "no-cache");
+	mg_send_header(conn, "Expires", "Thu, 01 Dec 1994 16:00:00 GMT");
+	mg_send_header(conn, "Connection", "close");
+	mg_send_header(conn, "Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
+	mg_write(conn,"\r\n",2);
+	send_start_reply(conn);
+	return MG_MORE;
+}
+
+typedef int (*callback)(struct mg_connection *conn);
+static const struct 
+{
+	const char* uri;
+	callback handle_req;
+	callback handle_close;
+} urls [] = {
+	{ "/capabilities", send_capabilities_reply, NULL },
+	{ "/inputs", send_inputs_reply, NULL },
+	{ "/formats", send_formats_reply, NULL },
+	{ "/format", send_format_reply, NULL },
+	{ "/controls", send_controls_reply, NULL },
+	{ "/control", send_control_reply, NULL },
+	{ "/ws", send_ws_reply, NULL },
+	{ "/jpeg", send_jpeg_reply, send_stop_reply },
+	{ "/start", send_start_reply, NULL },
+	{ "/stop", send_stop_reply, NULL },
+	{ "/isCapturing", send_isCapturing_reply, NULL },
+	{ NULL, NULL, NULL },
+};
 
 static int ev_handler(struct mg_connection *conn, enum mg_event ev) 
 {
 	int ret = MG_FALSE;
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
 	switch (ev) 
 	{
 		case MG_AUTH: ret = MG_TRUE; break;
-		case MG_REQUEST: ret = send_reply(conn); break;
+		case MG_REQUEST: 
+		{
+			if (conn->uri != NULL)
+			{
+				for (int i=0; urls[i].uri ; ++i)
+				{
+					if (strcmp(urls[i].uri, conn->uri) == 0)
+					{
+						if (urls[i].handle_req) ret = urls[i].handle_req(conn);
+						break;
+					}
+				}
+			}
+		}
+		break;
 		case MG_CLOSE:
 		{
-			if (strcmp(conn->uri,"/jpeg")==0)  dev->captureStop();
+			if (conn->uri != NULL)
+			{
+				for (int i=0; urls[i].uri ; ++i)
+				{
+					if (strcmp(urls[i].uri, conn->uri) == 0)
+					{
+						if (urls[i].handle_close) ret = urls[i].handle_close(conn);
+						break;
+					}
+				}
+			}
 		}
 		break;
 		default: break;
