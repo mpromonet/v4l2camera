@@ -23,25 +23,17 @@
 
 #include "V4l2MMAPDeviceSource.h"
 
-struct image 
+static int iterate_callback(struct mg_connection *conn, char* buffer, ssize_t size) 
 {
-	image(char* buffer, ssize_t length) : m_buffer(buffer), m_length(length) {}
-	char* m_buffer;
-	ssize_t m_length;
-};
-
-static int iterate_callback(struct mg_connection *conn, enum mg_event ) 
-{
-	image* img = (image*)conn->callback_param;
 	if (conn->is_websocket) 
 	{
-		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, img->m_buffer, img->m_length);
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, buffer, size);
 	}
 	else if (conn->uri && strcmp(conn->uri,"/jpeg") == 0)		
 	{
 		mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
-			"Content-Length: %llu\r\n\r\n", (unsigned long long) img->m_length);
-		mg_write(conn, img->m_buffer, img->m_length);
+			"Content-Length: %llu\r\n\r\n", (unsigned long long) size);
+		mg_write(conn, buffer, size);
 		mg_write(conn,"\r\n",2);
 	}	
     
@@ -557,16 +549,20 @@ int main(int argc, char* argv[])
 				{
 					if (FD_ISSET(fd,&read_set))
 					{
+						// read image
 						char buf[videoCapture->getBufferSize()];
 						ssize_t size = videoCapture->read(buf, sizeof(buf));
 						if (verbose)
 						{
 							fprintf(stderr, "read size:%d\n", size);
 						}
+						// post to subscribers
 						if (size>0)
 						{
-							image img(buf, size);
-							mg_iterate_over_connections(server, iterate_callback, &img);
+							for (struct mg_connection *c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) 
+							{
+								iterate_callback(c, buf, size);
+							}
 						}
 					}
 				}
