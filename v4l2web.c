@@ -185,8 +185,9 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 		}
 		else
 		{
-			frameInter["min_fps"] = 1.0*frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
-			frameInter["max_fps"] = 1.0*frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
+			frameInter["min"] = 1.0*frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
+			frameInter["max"] = 1.0*frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
+			frameInter["step"] = 1.0*frmival.stepwise.step.denominator/frmival.stepwise.step.numerator;
 		}
 		frameIntervals.append(frameInter);
 		frmival.index++;
@@ -305,6 +306,26 @@ static int send_format_reply(struct mg_connection *conn)
 				output["exception"]  = e.what();
 			}			
 		}		
+		struct v4l2_streamparm parm;
+		memset(&parm,0,sizeof(parm));
+		parm.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
+		{
+			try
+			{
+				float fps = input.get("fps",1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asFloat();
+				parm.parm.capture.timeperframe.denominator=uint(1.0/fps);
+				parm.parm.capture.timeperframe.numerator=1;
+				errno=0;
+				output["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
+				output["errno"]  = errno;
+				output["error"]  = strerror(errno);	
+			}
+			catch (const std::runtime_error &e)
+			{
+				output["exception"]  = e.what();
+			}			
+		}
 	}
 
 	// query the format

@@ -19,10 +19,11 @@
 				} );	
 			} );
 			
-			$scope.update= function(format,width,height) {
+			$scope.update= function(format,width,height,fps) {
 				if (format) $scope.currentformat.format = format;
 				$scope.currentformat.width = parseInt(width);
 				$scope.currentformat.height = parseInt(height);
+				$scope.currentformat.fps = parseFloat(fps);
 				$scope.currentformat.$save(function(data) {
 					$scope.updateSelectedFormat();
 				});
@@ -50,7 +51,7 @@
 	</script>
 </head>
 <body ng-controller="AppController">
-	<h1><center>V4L2 Formats</center></h1>
+	<h3><center>V4L2 Formats</center></h3>
 	<table>
 		<thead>
 			<tr>
@@ -64,15 +65,15 @@
 			<tr>
 				<td>
 					<select ng-model="selectedFormat"
-						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)" 					
-						ng-options="format.format for format in formatList"/>
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)" 					
+						ng-options="format.format for format in formatList" />
 				</td>
 				<td>
 					<input  ng-model="selectedFormat.width" 
-						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="text" size="5"/>
 					<input  ng-model="selectedFormat.width"
-						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="range"
 						min="{{selectedFormat.frameSizes[0].width.min}}" 
 						max="{{selectedFormat.frameSizes[0].width.max}}" 
@@ -80,10 +81,10 @@
 				</td>
 				<td>
 					<input  ng-model="selectedFormat.height" 
-						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="text" size="5"/>
 					<input  ng-model="selectedFormat.height" 
-						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height)"
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="range" 
 						min="{{selectedFormat.frameSizes[0].height.min}}" 
 						max="{{selectedFormat.frameSizes[0].height.max}}" 
@@ -92,22 +93,14 @@
 				<td>
 					<input  ng-model="selectedFormat.fps" 
 						type="text" size="5"/>
+					<input  ng-model="selectedFormat.fps" 
+						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
+						type="range" 
+						min="{{selectedFormat.frameSizes[0].intervals.min}}" 
+						max="{{selectedFormat.frameSizes[0].intervals.max}}" 
+						step="{{selectedFormat.frameSizes[0].intervals.step}}"/>
 				</td>
 			</tr>
-		</tbody>
-	</table>
-	<table>
-		<thead>
-			<tr>
-				<th>Fourcc</th>
-				<th>Description</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="format in formatList track by $index">
-				<td>{{format.format}}</td>
-				<td>{{format.description}}</td>
-			</tr>      
 		</tbody>
 	</table>
 </body>
