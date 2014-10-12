@@ -56,11 +56,12 @@
 							ng-change="update(control.id,choice.value,$index)"
 							style="width: 300px"/>
 					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
-							ng-init="min=controlList[$index].minimum; max=controlList[$index].maximum"
 							ng-model="controlList[$index].value"
 							ng-trim="false" 
 							ng-change="update(control.id,controlList[$index].value,$index)"
 							type="range" 
+							min="{{controlList[$index].minimum}}"
+							max="{{controlList[$index].maximum}}"
 							style="width: 300px"/>
 					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
 							ng-init="checked = controlList[$index].value" 
