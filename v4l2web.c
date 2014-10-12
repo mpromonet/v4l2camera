@@ -455,7 +455,7 @@ static int send_jpeg_reply(struct mg_connection *conn)
 }
 
 typedef int (*callback)(struct mg_connection *conn);
-static const struct 
+static const struct url_handler
 {
 	const char* uri;
 	callback handle_req;
@@ -475,6 +475,23 @@ static const struct
 	{ NULL, NULL, NULL },
 };
 
+const url_handler* find_url(const char* uri)
+{
+	const url_handler* url = NULL;
+	if (uri != NULL)
+	{
+		for (int i=0; urls[i].uri ; ++i)
+		{
+			if (strcmp(urls[i].uri, uri) == 0)
+			{
+				url = &urls[i];
+				break;
+			}
+		}
+	}
+	return url;
+}
+
 static int ev_handler(struct mg_connection *conn, enum mg_event ev) 
 {
 	int ret = MG_FALSE;
@@ -483,31 +500,19 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 		case MG_AUTH: ret = MG_TRUE; break;
 		case MG_REQUEST: 
 		{
-			if (conn->uri != NULL)
+			const url_handler* url = find_url(conn->uri);
+			if (url && url->handle_req)
 			{
-				for (int i=0; urls[i].uri ; ++i)
-				{
-					if (strcmp(urls[i].uri, conn->uri) == 0)
-					{
-						if (urls[i].handle_req) ret = urls[i].handle_req(conn);
-						break;
-					}
-				}
+				ret = url->handle_req(conn);
 			}
 		}
 		break;
 		case MG_CLOSE:
 		{
-			if (conn->uri != NULL)
+			const url_handler* url = find_url(conn->uri);
+			if (url && url->handle_close)
 			{
-				for (int i=0; urls[i].uri ; ++i)
-				{
-					if (strcmp(urls[i].uri, conn->uri) == 0)
-					{
-						if (urls[i].handle_close) ret = urls[i].handle_close(conn);
-						break;
-					}
-				}
+				ret = url->handle_close(conn);
 			}
 		}
 		break;
@@ -523,8 +528,9 @@ int main(int argc, char* argv[])
 	int width = 320;
 	int height = 240;	
 	int fps = 10;	
-	int c = 0;     
-	while ((c = getopt (argc, argv, "hW:H:Q:P:F:v::O:T:mM")) != -1)
+	int c = 0;
+	const char * port = "8080";
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::")) != -1)
 	{
 		switch (c)
 		{
@@ -532,11 +538,13 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
+			case 'P':	port = optarg; break;
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] [device]" << std::endl;
+				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [device]" << std::endl;
 				std::cout << "\t -v       : verbose " << std::endl;
 				std::cout << "\t -v v     : very verbose " << std::endl;
+				std::cout << "\t -P port  : server port (default "<< port << ")" << std::endl;
 				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
 				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
@@ -555,7 +563,7 @@ int main(int argc, char* argv[])
 	if (videoCapture)
 	{	
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
-		mg_set_option(server, "listening_port", "8080");
+		mg_set_option(server, "listening_port", port);
 		std::string currentPath(get_current_dir_name());
 		currentPath += "/webroot";
 		mg_set_option(server, "document_root", currentPath.c_str());
