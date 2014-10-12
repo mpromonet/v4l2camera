@@ -55,12 +55,18 @@
 							ng-options="menu.label for menu in control.menu"
 							ng-change="update(control.id,choice.value,$index)"
 							style="width: 300px"/>
-					<input ng-if="!control.menu"
+					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
 							ng-model="controlList[$index].value"
 							ng-trim="false" 
 							ng-keypress="($event.which === 13)?update(control.id,controlList[$index].value,$index):0"
 							type="text" 
 							style="width: 300px"/>
+					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
+							ng-init="checked = controlList[$index].value" 
+							ng-checked="checked == 1"
+							ng-model="checked" ng-true-value="1" ng-false-value="0"
+							ng-change="update(control.id,checked,$index)"
+							type="checkbox" />
 				</td>
 			</tr>      
 		</tbody>
