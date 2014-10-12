@@ -56,10 +56,11 @@
 							ng-change="update(control.id,choice.value,$index)"
 							style="width: 300px"/>
 					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
+							ng-init="min=controlList[$index].minimum; max=controlList[$index].maximum"
 							ng-model="controlList[$index].value"
 							ng-trim="false" 
-							ng-keypress="($event.which === 13)?update(control.id,controlList[$index].value,$index):0"
-							type="text" 
+							ng-change="update(control.id,controlList[$index].value,$index)"
+							type="range" 
 							style="width: 300px"/>
 					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
 							ng-init="checked = controlList[$index].value" 
