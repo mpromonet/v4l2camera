@@ -1,0 +1,8 @@
+before_install:
+- sudo apt-get update
+- sudo apt-get install libv4l-dev
+language: cpp
+compiler:
+- gcc
+script:
+- make
