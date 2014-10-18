@@ -136,8 +136,8 @@ static int send_capabilities_reply(struct mg_connection *conn)
 		json["driver"]     = (const char*)cap.driver;
 		json["card"]       = (const char*)cap.card;
 		json["bus_info"]   = (const char*)cap.bus_info;
-		Json::Value capabilities;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
+		Json::Value capabilities;
 		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
 		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT) capabilities.append("V4L2_CAP_VIDEO_OUTPUT");
 		if (cap.device_caps & V4L2_CAP_READWRITE) capabilities.append("V4L2_CAP_READWRITE");
@@ -190,13 +190,15 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 		Json::Value frameInter;
 		if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
 		{
-			frameInter["fps"] = 1.0*frmival.discrete.denominator/frmival.discrete.numerator;
+			frameInter["fps"] = frmival.discrete.denominator/frmival.discrete.numerator;
 		}
 		else
 		{
-			frameInter["min"] = 1.0*frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
-			frameInter["max"] = 1.0*frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
-			frameInter["step"] = 1.0*frmival.stepwise.step.denominator/frmival.stepwise.step.numerator;
+			Json::Value fps;
+			fps["min"] = frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
+			fps["max"] = frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
+			fps["step"] = frmival.stepwise.step.denominator/frmival.stepwise.step.numerator;
+			frameInter["fps"] = fps;
 		}
 		frameIntervals.append(frameInter);
 		frmival.index++;
@@ -240,8 +242,7 @@ static int send_formats_reply(struct mg_connection *conn)
 			}
 			else 
 			{
-				Json::Value frameSize;
-				
+				Json::Value frameSize;				
 				Json::Value width;
 				width["min"] = frmsize.stepwise.min_width;
 				width["max"] = frmsize.stepwise.max_width;
@@ -322,8 +323,7 @@ static int send_format_reply(struct mg_connection *conn)
 		{
 			try
 			{
-				float fps = input.get("fps",1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asFloat();
-				parm.parm.capture.timeperframe.denominator=uint(1.0/fps);
+				parm.parm.capture.timeperframe.denominator=input.get("fps",parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asUInt();
 				parm.parm.capture.timeperframe.numerator=1;
 				errno=0;
 				output["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
