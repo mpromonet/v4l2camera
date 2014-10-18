@@ -14,11 +14,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <linux/version.h>
 #include <linux/videodev2.h>
-// Hack to compile with kernel < 3.5
-#ifndef V4L2_CTRL_TYPE_INTEGER_MENU 
-	#define V4L2_CTRL_TYPE_INTEGER_MENU V4L2_CTRL_TYPE_MENU
-#endif
 
 #include <stdexcept>
 	
@@ -78,7 +75,11 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 				if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
 				value["flags"]   = flags;
 				
-				if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) || (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU) )
+				if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) 
+#ifdef V4L2_CTRL_TYPE_INTEGER_MENU 
+					|| (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU) 
+#endif
+				   )
 				{
 					Json::Value menu;
 					struct v4l2_querymenu querymenu;
@@ -94,10 +95,12 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 							{
 								label["label"] = (const char*)querymenu.name;
 							}
+#ifdef V4L2_CTRL_TYPE_INTEGER_MENU 
 							else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
 							{
 								label["label"] = (int)querymenu.value;
 							}
+#endif
 							menu.append(label);
 						}
 					}
@@ -134,12 +137,14 @@ static int send_capabilities_reply(struct mg_connection *conn)
 		json["card"]       = (const char*)cap.card;
 		json["bus_info"]   = (const char*)cap.bus_info;
 		Json::Value capabilities;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
 		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
 		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT) capabilities.append("V4L2_CAP_VIDEO_OUTPUT");
 		if (cap.device_caps & V4L2_CAP_READWRITE) capabilities.append("V4L2_CAP_READWRITE");
 		if (cap.device_caps & V4L2_CAP_ASYNCIO) capabilities.append("V4L2_CAP_ASYNCIO");
 		if (cap.device_caps & V4L2_CAP_STREAMING) capabilities.append("V4L2_CAP_STREAMING");
 		json["capabilities"]   = capabilities;
+#endif		
 	}
 	Json::StyledWriter styledWriter;
 	std::string str (styledWriter.write(json));
