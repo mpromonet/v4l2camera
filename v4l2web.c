@@ -303,7 +303,7 @@ static int send_format_reply(struct mg_connection *conn)
 					unsigned len = sizeof(format);
 					if (formatstr.size()<len) len = formatstr.size();
 					memcpy(&fourcc,formatstr.c_str(),len);
-					format.fmt.pix.pixelformat = v4l2_fourcc(reinterpret_cast<int>(fourcc[0]),reinterpret_cast<int>(fourcc[1]),reinterpret_cast<int>(fourcc[2]),reinterpret_cast<int>(fourcc[3]));
+					format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
 				}
 				errno=0;
 				output["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);

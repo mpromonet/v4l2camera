@@ -3,7 +3,7 @@ RM = rm -rf
 ALL_PROGS = v4l2web
 
 CC = g++
-CFLAGS += -lssl -g
+CFLAGS += -lssl -g -fpermissive
 CFLAGS += -I /usr/include/jsoncpp 
 CFLAGS += -I mongoose
 CFLAGS += -I h264_v4l2_rtspserver/inc
