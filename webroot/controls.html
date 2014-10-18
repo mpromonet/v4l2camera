@@ -62,7 +62,7 @@
 							type="range" 
 							min="{{controlList[$index].minimum}}"
 							max="{{controlList[$index].maximum}}"
-							style="width: 300px"/>
+							style="width: 300px; margin: 0px"/>
 					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
 							ng-init="checked = controlList[$index].value" 
 							ng-checked="checked == 1"
