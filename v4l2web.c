@@ -15,6 +15,10 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
+// Hack to compile with kernel < 3.5
+#ifndef V4L2_CTRL_TYPE_INTEGER_MENU 
+	#define V4L2_CTRL_TYPE_INTEGER_MENU V4L2_CTRL_TYPE_MENU
+#endif
 
 #include <stdexcept>
 	
