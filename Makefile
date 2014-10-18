@@ -14,9 +14,11 @@ all: $(ALL_PROGS)
 update:
 	git submodule foreach git pull origin master
 
-mongoose.o : mongoose/mongoose.c
+mongoose/mongoose.c:
 	git submodule init
 	git submodule update
+
+mongoose.o : mongoose/mongoose.c
 	$(CC) -o $@ -c $^
 
 v4l2web: v4l2web.c mongoose.o h264_v4l2_rtspserver/src/V4l2Device.cpp h264_v4l2_rtspserver/src/V4l2MMAPDeviceSource.cpp
