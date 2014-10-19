@@ -17,20 +17,33 @@
 				ctrl.id = parseInt(controlid);
 				ctrl.value = parseInt(controlvalue); 
 				Api.control.update(ctrl,function(data) { $scope.controlList[idx].value = data.value; } );
-			}			
-		});
+			};			
+		}).directive('ngMin', function() {
+			return {
+				restrict: 'A',
+				require: 'ngModel',
+				link: function(scope, elem, attr) { elem.attr('min', attr.ngMin); }
+			};
+		}).directive('ngMax', function() {
+			return {
+				restrict: 'A',
+				require: 'ngModel',
+				link: function(scope, elem, attr) { elem.attr('max', attr.ngMax); }
+			};
+		});		
 		
 		// service
 		angular.module('App.services', ['ngResource']).factory('Api', ['$resource', function($resource){ 
 				return {
 						controlList : $resource('/controls'),
 						control : $resource('/control',{},{'update':{method:'POST'}})
-					}
+				};
 			} 
 		]);	
+
 	</script>
 </head>
-<body ng-controller="AppController">
+<body ng-controller="AppController" >
 	<table>
 		<h3><center>V4L2 Controls</center></h3>
 		<thead>
@@ -43,7 +56,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="control in controlList track by $index">
+			<tr ng-repeat="control in controlList track by $index" >
 				<td>{{control.name}}</td>
 				<td>{{control.value}}</td>
 				<td>{{control.minimum}}</td>
@@ -55,13 +68,14 @@
 							ng-options="menu.label for menu in control.menu"
 							ng-change="update(control.id,choice.value,$index)"
 							style="width: 300px"/>
-					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
+					<input id="{{control.name}}" ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
 							ng-model="controlList[$index].value"
 							ng-trim="false" 
 							ng-change="update(control.id,controlList[$index].value,$index)"
+							ng-min="{{controlList[$index].minimum}}"
+							ng-max="{{controlList[$index].maximum}}"
 							type="range" 
-							min="{{controlList[$index].minimum}}"
-							max="{{controlList[$index].maximum}}"
+							step="{{controlList[$index].step}}"
 							style="width: 300px; margin: 0px"/>
 					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
 							ng-init="checked = controlList[$index].value" 
