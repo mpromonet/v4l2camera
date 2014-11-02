@@ -22,7 +22,7 @@
 #include <json/json.h>
 #include "mongoose.h"
 
-#include "V4l2MMAPDeviceSource.h"
+#include "V4l2MmapCapture.h"
 
 static int iterate_callback(struct mg_connection *conn, char* buffer, ssize_t size) 
 {
@@ -126,7 +126,7 @@ std::string get_fourcc(unsigned int pixelformat)
 
 static int send_capabilities_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	v4l2_capability cap;
@@ -154,7 +154,7 @@ static int send_capabilities_reply(struct mg_connection *conn)
 
 static int send_inputs_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (int i = 0;; i++) 
@@ -208,7 +208,7 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 				
 static int send_formats_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (int i = 0;; i++) 
@@ -272,7 +272,7 @@ static int send_formats_reply(struct mg_connection *conn)
 
 static int send_format_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value output;
 	
@@ -373,7 +373,7 @@ static int send_format_reply(struct mg_connection *conn)
 
 static int send_controls_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
@@ -386,7 +386,7 @@ static int send_controls_reply(struct mg_connection *conn)
 
 static int send_control_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value output;
 		
@@ -453,21 +453,21 @@ static int send_ws_reply(struct mg_connection *conn)
 
 static int send_start_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	dev->captureStart();
 	return MG_TRUE;
 }
 
 static int send_stop_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	dev->captureStop();
 	return MG_TRUE;
 }
 
 static int send_isCapturing_reply(struct mg_connection *conn) 
 {
-	V4L2Device* dev =(V4L2Device*)conn->server_param;
+	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	mg_printf_data(conn, "%d", dev->isReady());
 	return MG_TRUE;
 }
@@ -589,7 +589,7 @@ int main(int argc, char* argv[])
 	}	
 	
 	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,fps,verbose);
-	V4L2MMAPDeviceSource* videoCapture = V4L2MMAPDeviceSource::createNew(param);
+	V4l2MmapCapture* videoCapture = V4l2MmapCapture::createNew(param);
 	if (videoCapture)
 	{	
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
