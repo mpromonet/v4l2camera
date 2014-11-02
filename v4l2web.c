@@ -24,23 +24,6 @@
 
 #include "V4l2MmapCapture.h"
 
-static int iterate_callback(struct mg_connection *conn, char* buffer, ssize_t size) 
-{
-	if (conn->is_websocket) 
-	{
-		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, buffer, size);
-	}
-	else if (conn->uri && strcmp(conn->uri,"/jpeg") == 0)		
-	{
-		mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
-			"Content-Length: %llu\r\n\r\n", (unsigned long long) size);
-		mg_write(conn, buffer, size);
-		mg_write(conn,"\r\n",2);
-	}	
-    
-	return MG_TRUE;
-}
-
 unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;
@@ -451,6 +434,15 @@ static int send_ws_reply(struct mg_connection *conn)
 	return ret;
 }
 
+int send_ws_notif(struct mg_connection *conn, char* buffer, ssize_t size) 
+{
+	if (conn->is_websocket) 
+	{
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, buffer, size);
+	}
+	return MG_TRUE;
+}
+
 static int send_start_reply(struct mg_connection *conn) 
 {
 	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
@@ -484,25 +476,36 @@ static int send_jpeg_reply(struct mg_connection *conn)
 	return MG_MORE;
 }
 
+int send_jpeg_notif(struct mg_connection *conn, char* buffer, ssize_t size) 
+{
+	mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
+		"Content-Length: %llu\r\n\r\n", (unsigned long long) size);
+	mg_write(conn, buffer, size);
+	mg_write(conn,"\r\n",2);
+	return MG_TRUE;
+}
+
 typedef int (*callback)(struct mg_connection *conn);
+typedef int (*callback_notify)(struct mg_connection *conn, char* buffer, ssize_t size);
 static const struct url_handler
 {
 	const char* uri;
 	callback handle_req;
 	callback handle_close;
+	callback_notify handle_notify;
 } urls [] = {
-	{ "/capabilities", send_capabilities_reply, NULL },
-	{ "/inputs", send_inputs_reply, NULL },
-	{ "/formats", send_formats_reply, NULL },
-	{ "/format", send_format_reply, NULL },
-	{ "/controls", send_controls_reply, NULL },
-	{ "/control", send_control_reply, NULL },
-	{ "/ws", send_ws_reply, NULL },
-	{ "/jpeg", send_jpeg_reply, send_stop_reply },
-	{ "/start", send_start_reply, NULL },
-	{ "/stop", send_stop_reply, NULL },
-	{ "/isCapturing", send_isCapturing_reply, NULL },
-	{ NULL, NULL, NULL },
+	{ "/capabilities", send_capabilities_reply, NULL, NULL },
+	{ "/inputs", send_inputs_reply, NULL, NULL },
+	{ "/formats", send_formats_reply, NULL, NULL },
+	{ "/format", send_format_reply, NULL, NULL },
+	{ "/controls", send_controls_reply, NULL, NULL },
+	{ "/control", send_control_reply, NULL, NULL },
+	{ "/ws", send_ws_reply, NULL, send_ws_notif },
+	{ "/jpeg", send_jpeg_reply, send_stop_reply, send_jpeg_notif },
+	{ "/start", send_start_reply, NULL, NULL },
+	{ "/stop", send_stop_reply, NULL, NULL },
+	{ "/isCapturing", send_isCapturing_reply, NULL, NULL },
+	{ NULL, NULL, NULL, NULL },
 };
 
 const url_handler* find_url(const char* uri)
@@ -627,7 +630,13 @@ int main(int argc, char* argv[])
 						{
 							for (struct mg_connection *c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) 
 							{
-								iterate_callback(c, buf, size);
+								for (int i=0; urls[i].uri ; ++i)
+								{
+									if (urls[i].handle_notify)
+									{
+										urls[i].handle_notify(c, buf, size);
+									}
+								}
 							}
 						}
 					}
