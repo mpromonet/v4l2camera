@@ -630,12 +630,11 @@ int main(int argc, char* argv[])
 						{
 							for (struct mg_connection *c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) 
 							{
-								for (int i=0; urls[i].uri ; ++i)
+								const url_handler* url = find_url(c->uri);
+								if (url && url->handle_notify)
 								{
-									if (urls[i].handle_notify)
-									{
-										urls[i].handle_notify(c, buf, size);
-									}
+									fprintf(stderr, "notify:%s %d\n", c->uri ,size);
+									url->handle_notify(c, buf, size);
 								}
 							}
 						}
