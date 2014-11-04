@@ -58,30 +58,33 @@
 		<tbody>
 			<tr ng-repeat="control in controlList track by $index" >
 				<td>{{control.name}}</td>
-				<td>{{control.value}}</td>
+				<td>
+					<input  ng-model="control.value" 
+						ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }"
+						ng-change="update(control.id, control.value, $index)"
+						type="text" size="8"/>
+				</td>
 				<td>{{control.minimum}}</td>
 				<td>{{control.maximum}}</td>
 				<td>
 					<select ng-if="control.menu" 
-							ng-init="choice = ( control.menu | filter:{value:control.value}:true ) [0]" 
-							ng-model="choice" 
-							ng-options="menu.label for menu in control.menu"
-							ng-change="update(control.id,choice.value,$index)"
+							ng-model="control.value" 
+							ng-options="menu.value as menu.label for menu in control.menu"
+							ng-change="update(control.id,control.value,$index)"
 							style="width: 300px"/>
-					<input id="{{control.name}}" ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
-							ng-model="controlList[$index].value"
+					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
+							ng-model="control.value"
 							ng-trim="false" 
-							ng-change="update(control.id,controlList[$index].value,$index)"
-							ng-min="{{controlList[$index].minimum}}"
-							ng-max="{{controlList[$index].maximum}}"
+							ng-change="update(control.id,control.value,$index)"
+							ng-min="{{control.minimum}}"
+							ng-max="{{control.maximum}}"
 							type="range" 
-							step="{{controlList[$index].step}}"
+							step="{{control.step}}"
 							style="width: 300px; margin: 0px"/>
 					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
-							ng-init="checked = controlList[$index].value" 
-							ng-checked="checked == 1"
-							ng-model="checked" ng-true-value="1" ng-false-value="0"
-							ng-change="update(control.id,checked,$index)"
+							ng-model="control.value" ng-true-value="1" ng-false-value="0"
+							ng-checked="control.value"
+							ng-change="update(control.id,control.value,$index)"
 							type="checkbox" />
 				</td>
 			</tr>      
