@@ -592,7 +592,7 @@ int main(int argc, char* argv[])
 	}	
 	
 	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,fps,verbose);
-	V4l2MmapCapture* videoCapture = V4l2MmapCapture::createNew(param);
+	V4l2Capture* videoCapture = V4l2MmapCapture::createNew(param);
 	if (videoCapture)
 	{	
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
