@@ -6,17 +6,25 @@
 	<script src="angular-resource.min.js"></script>
 	<script>
 		// app
-		angular.module('App', ['App.controllers','App.services']);
+		var app = angular.module('App', ['ngResource']);
+		
+		// service
+		app.factory('$api', ['$resource', function($resource){ 
+			return {
+				controlList : $resource('/controls'),
+				control : $resource('/control',{},{'update':{method:'POST'}})
+			};
+		}]);	
 		
 		// controller
-		angular.module('App.controllers', []).controller('AppController', function($scope, Api) {
-			Api.controlList.query(function(data) { $scope.controlList = data; } );
+		app.controller('AppController', function($scope, $api) {
+			$api.controlList.query(function(data) { $scope.controlList = data; } );
 			
 			$scope.update = function(controlid,controlvalue,idx) {
 				var ctrl = {};
 				ctrl.id = parseInt(controlid);
 				ctrl.value = parseInt(controlvalue); 
-				Api.control.update(ctrl,function(data) { $scope.controlList[idx].value = data.value; } );
+				$api.control.update(ctrl,function(data) { $scope.controlList[idx].value = data.value; } );
 			};			
 		}).directive('ngMin', function() {
 			return {
@@ -31,16 +39,6 @@
 				link: function(scope, elem, attr) { elem.attr('max', attr.ngMax); }
 			};
 		});		
-		
-		// service
-		angular.module('App.services', ['ngResource']).factory('Api', ['$resource', function($resource){ 
-				return {
-						controlList : $resource('/controls'),
-						control : $resource('/control',{},{'update':{method:'POST'}})
-				};
-			} 
-		]);	
-
 	</script>
 </head>
 <body ng-controller="AppController" >
@@ -67,11 +65,19 @@
 				<td>{{control.minimum}}</td>
 				<td>{{control.maximum}}</td>
 				<td>
+					<!-- combo for enumerate -->
 					<select ng-if="control.menu" 
 							ng-model="control.value" 
 							ng-options="menu.value as menu.label for menu in control.menu"
 							ng-change="update(control.id,control.value,$index)"
 							style="width: 300px"/>
+					<!-- checkbox for [0,1] -->
+					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
+							ng-model="control.value" ng-true-value="1" ng-false-value="0"
+							ng-checked="control.value"
+							ng-change="update(control.id,control.value,$index)"
+							type="checkbox" />
+					<!-- slider for others -->
 					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
 							ng-model="control.value"
 							ng-trim="false" 
@@ -81,11 +87,6 @@
 							type="range" 
 							step="{{control.step}}"
 							style="width: 300px; margin: 0px"/>
-					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
-							ng-model="control.value" ng-true-value="1" ng-false-value="0"
-							ng-checked="control.value"
-							ng-change="update(control.id,control.value,$index)"
-							type="checkbox" />
 				</td>
 			</tr>      
 		</tbody>
