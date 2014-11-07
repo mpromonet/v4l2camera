@@ -20,7 +20,7 @@ struct url_handler
 	callback_notify handle_notify;
 };
 
-extern url_handler urls[];
+const url_handler* find_url(const char* uri);
 
 #endif
 

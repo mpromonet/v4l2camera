@@ -500,6 +500,7 @@ int send_jpeg_notif(struct mg_connection *conn, char* buffer, ssize_t size)
 	return MG_TRUE;
 }
 
+int send_help_reply(struct mg_connection *conn);	
 url_handler urls[] = {
 	{ "/capabilities", send_capabilities_reply, NULL, NULL },
 	{ "/inputs", send_inputs_reply, NULL, NULL },
@@ -512,6 +513,33 @@ url_handler urls[] = {
 	{ "/start", send_start_reply, NULL, NULL },
 	{ "/stop", send_stop_reply, NULL, NULL },
 	{ "/isCapturing", send_isCapturing_reply, NULL, NULL },
+	{ "/help", send_help_reply, NULL, NULL },
 	{ NULL, NULL, NULL, NULL },
 };
+int send_help_reply(struct mg_connection *conn) 
+{
+	mg_send_header(conn, "Cache-Control", "no-cache");
+	for (int i=0; urls[i].uri ; ++i)
+	{
+		mg_printf_data(conn, "%s\n", urls[i].uri);	
+	}
+	return MG_TRUE;
+}
+
+const url_handler* find_url(const char* uri)
+{
+	const url_handler* url = NULL;
+	if (uri != NULL)
+	{
+		for (int i=0; urls[i].uri ; ++i)
+		{
+			if (strcmp(urls[i].uri, uri) == 0)
+			{
+				url = &urls[i];
+				break;
+			}
+		}
+	}
+	return url;
+}
 

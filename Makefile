@@ -7,14 +7,14 @@ CFLAGS += -lssl -g -fpermissive
 CFLAGS += -I /usr/include/jsoncpp 
 CFLAGS += -I mongoose
 CFLAGS += -I h264_v4l2_rtspserver/inc
-LDFLAGS += -ljsoncpp -lv4l2
+LDFLAGS += -ljsoncpp -lv4l2 -ljpeg
 
 all: $(ALL_PROGS)
 
-update:
+upgrade:
 	git submodule foreach git pull origin master
 
-mongoose/mongoose.c:
+mongoose/mongoose.c: 
 	git submodule init
 	git submodule update
 
