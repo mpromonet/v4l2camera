@@ -12,6 +12,7 @@
 		app.factory('$api', ['$resource', function($resource){ 
 			return {
 				capabilities : $resource('/capabilities', {}, {'query':{isArray:false}}),
+				inputs : $resource('/inputs'),
 				format : $resource('/format', {},  {'query':{isArray:false} }),
 				start : $resource('/start'),
 				stop : $resource('/stop')
@@ -21,6 +22,7 @@
 		// controller
 		app.controller('AppController', function($scope, $api) {
 			$api.capabilities.query(function(data) { $scope.capabilities = data; } );
+			$api.inputs.query(function(data) { $scope.inputs = data; } );
 			$api.format.query(function(data) { $scope.format = data; } );
 			
 			$scope.captureStart= function() {
@@ -84,8 +86,7 @@
 	</script>
 </head>
 <body ng-controller="AppController">
-	<h2>{{capabilities.driver}}</h2>
-	<iframe id="output" width="100%" height="64"></iframe>
+	<h2>{{inputs[0].name}} {{capabilities.bus_info}}</h2>
 	<table>
 		<thead>
 			<tr>
@@ -95,12 +96,18 @@
 		</thead>
 		<tbody ng-style="{ width: format.width + 'px', height: format.height + 'px' }">
 			<tr>
-				<td><img id="wsimage"></img></td>
+				<td><img id="wsimage"   ></img></td>
 				<td><img id="mjpegimage"></img></td>
 			</tr>
 		</tbody>
 	</table>
-	<iframe id="format" src="./formats.html" width="100%"></iframe>
-	<iframe id="control" src="./controls.html" width="100%" height="1000" ></iframe>
+	<button ng-click="sel = 'format'" >Format </button>
+	<button ng-click="sel = 'control'">Control</button>
+	<button ng-click="sel = 'status'" >Status </button>
+	<div ng-switch on="sel">
+		<iframe ng-switch-when="format"  id="format"  src="./formats.html"  width="100%" height="200" ></iframe>
+		<iframe ng-switch-when="control" id="control" src="./controls.html" width="100%" height="1000"></iframe>
+		<iframe ng-switch-default        id="output"                        width="100%" height="200" ></iframe>
+	</div>
 </body>
 </html>
