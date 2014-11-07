@@ -21,7 +21,7 @@ mongoose/mongoose.c:
 mongoose.o : mongoose/mongoose.c
 	$(CC) -o $@ -c $^
 
-v4l2web: v4l2web.c mongoose.o h264_v4l2_rtspserver/src/V4l2Capture.cpp h264_v4l2_rtspserver/src/V4l2MmapCapture.cpp
+v4l2web: main.cpp v4l2web.cpp mongoose.o h264_v4l2_rtspserver/src/V4l2Capture.cpp h264_v4l2_rtspserver/src/V4l2MmapCapture.cpp h264_v4l2_rtspserver/src/V4l2ReadCapture.cpp
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:

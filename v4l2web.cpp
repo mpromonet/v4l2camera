@@ -22,7 +22,8 @@
 #include <json/json.h>
 #include "mongoose.h"
 
-#include "V4l2MmapCapture.h"
+#include "V4l2Capture.h"
+#include "v4l2web.h"
 
 unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
@@ -40,21 +41,21 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 			if (0 == ioctl(fd,VIDIOC_G_CTRL,&control))
 			{
 				Json::Value value;
-				value["id"] = control.id;
-				value["name"] = (const char*)qctrl.name;
-				value["type"] = qctrl.type;
-				value["minimum"] = qctrl.minimum;
-				value["maximum"] = qctrl.maximum;
-				value["step"] = qctrl.step;
+				value["id"           ] = control.id;
+				value["name"         ] = (const char*)qctrl.name;
+				value["type"         ] = qctrl.type;
+				value["minimum"      ] = qctrl.minimum;
+				value["maximum"      ] = qctrl.maximum;
+				value["step"         ] = qctrl.step;
 				value["default_value"] = qctrl.default_value;
-				value["value"] = control.value;
+				value["value"        ] = control.value;
 
 				Json::Value flags;
-				if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED) flags.append("V4L2_CTRL_FLAG_DISABLED");
-				if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED) flags.append("V4L2_CTRL_FLAG_GRABBED");
-				if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY) flags.append("V4L2_CTRL_FLAG_READ_ONLY");
-				if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE) flags.append("V4L2_CTRL_FLAG_UPDATE");
-				if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER) flags.append("V4L2_CTRL_FLAG_SLIDER");
+				if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED  ) flags.append("V4L2_CTRL_FLAG_DISABLED"  );
+				if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED   ) flags.append("V4L2_CTRL_FLAG_GRABBED"   );
+				if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY ) flags.append("V4L2_CTRL_FLAG_READ_ONLY" );
+				if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE    ) flags.append("V4L2_CTRL_FLAG_UPDATE"    );
+				if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER    ) flags.append("V4L2_CTRL_FLAG_SLIDER"    );
 				if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
 				value["flags"]   = flags;
 				
@@ -122,10 +123,10 @@ static int send_capabilities_reply(struct mg_connection *conn)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
 		Json::Value capabilities;
 		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT) capabilities.append("V4L2_CAP_VIDEO_OUTPUT");
-		if (cap.device_caps & V4L2_CAP_READWRITE) capabilities.append("V4L2_CAP_READWRITE");
-		if (cap.device_caps & V4L2_CAP_ASYNCIO) capabilities.append("V4L2_CAP_ASYNCIO");
-		if (cap.device_caps & V4L2_CAP_STREAMING) capabilities.append("V4L2_CAP_STREAMING");
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT" );
+		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"    );
+		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"      );
+		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"    );
 		json["capabilities"]   = capabilities;
 #endif		
 	}
@@ -150,8 +151,17 @@ static int send_inputs_reply(struct mg_connection *conn)
 		
 		Json::Value value;
 		value["name"]   = (const char*)input.name;
-		value["type"]   = input.type;
-		value["status"] = input.status;			
+		switch (input.type)
+		{
+			case V4L2_INPUT_TYPE_TUNER : value["type"] = "V4L2_INPUT_TYPE_TUNER" ; break;
+			case V4L2_INPUT_TYPE_CAMERA: value["type"] = "V4L2_INPUT_TYPE_CAMERA"; break;
+			default : break;
+		}		
+		Json::Value status;
+		if (input.status & V4L2_IN_ST_NO_POWER ) status.append("V4L2_IN_ST_NO_POWER" );
+		if (input.status & V4L2_IN_ST_NO_SIGNAL) status.append("V4L2_IN_ST_NO_SIGNAL");
+		if (input.status & V4L2_IN_ST_NO_COLOR ) status.append("V4L2_IN_ST_NO_COLOR" );
+		value["status"] = status;			
 		json.append(value);
 	}
 	Json::StyledWriter styledWriter;
@@ -173,13 +183,13 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 		Json::Value frameInter;
 		if (frmival.type == V4L2_FRMIVAL_TYPE_DISCRETE) 
 		{
-			frameInter["fps"] = frmival.discrete.denominator/frmival.discrete.numerator;
+			frameInter["fps"] = 1.0*frmival.discrete.denominator/frmival.discrete.numerator;
 		}
 		else
 		{
 			Json::Value fps;
-			fps["min"] = frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
-			fps["max"] = frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
+			fps["min"]  = frmival.stepwise.max.denominator/frmival.stepwise.max.numerator;
+			fps["max"]  = frmival.stepwise.min.denominator/frmival.stepwise.min.numerator;
 			fps["step"] = frmival.stepwise.step.denominator/frmival.stepwise.step.numerator;
 			frameInter["fps"] = fps;
 		}
@@ -304,19 +314,22 @@ static int send_format_reply(struct mg_connection *conn)
 		parm.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
 		{
-			try
+			if (parm.parm.capture.timeperframe.numerator != 0)
 			{
-				parm.parm.capture.timeperframe.denominator=input.get("fps",parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asUInt();
-				parm.parm.capture.timeperframe.numerator=1;
-				errno=0;
-				output["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
-				output["errno"]  = errno;
-				output["error"]  = strerror(errno);	
+				try
+				{
+					parm.parm.capture.timeperframe.denominator=input.get("fps",parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asUInt();
+					parm.parm.capture.timeperframe.numerator=1;
+					errno=0;
+					output["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
+					output["errno"]  = errno;
+					output["error"]  = strerror(errno);	
+				}
+				catch (const std::runtime_error &e)
+				{
+					output["exception"]  = e.what();
+				}			
 			}
-			catch (const std::runtime_error &e)
-			{
-				output["exception"]  = e.what();
-			}			
 		}
 	}
 
@@ -339,12 +352,14 @@ static int send_format_reply(struct mg_connection *conn)
 	{
 		Json::Value capabilities;
 		if (parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) capabilities.append("V4L2_CAP_TIMEPERFRAME");
-		output["capabilities"]   = capabilities;		
+		output["capabilities"]  = capabilities;		
 		Json::Value capturemode;
 		if (parm.parm.capture.capturemode & V4L2_MODE_HIGHQUALITY) capturemode.append("V4L2_MODE_HIGHQUALITY");
 		output["capturemode"]   = capturemode;		
 		output["readbuffers"]   = parm.parm.capture.readbuffers;		
-		output["fps"]     = 1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator; 
+		double fps = 0.0;
+		if (parm.parm.capture.timeperframe.numerator != 0) fps = 1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator;
+		output["fps"]           = fps; 
 	}
 	
 	Json::StyledWriter styledWriter;
@@ -485,15 +500,7 @@ int send_jpeg_notif(struct mg_connection *conn, char* buffer, ssize_t size)
 	return MG_TRUE;
 }
 
-typedef int (*callback)(struct mg_connection *conn);
-typedef int (*callback_notify)(struct mg_connection *conn, char* buffer, ssize_t size);
-static const struct url_handler
-{
-	const char* uri;
-	callback handle_req;
-	callback handle_close;
-	callback_notify handle_notify;
-} urls [] = {
+url_handler urls[] = {
 	{ "/capabilities", send_capabilities_reply, NULL, NULL },
 	{ "/inputs", send_inputs_reply, NULL, NULL },
 	{ "/formats", send_formats_reply, NULL, NULL },
@@ -508,144 +515,3 @@ static const struct url_handler
 	{ NULL, NULL, NULL, NULL },
 };
 
-const url_handler* find_url(const char* uri)
-{
-	const url_handler* url = NULL;
-	if (uri != NULL)
-	{
-		for (int i=0; urls[i].uri ; ++i)
-		{
-			if (strcmp(urls[i].uri, uri) == 0)
-			{
-				url = &urls[i];
-				break;
-			}
-		}
-	}
-	return url;
-}
-
-static int ev_handler(struct mg_connection *conn, enum mg_event ev) 
-{
-	int ret = MG_FALSE;
-	switch (ev) 
-	{
-		case MG_AUTH: ret = MG_TRUE; break;
-		case MG_REQUEST: 
-		{
-			const url_handler* url = find_url(conn->uri);
-			if (url && url->handle_req)
-			{
-				ret = url->handle_req(conn);
-			}
-		}
-		break;
-		case MG_CLOSE:
-		{
-			const url_handler* url = find_url(conn->uri);
-			if (url && url->handle_close)
-			{
-				ret = url->handle_close(conn);
-			}
-		}
-		break;
-		default: break;
-	} 
-	return ret;
-}
-
-int main(int argc, char* argv[]) 
-{	
-	int verbose=0;
-	const char *dev_name = "/dev/video0";	
-	int width = 320;
-	int height = 240;	
-	int fps = 10;	
-	int c = 0;
-	const char * port = "8080";
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::")) != -1)
-	{
-		switch (c)
-		{
-			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
-			case 'P':	port = optarg; break;
-			case 'h':
-			{
-				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [device]" << std::endl;
-				std::cout << "\t -v       : verbose " << std::endl;
-				std::cout << "\t -v v     : very verbose " << std::endl;
-				std::cout << "\t -P port  : server port (default "<< port << ")" << std::endl;
-				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
-				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
-				exit(0);
-			}
-		}
-	}
-	if (optind<argc)
-	{
-		dev_name = argv[optind];
-	}	
-	
-	V4L2DeviceParameters param(dev_name,V4L2_PIX_FMT_JPEG,width,height,fps,verbose);
-	V4l2Capture* videoCapture = V4l2MmapCapture::createNew(param);
-	if (videoCapture)
-	{	
-		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
-		mg_set_option(server, "listening_port", port);
-		std::string currentPath(get_current_dir_name());
-		currentPath += "/webroot";
-		mg_set_option(server, "document_root", currentPath.c_str());
-		
-		chdir(mg_get_option(server, "document_root"));
-		printf("Started on port %s root:%s\n", mg_get_option(server, "listening_port"), mg_get_option(server, "document_root"));	
-		for (;;) 
-		{
-			mg_poll_server(server, 10);
-			if (videoCapture->isReady())
-			{
-				int fd = videoCapture->getFd();
-				struct timeval tv;
-				timerclear(&tv);
-				fd_set read_set;
-				FD_ZERO(&read_set);
-				FD_SET(fd,&read_set);
-				if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
-				{
-					if (FD_ISSET(fd,&read_set))
-					{
-						// read image
-						char buf[videoCapture->getBufferSize()];
-						ssize_t size = videoCapture->read(buf, sizeof(buf));
-						if (verbose)
-						{
-							fprintf(stderr, "read size:%d\n", size);
-						}
-						// post to subscribers
-						if (size>0)
-						{
-							for (struct mg_connection *c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) 
-							{
-								const url_handler* url = find_url(c->uri);
-								if (url && url->handle_notify)
-								{
-									fprintf(stderr, "notify:%s %d\n", c->uri ,size);
-									url->handle_notify(c, buf, size);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		mg_destroy_server(&server);
-		
-		delete videoCapture;
-	}
-	
-	return 0;
-}
