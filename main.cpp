@@ -109,7 +109,10 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 	return destsize;
 }
 
-void v4l2processing(struct mg_server *server, V4l2Capture* dev, int format, int width, int height, int verbose)
+/* ---------------------------------------------------------------------------
+**  V4L2 processing
+** -------------------------------------------------------------------------*/
+void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int height, int verbose)
 {
 	if (dev->isReady())
 	{
@@ -123,13 +126,16 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int format, int 
 		{
 			if (FD_ISSET(fd,&read_set))
 			{
+				// update format informations
+				dev->queryFormat();
+				
 				// read image
 				char buf[dev->getBufferSize()];
-				ssize_t size = dev->read(buf, sizeof(buf));
-				LOG(verbose, "read size:%d\n", size);
+				ssize_t size = dev->read(buf, dev->getBufferSize());
+				LOG(verbose, "read size:%d buffersize:%d\n", size, dev->getBufferSize());
 				
 				// compress 
-				if ( (size>0) && (format == V4L2_PIX_FMT_YUYV) )
+				if ( (size>0) && (dev->getFormat() == V4L2_PIX_FMT_YUYV) )
 				{
 					size = yuyv2jpeg(buf, width, height, 95);							
 				}
@@ -238,7 +244,7 @@ int main(int argc, char* argv[])
 		for (;;) 
 		{
 			mg_poll_server(server, 10);
-			v4l2processing(server, videoCapture, param.m_format, width, height, verbose);
+			v4l2processing(server, videoCapture, width, height, verbose);
 		}
 		mg_destroy_server(&server);
 		

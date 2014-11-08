@@ -461,14 +461,14 @@ int send_ws_notif(struct mg_connection *conn, char* buffer, ssize_t size)
 static int send_start_reply(struct mg_connection *conn) 
 {
 	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	dev->captureStart();
+	mg_printf_data(conn, "%d", dev->captureStart());
 	return MG_TRUE;
 }
 
 static int send_stop_reply(struct mg_connection *conn) 
 {
 	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	dev->captureStop();
+	mg_printf_data(conn, "%d", dev->captureStop());
 	return MG_TRUE;
 }
 
