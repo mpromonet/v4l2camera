@@ -101,13 +101,13 @@
 			</tr>
 		</tbody>
 	</table>
-	<button ng-click="sel = 'format'" >Format </button>
-	<button ng-click="sel = 'control'">Control</button>
-	<button ng-click="sel = 'status'" >Status </button>
-	<div ng-switch on="sel">
-		<iframe ng-switch-when="format"  id="format"  src="./formats.html"  width="100%" height="200" ></iframe>
-		<iframe ng-switch-when="control" id="control" src="./controls.html" width="100%" height="1000"></iframe>
-		<iframe ng-switch-default        id="output"                        width="100%" height="200" ></iframe>
+	<button ng-click="sel = 'format'"  ng-disabled="sel == 'format'"  >Format </button>
+	<button ng-click="sel = 'control'" ng-disabled="sel == 'control'" >Control</button>
+	<button ng-click="sel = 'status'"  ng-disabled="sel == 'status'" ng-init="sel = 'status'" >Status </button>
+	<div>
+		<iframe ng-show="sel =='format'"  id="format"  src="./formats.html"  width="100%" height="200" ></iframe>
+		<iframe ng-show="sel =='control'" id="control" src="./controls.html" width="100%" height="1000"></iframe>
+		<iframe ng-show="sel =='status'"  id="output"                        width="100%" height="200" ></iframe>
 	</div>
 </body>
 </html>
