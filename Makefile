@@ -1,13 +1,18 @@
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA)
 RM = rm -rf
 ALL_PROGS = v4l2web
+PREFIX=/usr
 
 CC = g++
-CFLAGS += -lssl -g -fpermissive
-CFLAGS += -I /usr/include/jsoncpp 
-CFLAGS += -I mongoose
-CFLAGS += -I h264_v4l2_rtspserver/inc
-LDFLAGS += -ljsoncpp -lv4l2 -ljpeg
+# jsoncpp
+CFLAGS += -I $(PREFIX)/include/jsoncpp 
+LDFLAGS += -ljsoncpp 
+# log4cpp
+LDFLAGS += -llog4cpp 
+#
+CFLAGS += -g -fpermissive
+CFLAGS += -I mongoose -I h264_v4l2_rtspserver/inc
+LDFLAGS += -lv4l2 -ljpeg
 
 all: $(ALL_PROGS)
 

@@ -1,6 +1,6 @@
 before_install:
 - sudo apt-get update
-- sudo apt-get install libv4l-dev libjsoncpp-dev libjpeg-dev
+- sudo apt-get install libv4l-dev libjsoncpp-dev libjpeg-dev liblog4cpp5-dev
 language: cpp
 compiler:
 - gcc

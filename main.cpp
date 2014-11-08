@@ -15,12 +15,15 @@
 	
 #include "mongoose.h"
 #include <jpeglib.h>
+#include "log4cpp/Category.hh"
+#include "log4cpp/FileAppender.hh"
+#include "log4cpp/PatternLayout.hh"
 
 #include "V4l2MmapCapture.h"
 #include "V4l2ReadCapture.h"
 #include "v4l2web.h"
 
-#define LOG(verbose,...) do { if (verbose) fprintf(stderr,__VA_ARGS__); } while(0);
+#define LOG(__logstream,__level)  __logstream << log4cpp::Priority::__level << __FILE__ << ":" << __LINE__ << " "
 
 /* ---------------------------------------------------------------------------
 **  mongoose callback
@@ -59,6 +62,7 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 ** -------------------------------------------------------------------------*/
 unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
 {
+	log4cpp::Category &log = log4cpp::Category::getRoot();	
 	struct jpeg_error_mgr jerr;
 	struct jpeg_compress_struct cinfo;	
 	jpeg_create_compress(&cinfo);
@@ -100,7 +104,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 		}
 		else
 		{
-			fprintf(stderr, "compressed image bigger than original one size:%d compressedsize:%ld\n", width*height*2, destsize);
+			LOG(log,WARN) << "Buffer to small size:" << width*height*2 << " " << destsize; 
 		}
 		free(dest);
 	}
@@ -112,8 +116,9 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 /* ---------------------------------------------------------------------------
 **  V4L2 processing
 ** -------------------------------------------------------------------------*/
-void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int height, int verbose)
+void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int height)
 {
+	log4cpp::Category &log = log4cpp::Category::getRoot();
 	if (dev->isReady())
 	{
 		int fd = dev->getFd();
@@ -132,7 +137,7 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int h
 				// read image
 				char buf[dev->getBufferSize()];
 				ssize_t size = dev->read(buf, dev->getBufferSize());
-				LOG(verbose, "read size:%d buffersize:%d\n", size, dev->getBufferSize());
+				LOG(log,DEBUG) << "read size:" << size << " buffersize:" << dev->getBufferSize();
 				
 				// compress 
 				if ( (size>0) && (dev->getFormat() == V4L2_PIX_FMT_YUYV) )
@@ -147,7 +152,7 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int h
 						const url_handler* url = find_url(c->uri);
 						if (url && url->handle_notify)
 						{
-							LOG(verbose, "notify:%s %d\n", c->uri ,size)
+							LOG(log,DEBUG) << "notify:" << c->uri << " size:" << size;
 							url->handle_notify(c, buf, size);
 						}
 					}							
@@ -200,7 +205,30 @@ int main(int argc, char* argv[])
 	{
 		dev_name = argv[optind];
 	}	
-	
+
+	// initialize log4cpp
+	log4cpp::Category &log = log4cpp::Category::getRoot();
+	log4cpp::Appender *app = new log4cpp::FileAppender("root", ::dup(fileno(stdout)));
+	if (app)
+	{
+		log4cpp::PatternLayout *plt = new log4cpp::PatternLayout();
+		if (plt)
+		{
+			plt->setConversionPattern("%d [%p] - %m%n");
+			app->setLayout(plt);
+		}
+		log.addAppender(app);
+	}
+	switch (verbose)
+	{
+		case 2: log.setPriority(log4cpp::Priority::DEBUG); break;
+		case 1: log.setPriority(log4cpp::Priority::INFO); break;
+		default: log.setPriority(log4cpp::Priority::NOTICE); break;
+		
+	}
+	LOG(log,INFO) << "level:" << log4cpp::Priority::getPriorityName(log.getPriority()); 
+
+	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;
 	V4L2DeviceParameters param(dev_name,format,width,height,fps,verbose);
 	V4l2Capture* videoCapture = NULL;
@@ -211,11 +239,10 @@ int main(int argc, char* argv[])
 	else
 	{
 		videoCapture = V4l2ReadCapture::createNew(param);
-	}
-	
+	}	
 	if (videoCapture == NULL)
 	{	
-		printf("Cannot create JPEG capture for device:%s => try YUYV capture \n", dev_name);
+		LOG(log,INFO) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
 		param.m_format = V4L2_PIX_FMT_YUYV;
 		if (useMmap)
 		{
@@ -229,7 +256,7 @@ int main(int argc, char* argv[])
 	
 	if (videoCapture == NULL)
 	{	
-		printf("Cannot create V4L2 capture interface %s\n", dev_name);
+		LOG(log,INFO) << "Cannot create V4L2 capture interface for device:" << dev_name << " => try YUYV capture"; 
 	}
 	else
 	{
@@ -240,14 +267,13 @@ int main(int argc, char* argv[])
 		mg_set_option(server, "document_root", currentPath.c_str());
 		
 		chdir(mg_get_option(server, "document_root"));
-		printf("Started on port %s root:%s\n", mg_get_option(server, "listening_port"), mg_get_option(server, "document_root"));	
+		LOG(log,INFO) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
 		for (;;) 
 		{
 			mg_poll_server(server, 10);
-			v4l2processing(server, videoCapture, width, height, verbose);
+			v4l2processing(server, videoCapture, width, height);
 		}
-		mg_destroy_server(&server);
-		
+		mg_destroy_server(&server);		
 		delete videoCapture;
 	}
 	
