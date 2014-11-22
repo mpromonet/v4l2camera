@@ -15,15 +15,13 @@
 	
 #include "mongoose.h"
 #include <jpeglib.h>
-#include "log4cpp/Category.hh"
-#include "log4cpp/FileAppender.hh"
-#include "log4cpp/PatternLayout.hh"
+
+#include "logger.h"
 
 #include "V4l2MmapCapture.h"
 #include "V4l2ReadCapture.h"
 #include "v4l2web.h"
 
-#define LOG(__level)  log4cpp::Category::getRoot() << log4cpp::Priority::__level << __FILE__ << ":" << __LINE__ << " " 
 
 /* ---------------------------------------------------------------------------
 **  mongoose callback
@@ -205,26 +203,7 @@ int main(int argc, char* argv[])
 	}	
 
 	// initialize log4cpp
-	log4cpp::Category &log = log4cpp::Category::getRoot();
-	log4cpp::Appender *app = new log4cpp::FileAppender("root", ::dup(fileno(stdout)));
-	if (app)
-	{
-		log4cpp::PatternLayout *plt = new log4cpp::PatternLayout();
-		if (plt)
-		{
-			plt->setConversionPattern("%d [%p] - %m%n");
-			app->setLayout(plt);
-		}
-		log.addAppender(app);
-	}
-	switch (verbose)
-	{
-		case 2: log.setPriority(log4cpp::Priority::DEBUG); break;
-		case 1: log.setPriority(log4cpp::Priority::INFO); break;
-		default: log.setPriority(log4cpp::Priority::NOTICE); break;
-		
-	}
-	LOG(INFO) << "level:" << log4cpp::Priority::getPriorityName(log.getPriority()); 
+	initLogger(verbose);
 
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;

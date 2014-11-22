@@ -10,11 +10,12 @@ License
 ------------
 Domain public 
 
-Requirements
+Dependencies
 ------------
  - libjsoncpp-dev 
  - libv4l-dev
  - libjpeg-dev
+ - liblog4cpp5-dev
  
 Build
 ------- 
