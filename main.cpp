@@ -23,7 +23,7 @@
 #include "V4l2ReadCapture.h"
 #include "v4l2web.h"
 
-#define LOG(__logstream,__level)  __logstream << log4cpp::Priority::__level << __FILE__ << ":" << __LINE__ << " "
+#define LOG(__level)  log4cpp::Category::getRoot() << log4cpp::Priority::__level << __FILE__ << ":" << __LINE__ << " " 
 
 /* ---------------------------------------------------------------------------
 **  mongoose callback
@@ -62,7 +62,6 @@ static int ev_handler(struct mg_connection *conn, enum mg_event ev)
 ** -------------------------------------------------------------------------*/
 unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
 {
-	log4cpp::Category &log = log4cpp::Category::getRoot();	
 	struct jpeg_error_mgr jerr;
 	struct jpeg_compress_struct cinfo;	
 	jpeg_create_compress(&cinfo);
@@ -104,7 +103,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 		}
 		else
 		{
-			LOG(log,WARN) << "Buffer to small size:" << width*height*2 << " " << destsize; 
+			LOG(WARN) << "Buffer to small size:" << width*height*2 << " " << destsize; 
 		}
 		free(dest);
 	}
@@ -118,7 +117,6 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 ** -------------------------------------------------------------------------*/
 void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int height)
 {
-	log4cpp::Category &log = log4cpp::Category::getRoot();
 	if (dev->isReady())
 	{
 		int fd = dev->getFd();
@@ -137,7 +135,7 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int h
 				// read image
 				char buf[dev->getBufferSize()];
 				ssize_t size = dev->read(buf, dev->getBufferSize());
-				LOG(log,DEBUG) << "read size:" << size << " buffersize:" << dev->getBufferSize();
+				LOG(DEBUG) << "read size:" << size << " buffersize:" << dev->getBufferSize();
 				
 				// compress 
 				if ( (size>0) && (dev->getFormat() == V4L2_PIX_FMT_YUYV) )
@@ -152,7 +150,7 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int h
 						const url_handler* url = find_url(c->uri);
 						if (url && url->handle_notify)
 						{
-							LOG(log,DEBUG) << "notify:" << c->uri << " size:" << size;
+							LOG(DEBUG) << "notify:" << c->uri << " size:" << size;
 							url->handle_notify(c, buf, size);
 						}
 					}							
@@ -226,7 +224,7 @@ int main(int argc, char* argv[])
 		default: log.setPriority(log4cpp::Priority::NOTICE); break;
 		
 	}
-	LOG(log,INFO) << "level:" << log4cpp::Priority::getPriorityName(log.getPriority()); 
+	LOG(INFO) << "level:" << log4cpp::Priority::getPriorityName(log.getPriority()); 
 
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;
@@ -242,7 +240,7 @@ int main(int argc, char* argv[])
 	}	
 	if (videoCapture == NULL)
 	{	
-		LOG(log,INFO) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
+		LOG(INFO) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
 		param.m_format = V4L2_PIX_FMT_YUYV;
 		if (useMmap)
 		{
@@ -256,7 +254,7 @@ int main(int argc, char* argv[])
 	
 	if (videoCapture == NULL)
 	{	
-		LOG(log,INFO) << "Cannot create V4L2 capture interface for device:" << dev_name << " => try YUYV capture"; 
+		LOG(INFO) << "Cannot create V4L2 capture interface for device:" << dev_name << " => try YUYV capture"; 
 	}
 	else
 	{
@@ -267,7 +265,7 @@ int main(int argc, char* argv[])
 		mg_set_option(server, "document_root", currentPath.c_str());
 		
 		chdir(mg_get_option(server, "document_root"));
-		LOG(log,INFO) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
+		LOG(INFO) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
 		for (;;) 
 		{
 			mg_poll_server(server, 10);
