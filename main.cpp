@@ -22,6 +22,22 @@
 #include "V4l2ReadCapture.h"
 #include "v4l2web.h"
 
+// -----------------------------------------
+//    create video capture interface
+// -----------------------------------------
+V4l2Capture* createVideoCapure(const V4L2DeviceParameters & param, bool useMmap)
+{
+	V4l2Capture* videoCapture = NULL;
+	if (useMmap)
+	{
+		videoCapture = V4l2MmapCapture::createNew(param);
+	}
+	else
+	{
+		videoCapture = V4l2ReadCapture::createNew(param);
+	}
+	return videoCapture;
+}
 
 /* ---------------------------------------------------------------------------
 **  mongoose callback
@@ -208,32 +224,17 @@ int main(int argc, char* argv[])
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;
 	V4L2DeviceParameters param(dev_name,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture = NULL;
-	if (useMmap)
-	{
-		videoCapture = V4l2MmapCapture::createNew(param);
-	}
-	else
-	{
-		videoCapture = V4l2ReadCapture::createNew(param);
-	}	
+	V4l2Capture* videoCapture =  createVideoCapure(param, useMmap);
 	if (videoCapture == NULL)
 	{	
 		LOG(INFO) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
 		param.m_format = V4L2_PIX_FMT_YUYV;
-		if (useMmap)
-		{
-			videoCapture = V4l2MmapCapture::createNew(param);
-		}
-		else
-		{
-			videoCapture = V4l2ReadCapture::createNew(param);
-		}
+		videoCapture = createVideoCapure(param, useMmap);
 	}
 	
 	if (videoCapture == NULL)
 	{	
-		LOG(INFO) << "Cannot create V4L2 capture interface for device:" << dev_name << " => try YUYV capture"; 
+		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
 	}
 	else
 	{
