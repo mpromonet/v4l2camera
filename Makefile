@@ -11,7 +11,7 @@ LDFLAGS += -ljsoncpp
 LDFLAGS += -llog4cpp 
 #
 CFLAGS += -g -fpermissive
-CFLAGS += -I mongoose -I v4l2wrapper/inc
+CFLAGS += -I mongoose -I v4l2wrapper/inc -I inc
 LDFLAGS += -lv4l2 -ljpeg
 
 all: $(ALL_PROGS)
@@ -26,7 +26,7 @@ mongoose/mongoose.c:
 mongoose.o : mongoose/mongoose.c
 	$(CC) -o $@ -c $^
 
-v4l2web: main.cpp v4l2web.cpp mongoose.o v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
+v4l2web: src/main.cpp src/v4l2web.cpp mongoose.o v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
