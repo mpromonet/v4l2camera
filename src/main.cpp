@@ -231,6 +231,12 @@ int main(int argc, char* argv[])
 		param.m_format = V4L2_PIX_FMT_YUYV;
 		videoCapture = createVideoCapure(param, useMmap);
 	}
+	if (videoCapture == NULL)
+	{	
+		LOG(INFO) << "Cannot create YUYV capture for device:" << dev_name << " => try YUYV capture"; 
+		param.m_format = 0;
+		videoCapture = createVideoCapure(param, useMmap);
+	}
 	
 	if (videoCapture == NULL)
 	{	
