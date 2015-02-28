@@ -119,8 +119,8 @@
 						ng-model="selectedFormat[item]"
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="range"
-						min="{{selectedFormat.frameSizes[0][item].min}}" 
-						max="{{selectedFormat.frameSizes[0][item].max}}" 
+						ng-min="{{selectedFormat.frameSizes[0][item].min}}" 
+						ng-max="{{selectedFormat.frameSizes[0][item].max}}" 
 						step="{{selectedFormat.frameSizes[0][item].step}}" style="margin: 0px; padding: 0px"/>
 					{{selectedFormat.frameSizes[0][item].max}}		
 				</td>
@@ -138,8 +138,8 @@
 					<input  ng-model="selectedFormat.fps" 
 						ng-change="update(selectedFormat.format, selectedFormat.width, selectedFormat.height, selectedFormat.fps)"
 						type="range" 
-						min="{{selectedFormat.frameSizes[0].intervals[0].fps.min}}" 
-						max="{{selectedFormat.frameSizes[0].intervals[0].fps.max}}" 
+						ng-min="{{selectedFormat.frameSizes[0].intervals[0].fps.min}}" 
+						ng-max="{{selectedFormat.frameSizes[0].intervals[0].fps.max}}" 
 						step="{{selectedFormat.frameSizes[0].intervals[0].fps.step}}" style="margin: 0px; padding: 0px"/>
 					{{selectedFormat.frameSizes[0].intervals[0].fps.max}}
 				</td>
