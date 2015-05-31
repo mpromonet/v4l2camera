@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="jquery-1.11.3.min.js"></script>  
+	<script src="react-0.13.3.min.js"></script>
+	<script src="JSXTransformer-0.13.3.js"></script>
+</head>
+<body>
+	<div id="content"></div>
+	<script type="text/jsx">
+    
+	var ControlList = React.createClass({
+	
+	    getInitialState: function(){        
+		return { controls: [] };
+	    },
+
+	    componentDidMount: function(){
+		var self = this;
+		$.getJSON('controls', function(result){		
+		    if(!result || !result.length){
+			return;
+		    }
+
+		    var controls = result.map(function(p){
+			return { 
+			    id: p.id, 
+			    name: p.name, 
+			    value: p.value,
+			    minimum: p.minimum, 
+			    maximum: p.maximum
+			};
+		    });
+
+		    self.setState({ controls: controls });
+		});
+
+	    },
+	    
+	    render: function() {
+		var controls = this.state.controls.map(function(p){
+		    return ( 
+			<tr>
+				<td>{p.name}</td>
+				<td><input type="text" size="8" value={p.value} onChange={this.handleChange}/></td>
+				<td>{p.minimum}</td>
+				<td>{p.maximum}</td>
+			</tr> );
+		});
+
+		return (
+		    <div>
+			<h3><center>V4L2 Controls</center></h3>
+			<table>
+				<thead>
+				<tr>
+					<th>Name</th>
+					<th>Current</th>
+					<th>Min</th>
+					<th>Max</th>
+					<th>Value</th>
+				</tr>
+			</thead>
+			<tbody>
+				{controls}                    
+			</tbody>
+			</table>
+		    </div>
+		);
+	    }
+	});
+	    
+	React.render(
+	    <ControlList />,
+	    document.getElementById('content')
+	);        
+    
+	</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html ng-app="App">
+<head>
+	<title>V4L2 Controls</title>
+	<script src="angular.min.js"></script>
+	<script src="angular-resource.min.js"></script>
+	<script>
+		// app
+		var app = angular.module('App', ['ngResource']);
+		
+		// service
+		app.factory('$api', ['$resource', function($resource){ 
+			return {
+				controlList : $resource('/controls'),
+				control : $resource('/control',{},{'update':{method:'POST'}})
+			};
+		}]);	
+		
+		// controller
+		app.controller('AppController', function($scope, $api) {
+			$api.controlList.query(function(data) { $scope.controlList = data; } );
+			
+			$scope.update = function(controlid,controlvalue,idx) {
+				var ctrl = {};
+				ctrl.id = parseInt(controlid);
+				ctrl.value = parseInt(controlvalue); 
+				$api.control.update(ctrl,function(data) { $scope.controlList[idx].value = data.value; } );
+			};			
+		}).directive('ngMin', function() {
+			return {
+				restrict: 'A',
+				require: 'ngModel',
+				link: function(scope, elem, attr) { elem.attr('min', attr.ngMin); }
+			};
+		}).directive('ngMax', function() {
+			return {
+				restrict: 'A',
+				require: 'ngModel',
+				link: function(scope, elem, attr) { elem.attr('max', attr.ngMax); }
+			};
+		});		
+	</script>
+</head>
+<body ng-controller="AppController" >
+	<table>
+		<h3><center>V4L2 Controls</center></h3>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Current</th>
+				<th>Min</th>
+				<th>Max</th>
+				<th>Value</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="control in controlList track by $index" >
+				<td>{{control.name}}</td>
+				<td>
+					<input  ng-model="control.value" 
+						ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }"
+						ng-change="update(control.id, control.value, $index)"
+						type="text" size="8"/>
+				</td>
+				<td>{{control.minimum}}</td>
+				<td>{{control.maximum}}</td>
+				<td>
+					<!-- combo for enumerate -->
+					<select ng-if="control.menu" 
+							ng-model="control.value" 
+							ng-options="menu.value as menu.label for menu in control.menu"
+							ng-change="update(control.id,control.value,$index)"
+							style="width: 300px"/>
+					<!-- checkbox for [0,1] -->
+					<input ng-if="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
+							ng-model="control.value" ng-true-value="1" ng-false-value="0"
+							ng-checked="control.value"
+							ng-change="update(control.id,control.value,$index)"
+							type="checkbox" />
+					<!-- slider for others -->
+					<input ng-if="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
+							ng-model="control.value"
+							ng-trim="false" 
+							ng-change="update(control.id,control.value,$index)"
+							ng-min="{{control.minimum}}"
+							ng-max="{{control.maximum}}"
+							type="range" 
+							step="{{control.step}}"
+							style="width: 300px; margin: 0px"/>
+				</td>
+			</tr>      
+		</tbody>
+	</table>
+</body>
+</html>
