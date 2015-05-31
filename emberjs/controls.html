@@ -23,21 +23,21 @@
 		// item observer
 		App.Item.reopen({
 			valueChanged: function(obj) {
-				if (obj.value === true)
+				if (this.noUpdate)
+					return;
+				if (typeof obj.value == "boolean")
 				{
-					obj.value = 1;
-				}
-				else if (obj.value === false)
-				{
-					obj.value = 0;
+					obj.value = obj.value ? 1 : 0;
 				}
 				obj.value = parseInt(obj.value); 
-				var bind = this;
+				var bind = this;				
 				$.post("/control", JSON.stringify(obj), function(data) { 
 					var ret = JSON.parse(data); 
 					if (ret)
 					{
+						bind.noUpdate = true;
 						bind.set('value', ret.value); 
+						bind.noUpdate = false;
 					}
 				});
 			}.observes('value'),
@@ -56,8 +56,8 @@
 	</script>
 </head>
 <body>
+	<h3><center>V4L2 Controls</center></h3>
 	<table>
-		<h3><center>V4L2 Controls</center></h3>
 		<thead>
 			<tr>
 				<th>Name</th>
