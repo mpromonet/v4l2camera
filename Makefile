@@ -30,7 +30,7 @@ v4l2wrapper/src/V4l2Capture.cpp:
 	git submodule init v4l2wrapper
 	git submodule update v4l2wrapper
 
-v4l2web: src/main.cpp src/v4l2web.cpp mongoose.o v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
+v4l2web: src/main.cpp src/v4l2web.cpp mongoose.o v4l2wrapper/src/V4l2Device.cpp v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
