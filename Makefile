@@ -26,11 +26,12 @@ mongoose/mongoose.c:
 mongoose.o : mongoose/mongoose.c
 	$(CC) -o $@ -c $^
 
-v4l2wrapper/src/V4l2Capture.cpp: 
+v4l2wrapper/libv4l2wrapper.a: 
 	git submodule init v4l2wrapper
 	git submodule update v4l2wrapper
+	make -C v4l2wrapper
 
-v4l2web: src/main.cpp src/v4l2web.cpp mongoose.o v4l2wrapper/src/V4l2Device.cpp v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
+v4l2web: src/main.cpp src/v4l2web.cpp mongoose.o v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
