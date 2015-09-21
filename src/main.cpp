@@ -229,17 +229,24 @@ int main(int argc, char* argv[])
 	else
 	{
 		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
-		mg_set_option(server, "listening_port", port);
-		std::string currentPath(get_current_dir_name());
-		currentPath += "/webroot";
-		mg_set_option(server, "document_root", currentPath.c_str());
-		
-		chdir(mg_get_option(server, "document_root"));
-		LOG(INFO) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
-		for (;;) 
+		const char* error = mg_set_option(server, "listening_port", port);
+		if (error != NULL)
 		{
-			mg_poll_server(server, 10);
-			v4l2processing(server, videoCapture, width, height);
+			LOG(WARN) << "Cannot listen on port:" << port << " " << error; 
+		}
+		else
+		{
+			std::string currentPath(get_current_dir_name());
+			currentPath += "/webroot";
+			mg_set_option(server, "document_root", currentPath.c_str());
+		
+			chdir(mg_get_option(server, "document_root"));
+			LOG(NOTICE) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
+			for (;;) 
+			{
+				mg_poll_server(server, 10);
+				v4l2processing(server, videoCapture, width, height);
+			}
 		}
 		mg_destroy_server(&server);		
 		delete videoCapture;
