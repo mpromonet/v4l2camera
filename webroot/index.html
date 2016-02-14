@@ -13,9 +13,6 @@
 			return {
 				capabilities : $resource('/capabilities', {}, {'query':{isArray:false}}),
 				inputs : $resource('/inputs'),
-				format : $resource('/format', {},  {'query':{isArray:false} }),
-				start : $resource('/start'),
-				stop : $resource('/stop')
 			}
 		}]);	
 		
@@ -23,91 +20,21 @@
 		app.controller('AppController', function($scope, $api) {
 			$api.capabilities.query(function(data) { $scope.capabilities = data; } );
 			$api.inputs.query(function(data) { $scope.inputs = data; } );
-			$api.format.query(function(data) { $scope.format = data; } );
-			
-			$scope.captureStart= function() {
-				$api.start.query();
-			}
-			$scope.captureStop= function() {
-				$api.stop.query();
-				var img = document.getElementById('wsimage');
-				img.src = '';
-			}
-			$scope.mjpegStart= function() {
-				var img = document.getElementById('mjpegimage');
-				img.src = '/jpeg';
-			}
-			$scope.mjpegStop= function() {
-				var img = document.getElementById('mjpegimage');
-				img.src = '';
-			}
 		});		
 	</script>	
 	
-	<script language="javascript" type="text/javascript">
-	  var out = function(message) {
-	    var iframe = document.getElementById('output');
-	    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-	    var div = iframeDoc.createElement('div');
-	    div.innerHTML = message;
-	    iframeDoc.body.appendChild(div);
-	  };
-
-	  window.onload = function() {
-	    var url = 'ws://' + location.host + '/ws';
-
-	    websocket = new WebSocket(url);
-	    websocket.binaryType = 'arraybuffer';
-	    websocket.onopen = function(ev) {
-	      out('CONNECTED');
-	    };
-	    websocket.onclose = function(ev) {
-	      out('DISCONNECTED');
-	    };
-	    websocket.onmessage = function(ev) {
-	      if (!ev.data) {
-		out('<span style="color: blue;">PING... </span>');
-	      } else if (typeof(ev.data)=="string") {
-		out('<span style="color: blue;">RECV:'+ev.data+'</span>');
-	      } else {	      
-		var bytes = new Uint8Array(ev.data);	
-		var binary = "";
-		for(i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
-		
-		var img = document.getElementById('wsimage');
-		img.src = 'data:image/jpeg;base64,' + btoa(binary);
-	      }
-	    };
-	    websocket.onerror = function(ev) {
-	      out('<span style="color: red; ">ERROR: ' + ev.data + '</span> ');
-	    };
-	  };
-	</script>
 </head>
 <body ng-controller="AppController">
 	<h2>{{inputs[0].name}} {{capabilities.bus_info}}</h2>
-	<table>
-		<thead>
-			<tr>
-				<th><button ng-click="captureStart()">Start WebSocket</button><button ng-click="captureStop()">Stop WebSocket</button></th>
-				<th><button ng-click="mjpegStart()">Start MJPEG</button><button ng-click="mjpegStop()">Stop MJPEG</button></th>
-			</tr>
-		</thead>
-		<tbody ng-style="{ width: format.width + 'px', height: format.height + 'px' }">
-			<tr>
-				<td><img id="wsimage"   ></img></td>
-				<td><img id="mjpegimage"></img></td>
-			</tr>
-		</tbody>
-	</table>
-	<button ng-click="sel = 'format'"  ng-disabled="sel == 'format'"  >Format </button>
+	<button ng-click="sel = 'video'"   ng-disabled="sel == 'video'"   >Live</button>
+	<button ng-click="sel = 'format'"  ng-disabled="sel == 'format'"  >Format</button>
 	<button ng-click="sel = 'control'" ng-disabled="sel == 'control'" >Control</button>
-	<button ng-click="sel = 'status'"  ng-disabled="sel == 'status'" ng-init="sel = 'status'" >Status </button>
+	<button ng-click="sel = 'status'"  ng-disabled="sel == 'status'" ng-init="sel = 'video'" >Status </button>
 	<div>
-		<iframe ng-show="sel =='format'"  id="format"  src="./formats.html"  width="100%" height="200" ></iframe>
+		<iframe ng-show="sel =='video'"   id="video"   src="./video.html"    width="100%" height="600" ></iframe>
+		<iframe ng-show="sel =='format'"  id="format"  src="./formats.html"  width="100%" height="600" ></iframe>
 		<iframe ng-show="sel =='control'" id="control" src="./controls.html" width="100%" height="1000"></iframe>
-		<iframe ng-show="sel =='status'"  id="output"                        width="100%" height="200" ></iframe>
+		<iframe ng-show="sel =='status'"  id="output"                        width="100%" height="600" ></iframe>
 	</div>
 </body>
 </html>
