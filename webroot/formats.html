@@ -1,57 +1,4 @@
-<!DOCTYPE html>
-<html ng-app="App">
-<head>
-	<title>V4L2 Formats</title>
-	<script src="angular.min.js"></script>
-	<script src="angular-resource.min.js"></script>
-	<script src="angular-ui-utils.min.js"></script>	
-	<script>
-		// app
-		var app = angular.module('App', ['ngResource','ui.utils']);
-
-		// service
-		app.factory('$api', ['$resource', function($resource){ 
-			return { 
-				formatList : $resource('/formats'), 
-				format : $resource('/format', {}, 
-							{'query':{method:'GET', isArray:false} },
-							{'update':{method:'POST'} }
-						  ) 
-			};
-		}]);	
-
-		// controller
-		app.controller('AppController', function($scope, $api, $log) {			
-			$api.formatList.query(function(data) { 
-				$scope.formatList = data; 
-				$api.format.query(function(data) { 
-					$scope.currentformat = data; 
-					$scope.updateSelectedFormat();
-				} );
-			} );	
-			
-			$scope.update= function(format,width,height,fps) {
-				if (format) $scope.currentformat.format = format;
-				if (width) $scope.currentformat.width = parseInt(width);
-				if (height) $scope.currentformat.height = parseInt(height);
-				if (fps) $scope.currentformat.fps = parseInt(fps);
-				$scope.currentformat.$save(function(data) {
-					$scope.updateSelectedFormat();
-				});
-			}
-
-			$scope.updateSelectedFormat= function(format) {
-				$scope.selectedFormat = $scope.formatList.filter(function(item) { return item.format === $scope.currentformat.format; }) [0];
-				$scope.selectedFormat.width = $scope.currentformat.width;
-				$scope.selectedFormat.height = $scope.currentformat.height;
-				$scope.selectedFormat.fps = $scope.currentformat.fps;
-			}			
-		});
-		
-	</script>
-</head>
-<body ng-controller="AppController">
-	<h3><center>V4L2 Formats</center></h3>
+<div ng-controller="AppFmtController">
 	<table>
 		<tbody>
 			<tr>
@@ -106,5 +53,4 @@
 			</tr>
 		</tbody>
 	</table>
-</body>
-</html>
+</div>	

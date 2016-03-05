@@ -3,38 +3,24 @@
 <head>
 	<title>V4L2</title>
 	<script src="angular.min.js"></script>
-	<script src="angular-resource.min.js"></script>	
-	<script>
-		// app
-		var app = angular.module('App', ['ngResource']);
-		
-		// service
-		app.factory('$api', ['$resource', function($resource){ 
-			return {
-				capabilities : $resource('/capabilities', {}, {'query':{isArray:false}}),
-				inputs : $resource('/inputs'),
-			}
-		}]);	
-		
-		// controller
-		app.controller('AppController', function($scope, $api) {
-			$api.capabilities.query(function(data) { $scope.capabilities = data; } );
-			$api.inputs.query(function(data) { $scope.inputs = data; } );
-		});		
-	</script>	
+	<script src="angular-resource.min.js"></script>		
+ 	
+	<script src="app.js" ></script>
 	
+	<script src="ws.js" ></script>	
 </head>
 <body ng-controller="AppController">
-	<h2>{{inputs[0].name}} {{capabilities.bus_info}}</h2>
-	<button ng-click="sel = 'video'"   ng-disabled="sel == 'video'"   >Live</button>
-	<button ng-click="sel = 'format'"  ng-disabled="sel == 'format'"  >Format</button>
-	<button ng-click="sel = 'control'" ng-disabled="sel == 'control'" >Control</button>
-	<button ng-click="sel = 'status'"  ng-disabled="sel == 'status'" ng-init="sel = 'video'" >Status </button>
-	<div>
-		<iframe ng-show="sel =='video'"   id="video"   src="./video.html"    width="100%" height="600" ></iframe>
-		<iframe ng-show="sel =='format'"  id="format"  src="./formats.html"  width="100%" height="600" ></iframe>
-		<iframe ng-show="sel =='control'" id="control" src="./controls.html" width="100%" height="1000"></iframe>
-		<iframe ng-show="sel =='status'"  id="output"                        width="100%" height="600" ></iframe>
-	</div>
+	<h2><center>{{inputs[0].name}} {{capabilities.bus_info}}</center></h2>
+	
+	<center>	
+		<button ng-click="sel = 'video'"   ng-disabled="sel == 'video'"  ng-init="sel = 'video'" >Live</button>
+		<button ng-click="sel = 'format'"  ng-disabled="sel == 'format'"  >Format</button>
+		<button ng-click="sel = 'control'" ng-disabled="sel == 'control'" >Controls</button>
+	</center>
+	<tabset>    
+	  <tab ng-repeat="tab in tabs" ng-model="tab" heading="{{tab.title}}" active="tab.active" disable="tab.disabled">  
+	      <div ng-include src="tab.url" ng-show="sel == tab.title"> </div>
+	    </tab>
+	</tabset>			
 </body>
 </html>
