@@ -171,27 +171,34 @@ int main(int argc, char* argv[])
 	int c = 0;
 	const char * port = "8080";
 	bool useMmap = false;
+	std::string webroot = "webroot";
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rM")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
+
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
+			case 'r':	useMmap = true; break;			
+
 			case 'P':	port = optarg; break;
-			case 'M':	useMmap = true; break;			
+			case 'p':	webroot = optarg; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [device]" << std::endl;
 				std::cout << "\t -v       : verbose " << std::endl;
 				std::cout << "\t -v v     : very verbose " << std::endl;
 				std::cout << "\t -P port  : server port (default "<< port << ")" << std::endl;
+				std::cout << "\t -p path  : server root path (default "<< webroot << ")" << std::endl;
+
 				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
 				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
-				std::cout << "\t -M       : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
+				std::cout << "\t -r       : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
+
 				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
 			}
@@ -237,7 +244,8 @@ int main(int argc, char* argv[])
 		else
 		{
 			std::string currentPath(get_current_dir_name());
-			currentPath += "/webroot";
+			currentPath += "/";
+			currentPath += webroot;
 			mg_set_option(server, "document_root", currentPath.c_str());
 		
 			chdir(mg_get_option(server, "document_root"));
