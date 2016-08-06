@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V4L2 with Angular2</title>
+
+    <script src="angular2-polyfills.js"></script>
+    <script src="Rx.umd.js"></script>
+    <script src="angular2-all.umd.min.js"></script>
+
+    <script src='controls.js'></script>
+    <script>
+    // bootstrap angular
+    (function (app) {
+       document.addEventListener('DOMContentLoaded', function () {
+           ng.platform.browser.bootstrap(app.AppComponent, [ng.http.HTTP_PROVIDERS]);
+       });
+    })(window.app || (window.app = {}));
+    </script>
+ 
+</head>
+<body>
+   <controls>Loading...</controls>
+</body>
+</html>

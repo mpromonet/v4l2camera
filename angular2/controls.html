@@ -1,0 +1,25 @@
+<div>
+	<table>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Current</th>
+				<th>Min</th>
+				<th>Max</th>
+				<th>Value</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let control of controlList" >
+				<td>{{control.name}}</td>
+				<td>
+					<input #name placeholder="{{control.value}}" type="text" size="8"/>				
+				</td>
+				<td>{{control.minimum}}</td>
+				<td>{{control.maximum}}</td>
+				<td>{{control.value}}
+				</td>
+			</tr>      
+		</tbody>
+	</table>
+</div>	 
