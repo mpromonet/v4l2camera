@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <linux/videodev2.h>
-#include <fstream>
 	
 #include "mongoose.h"
 #include <jpeglib.h>
@@ -22,6 +21,7 @@
 #include "V4l2Capture.h"
 
 #include "v4l2web.h"
+
 
 /* ---------------------------------------------------------------------------
 **  mongoose callback
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 	int fps = 10;	
 	int c = 0;
 	const char * port = "8080";
-	bool useMmap = false;
+	V4l2DeviceFactory::IoType ioTypeIn = V4l2DeviceFactory::IOTYPE_MMAP;
 	std::string webroot = "webroot";
 	
 	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:")) != -1)
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	useMmap = true; break;			
+			case 'r':	ioTypeIn = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
 
 			case 'P':	port = optarg; break;
 			case 'p':	webroot = optarg; break;			
@@ -215,18 +215,18 @@ int main(int argc, char* argv[])
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;
 	V4L2DeviceParameters param(dev_name,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture =  V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+	V4l2Capture* videoCapture =  V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 	if (videoCapture == NULL)
 	{	
-		LOG(INFO) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
+		LOG(WARN) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
 		param.m_format = V4L2_PIX_FMT_YUYV;
-		videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+		videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 	}
 	if (videoCapture == NULL)
 	{	
-		LOG(INFO) << "Cannot create YUYV capture for device:" << dev_name << " => try YUYV capture"; 
+		LOG(WARN) << "Cannot create YUYV capture for device:" << dev_name << " => keep current format"; 
 		param.m_format = 0;
-		videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+		videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 	}
 	
 	if (videoCapture == NULL)

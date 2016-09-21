@@ -18,6 +18,7 @@
 #include <linux/videodev2.h>
 
 #include <stdexcept>
+#include <iostream>
 	
 #include <json/json.h>
 #include "mongoose.h"
@@ -69,7 +70,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 					struct v4l2_querymenu querymenu;
 					memset(&querymenu,0,sizeof(querymenu));
 					querymenu.id = qctrl.id;
-					for (querymenu.index = 0; querymenu.index <= qctrl.maximum; querymenu.index++) 
+					for (querymenu.index = qctrl.minimum; querymenu.index <= qctrl.maximum; querymenu.index++) 
 					{
 						if (0 == ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
 						{
@@ -461,14 +462,14 @@ int send_ws_notif(struct mg_connection *conn, char* buffer, ssize_t size)
 static int send_start_reply(struct mg_connection *conn) 
 {
 	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	mg_printf_data(conn, "%d", dev->captureStart());
+	mg_printf_data(conn, "%d", dev->start());
 	return MG_TRUE;
 }
 
 static int send_stop_reply(struct mg_connection *conn) 
 {
 	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	mg_printf_data(conn, "%d", dev->captureStop());
+	mg_printf_data(conn, "%d", dev->stop());
 	return MG_TRUE;
 }
 
