@@ -12,7 +12,7 @@ LDFLAGS += -llog4cpp
 #
 CFLAGS += -g -fpermissive
 CFLAGS += -I mongoose -I v4l2wrapper/inc -I inc
-LDFLAGS += -lv4l2 -ljpeg
+LDFLAGS += -ljpeg
 
 all: $(ALL_PROGS)
 
