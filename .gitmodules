@@ -1,6 +1,6 @@
-[submodule "v4l2web/mongoose"]
-	path = mongoose
-	url = https://github.com/cesanta/mongoose.git
 [submodule "v4l2wrapper"]
 	path = v4l2wrapper
 	url = https://github.com/mpromonet/v4l2wrapper
+[submodule "civetweb"]
+	path = civetweb
+	url = https://github.com/civetweb/civetweb
