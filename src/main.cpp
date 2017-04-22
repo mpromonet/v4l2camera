@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 	int fps = 10;	
 	int c = 0;
 	const char * port = "8080";
-	V4l2DeviceFactory::IoType ioTypeIn = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeIn = V4l2Access::IOTYPE_MMAP;
 	std::string webroot = "webroot";
 	
 	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:")) != -1)
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	ioTypeIn = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
+			case 'r':	ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;			
 
 			case 'P':	port = optarg; break;
 			case 'p':	webroot = optarg; break;			
@@ -174,20 +174,19 @@ int main(int argc, char* argv[])
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_JPEG;
 	V4L2DeviceParameters param(dev_name,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture =  V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
+	V4l2Capture* videoCapture =  V4l2Capture::create(param, ioTypeIn);
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
 		param.m_format = V4L2_PIX_FMT_YUYV;
-		videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
+		videoCapture = V4l2Capture::create(param, ioTypeIn);
 	}
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create YUYV capture for device:" << dev_name << " => keep current format"; 
 		param.m_format = 0;
-		videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
-	}
-	
+		videoCapture = V4l2Capture::create(param, ioTypeIn);
+	}	
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
