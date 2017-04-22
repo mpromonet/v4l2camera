@@ -4,6 +4,7 @@ addons:
     packages:
     - liblog4cpp5-dev 
     - liblivemedia-dev
+    - libjsoncpp-dev
 language: cpp
 compiler:
 - gcc
