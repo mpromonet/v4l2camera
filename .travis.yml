@@ -1,6 +1,9 @@
-before_install:
-- sudo apt-get update
-- sudo apt-get install libv4l-dev libjsoncpp-dev libjpeg-dev liblog4cpp5-dev
+dist: trusty
+addons:
+  apt:
+    packages:
+    - liblog4cpp5-dev 
+    - liblivemedia-dev
 language: cpp
 compiler:
 - gcc
