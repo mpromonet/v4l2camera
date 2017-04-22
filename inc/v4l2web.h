@@ -10,17 +10,33 @@
 #ifndef V4L2_WEB_H
 #define V4L2_WEB_H
 
-typedef int (*callback)(struct mg_connection *conn);
-typedef int (*callback_notify)(struct mg_connection *conn, char* buffer, ssize_t size);
-struct url_handler
-{
-	const char* uri;
-	callback handle_req;
-	callback handle_close;
-	callback_notify handle_notify;
-};
+#include <functional>
+#include <list>
 
-const url_handler* find_url(const char* uri);
+#include "json/json.h"
+#include "CivetServer.h"
+
+typedef std::function<Json::Value(struct mg_connection *conn, const Json::Value &)> httpFunction;
+
+/* ---------------------------------------------------------------------------
+**  http callback
+** -------------------------------------------------------------------------*/
+class HttpServerRequestHandler : public CivetServer
+{
+	public:
+		HttpServerRequestHandler(V4l2Capture* videoCapture, const std::vector<std::string>& options); 
+	
+		httpFunction getFunction(const std::string& uri);
+		void addWebsocketConnection(const struct mg_connection *conn);
+		void delWebsocketConnection(const struct mg_connection *conn);
+	
+		void notifyWebsocketConnection(const char* buf, unsigned int size);
+				
+	protected:
+		V4l2Capture*                            m_videoCapture;
+		std::map<std::string,httpFunction>      m_func;
+		std::list<const struct mg_connection *> m_ws;
+};
 
 #endif
 

@@ -20,9 +20,6 @@
 #include <stdexcept>
 #include <iostream>
 	
-#include <json/json.h>
-#include "mongoose.h"
-
 #include "V4l2Capture.h"
 #include "v4l2web.h"
 
@@ -109,9 +106,8 @@ std::string get_fourcc(unsigned int pixelformat)
 	return fourcc;
 }
 
-static int send_capabilities_reply(struct mg_connection *conn) 
+static Json::Value send_capabilities_reply(V4l2Capture* dev) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	v4l2_capability cap;
@@ -131,15 +127,16 @@ static int send_capabilities_reply(struct mg_connection *conn)
 		json["capabilities"]   = capabilities;
 #endif		
 	}
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
+	else
+	{
+		json["errno"]  = errno;
+		json["error"]  = strerror(errno);			
+	}
+	return json;
 }
 
-static int send_inputs_reply(struct mg_connection *conn) 
+static Json::Value send_inputs_reply(V4l2Capture* dev) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (int i = 0;; i++) 
@@ -165,10 +162,7 @@ static int send_inputs_reply(struct mg_connection *conn)
 		value["status"] = status;			
 		json.append(value);
 	}
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
+	return json;
 }
 
 void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
@@ -200,9 +194,8 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 	frameSize["intervals"] = frameIntervals;
 }
 				
-static int send_formats_reply(struct mg_connection *conn) 
+static Json::Value send_formats_reply(V4l2Capture* dev) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (int i = 0;; i++) 
@@ -258,26 +251,17 @@ static int send_formats_reply(struct mg_connection *conn)
 
 		json.append(value);
 	}
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
+	return json;
 }
 
-static int send_format_reply(struct mg_connection *conn) 
+static Json::Value send_format_reply(V4l2Capture* dev, const Json::Value & input) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value output;
 	
 	// set format POST
-	if ( (conn->content_len != 0) && (conn->content != NULL) )
-	{
-		std::string content(conn->content, conn->content_len);
-		Json::Value input;
-		Json::Reader reader;
-		reader.parse(content,input);
-		
+	if (input.isNull() == false)
+	{		
 		Json::StyledWriter writer;
 		std::cout << writer.write(input) << std::endl;		
 		
@@ -363,39 +347,25 @@ static int send_format_reply(struct mg_connection *conn)
 		output["fps"]           = fps; 
 	}
 	
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(output));
-	std::cerr << str << std::endl;	
-	mg_printf_data(conn, str.c_str());
-	return MG_TRUE;
+	return output;
 }
 
-static int send_controls_reply(struct mg_connection *conn) 
+static Json::Value send_controls_reply(V4l2Capture* dev) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value json;
 	for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
 	for (unsigned int i = V4L2_CID_LASTP1+1; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(json));
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
+	return json;
 }
 
-static int send_control_reply(struct mg_connection *conn) 
+static Json::Value send_control_reply(V4l2Capture* dev, const Json::Value & input) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
 	int fd = dev->getFd();		
 	Json::Value output;
 		
-	if ( (conn->content_len != 0) && (conn->content != NULL) )
+	if (input.isNull() == false)
 	{
-		std::string content(conn->content, conn->content_len);
-		Json::Value input;
-		Json::Reader reader;
-		reader.parse(content,input);
-		
 		Json::StyledWriter writer;
 		std::cout << writer.write(input) << std::endl;		
 			
@@ -432,54 +402,28 @@ static int send_control_reply(struct mg_connection *conn)
 		}
 		
 	}
-	Json::StyledWriter styledWriter;
-	std::string str (styledWriter.write(output));
-	std::cerr << str << std::endl;		
-	mg_printf_data(conn, str.c_str());		
-	return MG_TRUE;
+	return output;
 }
 
-static int send_ws_reply(struct mg_connection *conn) 
+static Json::Value send_start_reply(V4l2Capture* dev) 
 {
-	int ret = MG_FALSE;
-	if (conn->is_websocket) 
-	{			
-		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, conn->content, conn->content_len);
-		ret=MG_TRUE;
-	} 
-	return ret;
+	Json::Value answer(dev->start());
+	return answer;	
 }
 
-int send_ws_notif(struct mg_connection *conn, char* buffer, ssize_t size) 
+static Json::Value send_stop_reply(V4l2Capture* dev) 
 {
-	if (conn->is_websocket) 
-	{
-		mg_websocket_write(conn, WEBSOCKET_OPCODE_BINARY, buffer, size);
-	}
-	return MG_TRUE;
+	Json::Value answer(dev->stop());
+	return answer;	
 }
 
-static int send_start_reply(struct mg_connection *conn) 
+static Json::Value send_isCapturing_reply(V4l2Capture* dev) 
 {
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	mg_printf_data(conn, "%d", dev->start());
-	return MG_TRUE;
+	Json::Value answer(dev->isReady());
+	return answer;	
 }
 
-static int send_stop_reply(struct mg_connection *conn) 
-{
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	mg_printf_data(conn, "%d", dev->stop());
-	return MG_TRUE;
-}
-
-static int send_isCapturing_reply(struct mg_connection *conn) 
-{
-	V4l2Capture* dev =(V4l2Capture*)conn->server_param;
-	mg_printf_data(conn, "%d", dev->isReady());
-	return MG_TRUE;
-}
-
+#if 0
 static int send_jpeg_reply(struct mg_connection *conn) 
 {
 	mg_send_header(conn, "Cache-Control", "no-cache");
@@ -517,30 +461,208 @@ url_handler urls[] = {
 	{ "/help", send_help_reply, NULL, NULL },
 	{ NULL, NULL, NULL, NULL },
 };
-int send_help_reply(struct mg_connection *conn) 
-{
-	mg_send_header(conn, "Cache-Control", "no-cache");
-	for (int i=0; urls[i].uri ; ++i)
-	{
-		mg_printf_data(conn, "%s\n", urls[i].uri);	
-	}
-	return MG_TRUE;
-}
+#endif
 
-const url_handler* find_url(const char* uri)
+/* ---------------------------------------------------------------------------
+**  Civet HTTP callback 
+** -------------------------------------------------------------------------*/
+class RequestHandler : public CivetHandler
 {
-	const url_handler* url = NULL;
-	if (uri != NULL)
+  public:
+	bool handle(CivetServer *server, struct mg_connection *conn)
 	{
-		for (int i=0; urls[i].uri ; ++i)
+		bool ret = false;
+		const struct mg_request_info *req_info = mg_get_request_info(conn);
+		
+		std::cout << "uri:" << req_info->request_uri << std::endl;
+		
+		HttpServerRequestHandler* httpServer = (HttpServerRequestHandler*)server;
+		
+		httpFunction fct = httpServer->getFunction(req_info->request_uri);
+		if (fct != NULL)
 		{
-			if (strcmp(urls[i].uri, uri) == 0)
+			Json::Value  jmessage;			
+			
+			// read input
+			long long tlen = req_info->content_length;
+			if (tlen > 0)
 			{
-				url = &urls[i];
-				break;
+				std::string body;	
+				long long nlen = 0;
+				char buf[1024];			
+				while (nlen < tlen) {
+					long long rlen = tlen - nlen;
+					if (rlen > sizeof(buf)) {
+						rlen = sizeof(buf);
+					}
+					rlen = mg_read(conn, buf, (size_t)rlen);
+					if (rlen <= 0) {
+						break;
+					}
+					body.append(buf, rlen);
+					
+					nlen += rlen;
+				}
+				std::cout << "body:" << body << std::endl;
+
+				// parse in
+				Json::Reader reader;
+				if (!reader.parse(body, jmessage)) 
+				{
+					std::cout << "Received unknown message:" << body << std::endl;
+				}
 			}
-		}
+			
+			// invoke API implementation
+			Json::Value out(fct(conn, jmessage));
+			
+			// fill out
+			if (out.isNull() == false)
+			{
+				std::string answer(Json::StyledWriter().write(out));
+				std::cout << "answer:" << answer << std::endl;	
+
+				mg_printf(conn,"HTTP/1.1 200 OK\r\n");
+				mg_printf(conn,"Access-Control-Allow-Origin: *\r\n");
+				mg_printf(conn,"Content-Type: text/plain\r\n");
+				mg_printf(conn,"Content-Length: %zd\r\n", answer.size());
+				mg_printf(conn,"Connection: close\r\n");
+				mg_printf(conn,"\r\n");
+				mg_printf(conn,answer.c_str());	
+				
+				ret = true;
+			}			
+		}		
+		
+		return ret;
 	}
-	return url;
+	bool handleGet(CivetServer *server, struct mg_connection *conn)
+	{
+		return handle(server, conn);
+	}
+	bool handlePost(CivetServer *server, struct mg_connection *conn)
+	{
+		return handle(server, conn);
+	}	
+};
+
+
+class WebsocketHandler: public CivetWebSocketHandler {	
+	virtual bool handleConnection(CivetServer *server, const struct mg_connection *conn) {
+		printf("WS connected\n");
+		
+		HttpServerRequestHandler* httpServer = (HttpServerRequestHandler*)server;
+		httpServer->addWebsocketConnection(conn);
+		
+		return true;
+	}
+
+	virtual void handleReadyState(CivetServer *server, struct mg_connection *conn) {
+		printf("WS ready\n");
+
+		const char *text = "READY";
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, text, strlen(text));
+	}
+
+	virtual bool handleData(CivetServer *server,
+				struct mg_connection *conn,
+				int bits,
+				char *data,
+				size_t data_len) {
+		printf("WS got %lu bytes: ", (long unsigned)data_len);
+		fwrite(data, 1, data_len, stdout);
+		printf("\n");
+
+		mg_websocket_write(conn, WEBSOCKET_OPCODE_TEXT, data, data_len);
+		return (data_len<4);
+	}
+
+	virtual void handleClose(CivetServer *server, const struct mg_connection *conn) {
+		printf("WS closed\n");
+		
+		HttpServerRequestHandler* httpServer = (HttpServerRequestHandler*)server;
+		httpServer->delWebsocketConnection(conn);		
+	}	
+};
+
+/* ---------------------------------------------------------------------------
+**  Constructor
+** -------------------------------------------------------------------------*/
+HttpServerRequestHandler::HttpServerRequestHandler(V4l2Capture* videoCapture, const std::vector<std::string>& options) 
+	: CivetServer(options), m_videoCapture(videoCapture)
+{
+	// http api callbacks
+	m_func["/capabilities"]   = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_capabilities_reply(m_videoCapture);
+	};
+	m_func["/inputs"]         = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_inputs_reply(m_videoCapture);
+	};
+	m_func["/formats"]        = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_formats_reply(m_videoCapture);
+	};
+	m_func["/format"]         = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_format_reply(m_videoCapture, in);
+	};
+	m_func["/controls"]       = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_controls_reply(m_videoCapture);
+	};
+	m_func["/control"]        = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_control_reply(m_videoCapture, in);
+	};	
+	m_func["/start"]          = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_start_reply(m_videoCapture);
+	};
+	m_func["/stop"]           = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_start_reply(m_videoCapture);
+	};
+	m_func["/isCapturing"]    = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		return send_isCapturing_reply(m_videoCapture);
+	};
+	
+	m_func["/help"]           = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		Json::Value answer;
+		for (auto it : m_func) {
+			answer.append(it.first);
+		}
+		return answer;
+	};
+		
+	// register handlers
+	for (auto it : m_func) {
+		this->addHandler(it.first, new RequestHandler());
+	} 	
+	
+	// register WS handlers
+	this->addWebSocketHandler("/ws", new WebsocketHandler());
+}	
+	
+
+httpFunction HttpServerRequestHandler::getFunction(const std::string& uri)
+{
+	httpFunction fct = NULL;
+	std::map<std::string,httpFunction>::iterator it = m_func.find(uri);
+	if (it != m_func.end())
+	{
+		fct = it->second;
+	}
+	
+	return fct;
 }
 
+void HttpServerRequestHandler::addWebsocketConnection(const struct mg_connection *conn)
+{
+	m_ws.push_back(conn);
+}
+
+void HttpServerRequestHandler::delWebsocketConnection(const struct mg_connection *conn)
+{
+	m_ws.remove(conn);
+}
+
+void HttpServerRequestHandler::notifyWebsocketConnection(const char* buffer, unsigned int size)
+{
+	for (auto ws : m_ws) {
+		mg_websocket_write((struct mg_connection *)ws, WEBSOCKET_OPCODE_BINARY, buffer, size);
+	}
+}

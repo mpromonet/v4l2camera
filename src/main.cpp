@@ -11,49 +11,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <linux/videodev2.h>
-	
-#include "mongoose.h"
+
+#include <stdio.h>
 #include <jpeglib.h>
 
 #include "logger.h"
 
-#include "V4l2Device.h"
 #include "V4l2Capture.h"
 
 #include "v4l2web.h"
 
-
-/* ---------------------------------------------------------------------------
-**  mongoose callback
-** -------------------------------------------------------------------------*/
-static int ev_handler(struct mg_connection *conn, enum mg_event ev) 
-{
-	int ret = MG_FALSE;
-	switch (ev) 
-	{
-		case MG_AUTH: ret = MG_TRUE; break;
-		case MG_REQUEST: 
-		{
-			const url_handler* url = find_url(conn->uri);
-			if (url && url->handle_req)
-			{
-				ret = url->handle_req(conn);
-			}
-		}
-		break;
-		case MG_CLOSE:
-		{
-			const url_handler* url = find_url(conn->uri);
-			if (url && url->handle_close)
-			{
-				ret = url->handle_close(conn);
-			}
-		}
-		break;
-		default: break;
-	} 
-	return ret;
-}
 
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
@@ -113,7 +80,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 /* ---------------------------------------------------------------------------
 **  V4L2 processing
 ** -------------------------------------------------------------------------*/
-void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int height)
+void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int width, int height)
 {
 	if (dev->isReady())
 	{
@@ -143,15 +110,7 @@ void v4l2processing(struct mg_server *server, V4l2Capture* dev, int width, int h
 				// post to subscribers
 				if (size>0)
 				{
-					for (struct mg_connection *c = mg_next(server, NULL); c != NULL; c = mg_next(server, c)) 
-					{
-						const url_handler* url = find_url(c->uri);
-						if (url && url->handle_notify)
-						{
-							LOG(DEBUG) << "notify:" << c->uri << " size:" << size;
-							url->handle_notify(c, buf, size);
-						}
-					}							
+					server.notifyWebsocketConnection(buf, size);
 				}
 			}
 		}
@@ -234,29 +193,25 @@ int main(int argc, char* argv[])
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
 	}
 	else
-	{
-		struct mg_server *server = mg_create_server(videoCapture, ev_handler);
-		const char* error = mg_set_option(server, "listening_port", port);
-		if (error != NULL)
+	{		
+		std::vector<std::string> options;
+		options.push_back("document_root");
+		options.push_back(webroot);
+		options.push_back("listening_ports");
+		options.push_back(port);
+		
+		HttpServerRequestHandler httpServer(videoCapture, options);
+		if (httpServer.getContext() == NULL)
 		{
-			LOG(WARN) << "Cannot listen on port:" << port << " " << error; 
+			LOG(WARN) << "Cannot listen on port:" << port; 
 		}
 		else
 		{
-			std::string currentPath(get_current_dir_name());
-			currentPath += "/";
-			currentPath += webroot;
-			mg_set_option(server, "document_root", currentPath.c_str());
-		
-			chdir(mg_get_option(server, "document_root"));
-			LOG(NOTICE) << "Started on port:" << mg_get_option(server, "listening_port") << " webroot:" << mg_get_option(server, "document_root"); 
-			for (;;) 
-			{
-				mg_poll_server(server, 10);
-				v4l2processing(server, videoCapture, width, height);
+			LOG(NOTICE) << "Started on port:" << port << " webroot:" << webroot; 
+			while (true) {
+				v4l2processing(httpServer, videoCapture, width, height);
 			}
 		}
-		mg_destroy_server(&server);		
 		delete videoCapture;
 	}
 	
