@@ -4,11 +4,8 @@ v4l2web
 =======
 Web server for V4L2 interface
 
-The mongoose HTTP server give access to the Video4Linux interface and the web interface use AngularJS.
+The civetweb HTTP server give access to the Video4Linux interface and the web interface using AngularJS/EmberJS/ReactJS or Angular.
 
-License
-------------
-Domain public 
 
 Dependencies
 ------------
