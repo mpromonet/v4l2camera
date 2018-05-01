@@ -4,11 +4,17 @@ ALL_PROGS = v4l2web
 PREFIX=/usr
 
 CC = g++
+
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/log4cpp/Category.hh),)
+$(info with log4cpp)
+CFLAGS += -DHAVE_LOG4CPP -I $(SYSROOT)$(PREFIX)/include
+LDFLAGS += -llog4cpp
+endif
+
 # jsoncpp
 CFLAGS += -I $(PREFIX)/include/jsoncpp 
 LDFLAGS += -ljsoncpp 
-# log4cpp
-LDFLAGS += -llog4cpp 
+
 #
 CFLAGS += -g -fpermissive
 CFLAGS +=  -I v4l2wrapper/inc -I inc
@@ -21,8 +27,10 @@ upgrade:
 
 
 # civetweb
-libcivetweb.a: civetweb/Makefile
+civetweb/Makefile:
 	git submodule update --init civetweb
+	
+libcivetweb.a: civetweb/Makefile
 	make lib WITH_CPP=1 COPT="$(CFLAGS)" -C civetweb
 	mv civetweb/$@ .
 	make -C civetweb clean

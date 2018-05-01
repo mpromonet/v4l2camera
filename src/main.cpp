@@ -172,21 +172,12 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	int format = V4L2_PIX_FMT_JPEG;
-	V4L2DeviceParameters param(dev_name,format,width,height,fps,verbose);
+	std::list<unsigned int> formatList;
+	formatList.push_back(V4L2_PIX_FMT_JPEG);
+	formatList.push_back(V4L2_PIX_FMT_YUYV);
+	formatList.push_back(0);
+	V4L2DeviceParameters param(dev_name,formatList,width,height,fps,verbose);
 	V4l2Capture* videoCapture =  V4l2Capture::create(param, ioTypeIn);
-	if (videoCapture == NULL)
-	{	
-		LOG(WARN) << "Cannot create JPEG capture for device:" << dev_name << " => try YUYV capture"; 
-		param.m_format = V4L2_PIX_FMT_YUYV;
-		videoCapture = V4l2Capture::create(param, ioTypeIn);
-	}
-	if (videoCapture == NULL)
-	{	
-		LOG(WARN) << "Cannot create YUYV capture for device:" << dev_name << " => keep current format"; 
-		param.m_format = 0;
-		videoCapture = V4l2Capture::create(param, ioTypeIn);
-	}	
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
