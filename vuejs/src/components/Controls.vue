@@ -26,7 +26,7 @@
 <script>
 import axios from "axios";
 
-var serviceurl = 'http://192.168.11.3:9999'
+var serviceurl = ''
 
 export default {
   mounted() {
