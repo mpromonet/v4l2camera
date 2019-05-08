@@ -23,7 +23,7 @@
 #include "V4l2Capture.h"
 #include "v4l2web.h"
 
-unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
+static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;
 	struct v4l2_queryctrl   qctrl;
@@ -96,7 +96,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 	return ret;
 }
 
-std::string get_fourcc(unsigned int pixelformat)
+static std::string get_fourcc(unsigned int pixelformat)
 {
 	std::string fourcc;
 	fourcc.append(1, pixelformat&0xff);
@@ -106,66 +106,7 @@ std::string get_fourcc(unsigned int pixelformat)
 	return fourcc;
 }
 
-static Json::Value send_capabilities_reply(V4l2Capture* dev) 
-{
-	int fd = dev->getFd();		
-	Json::Value json;
-	v4l2_capability cap;
-	memset(&cap,0,sizeof(cap));
-	if (-1 != ioctl(fd,VIDIOC_QUERYCAP,&cap))
-	{
-		json["driver"]     = (const char*)cap.driver;
-		json["card"]       = (const char*)cap.card;
-		json["bus_info"]   = (const char*)cap.bus_info;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
-		Json::Value capabilities;
-		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT" );
-		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"    );
-		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"      );
-		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"    );
-		json["capabilities"]   = capabilities;
-#endif		
-	}
-	else
-	{
-		json["errno"]  = errno;
-		json["error"]  = strerror(errno);			
-	}
-	return json;
-}
-
-static Json::Value send_inputs_reply(V4l2Capture* dev) 
-{
-	int fd = dev->getFd();		
-	Json::Value json;
-	for (int i = 0;; i++) 
-	{
-		v4l2_input input;
-		memset(&input,0,sizeof(input));
-		input.index = i;
-		if (-1 == ioctl(fd,VIDIOC_ENUMINPUT,&input))
-			break;
-		
-		Json::Value value;
-		value["name"]   = (const char*)input.name;
-		switch (input.type)
-		{
-			case V4L2_INPUT_TYPE_TUNER : value["type"] = "V4L2_INPUT_TYPE_TUNER" ; break;
-			case V4L2_INPUT_TYPE_CAMERA: value["type"] = "V4L2_INPUT_TYPE_CAMERA"; break;
-			default : break;
-		}		
-		Json::Value status;
-		if (input.status & V4L2_IN_ST_NO_POWER ) status.append("V4L2_IN_ST_NO_POWER" );
-		if (input.status & V4L2_IN_ST_NO_SIGNAL) status.append("V4L2_IN_ST_NO_SIGNAL");
-		if (input.status & V4L2_IN_ST_NO_COLOR ) status.append("V4L2_IN_ST_NO_COLOR" );
-		value["status"] = status;			
-		json.append(value);
-	}
-	return json;
-}
-
-void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
+static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
 {
 	Json::Value frameIntervals;
 	struct v4l2_frmivalenum frmival;
@@ -193,10 +134,70 @@ void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, un
 	}
 	frameSize["intervals"] = frameIntervals;
 }
-				
-static Json::Value send_formats_reply(V4l2Capture* dev) 
+		
+
+Json::Value V4l2web::send_capabilities_reply() 
 {
-	int fd = dev->getFd();		
+	int fd = m_videoCapture->getFd();		
+	Json::Value json;
+	v4l2_capability cap;
+	memset(&cap,0,sizeof(cap));
+	if (-1 != ioctl(fd,VIDIOC_QUERYCAP,&cap))
+	{
+		json["driver"]     = (const char*)cap.driver;
+		json["card"]       = (const char*)cap.card;
+		json["bus_info"]   = (const char*)cap.bus_info;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
+		Json::Value capabilities;
+		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT" );
+		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"    );
+		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"      );
+		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"    );
+		json["capabilities"]   = capabilities;
+#endif		
+	}
+	else
+	{
+		json["errno"]  = errno;
+		json["error"]  = strerror(errno);			
+	}
+	return json;
+}
+
+Json::Value V4l2web::send_inputs_reply() 
+{
+	int fd = m_videoCapture->getFd();		
+	Json::Value json;
+	for (int i = 0;; i++) 
+	{
+		v4l2_input input;
+		memset(&input,0,sizeof(input));
+		input.index = i;
+		if (-1 == ioctl(fd,VIDIOC_ENUMINPUT,&input))
+			break;
+		
+		Json::Value value;
+		value["name"]   = (const char*)input.name;
+		switch (input.type)
+		{
+			case V4L2_INPUT_TYPE_TUNER : value["type"] = "V4L2_INPUT_TYPE_TUNER" ; break;
+			case V4L2_INPUT_TYPE_CAMERA: value["type"] = "V4L2_INPUT_TYPE_CAMERA"; break;
+			default : break;
+		}		
+		Json::Value status;
+		if (input.status & V4L2_IN_ST_NO_POWER ) status.append("V4L2_IN_ST_NO_POWER" );
+		if (input.status & V4L2_IN_ST_NO_SIGNAL) status.append("V4L2_IN_ST_NO_SIGNAL");
+		if (input.status & V4L2_IN_ST_NO_COLOR ) status.append("V4L2_IN_ST_NO_COLOR" );
+		value["status"] = status;			
+		json.append(value);
+	}
+	return json;
+}
+		
+Json::Value V4l2web::send_formats_reply() 
+{
+	int fd = m_videoCapture->getFd();		
 	Json::Value json;
 	for (int i = 0;; i++) 
 	{
@@ -254,9 +255,9 @@ static Json::Value send_formats_reply(V4l2Capture* dev)
 	return json;
 }
 
-static Json::Value send_format_reply(V4l2Capture* dev, const Json::Value & input) 
+Json::Value V4l2web::send_format_reply(const Json::Value & input) 
 {
-	int fd = dev->getFd();		
+	int fd = m_videoCapture->getFd();		
 	Json::Value output;
 	
 	// set format POST
@@ -350,18 +351,18 @@ static Json::Value send_format_reply(V4l2Capture* dev, const Json::Value & input
 	return output;
 }
 
-static Json::Value send_controls_reply(V4l2Capture* dev) 
+Json::Value V4l2web::send_controls_reply() 
 {
-	int fd = dev->getFd();		
+	int fd = m_videoCapture->getFd();		
 	Json::Value json;
 	for (unsigned int i = V4L2_CID_BASE; i<V4L2_CID_LASTP1; add_ctrl(fd,i,json), i++);
 	for (unsigned int i = V4L2_CID_LASTP1+1; i != 0 ; i=add_ctrl(fd,i|V4L2_CTRL_FLAG_NEXT_CTRL,json));
 	return json;
 }
 
-static Json::Value send_control_reply(V4l2Capture* dev, const Json::Value & input) 
+Json::Value V4l2web::send_control_reply(const Json::Value & input) 
 {
-	int fd = dev->getFd();		
+	int fd = m_videoCapture->getFd();		
 	Json::Value output;
 		
 	if (input.isNull() == false)
@@ -405,46 +406,23 @@ static Json::Value send_control_reply(V4l2Capture* dev, const Json::Value & inpu
 	return output;
 }
 
-static Json::Value send_start_reply(V4l2Capture* dev) 
+Json::Value V4l2web::send_start_reply() 
 {
-	Json::Value answer(dev->start());
+	Json::Value answer(m_videoCapture->start());
 	return answer;	
 }
 
-static Json::Value send_stop_reply(V4l2Capture* dev) 
+Json::Value V4l2web::send_stop_reply() 
 {
-	Json::Value answer(dev->stop());
+	Json::Value answer(m_videoCapture->stop());
 	return answer;	
 }
 
-static Json::Value send_isCapturing_reply(V4l2Capture* dev) 
+Json::Value V4l2web::send_isCapturing_reply() 
 {
-	Json::Value answer(dev->isReady());
+	Json::Value answer(m_videoCapture->isReady());
 	return answer;	
 }
-
-#if 0
-static int send_jpeg_reply(struct mg_connection *conn) 
-{
-	mg_send_header(conn, "Cache-Control", "no-cache");
-	mg_send_header(conn, "Pragma", "no-cache");
-	mg_send_header(conn, "Expires", "Thu, 01 Dec 1994 16:00:00 GMT");
-	mg_send_header(conn, "Connection", "close");
-	mg_send_header(conn, "Content-Type", "multipart/x-mixed-replace; boundary=--myboundary");
-	mg_write(conn,"\r\n",2);
-	send_start_reply(conn);
-	return MG_MORE;
-}
-
-int send_jpeg_notif(struct mg_connection *conn, char* buffer, ssize_t size) 
-{
-	mg_printf(conn, "--myboundary\r\nContent-Type: image/jpeg\r\n"
-		"Content-Length: %llu\r\n\r\n", (unsigned long long) size);
-	mg_write(conn, buffer, size);
-	mg_write(conn,"\r\n",2);
-	return MG_TRUE;
-}
-#endif
 
 /* ---------------------------------------------------------------------------
 **  Civet HTTP callback 
@@ -572,35 +550,35 @@ class WebsocketHandler: public CivetWebSocketHandler {
 **  Constructor
 ** -------------------------------------------------------------------------*/
 HttpServerRequestHandler::HttpServerRequestHandler(V4l2Capture* videoCapture, const std::vector<std::string>& options) 
-	: CivetServer(options), m_videoCapture(videoCapture)
+	: CivetServer(options), m_v4l2web(videoCapture)
 {
 	// http api callbacks
 	m_func["/capabilities"]   = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_capabilities_reply(m_videoCapture);
+		return m_v4l2web.send_capabilities_reply();
 	};
 	m_func["/inputs"]         = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_inputs_reply(m_videoCapture);
+		return m_v4l2web.send_inputs_reply();
 	};
 	m_func["/formats"]        = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_formats_reply(m_videoCapture);
+		return m_v4l2web.send_formats_reply();
 	};
 	m_func["/format"]         = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_format_reply(m_videoCapture, in);
+		return m_v4l2web.send_format_reply(in);
 	};
 	m_func["/controls"]       = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_controls_reply(m_videoCapture);
+		return m_v4l2web.send_controls_reply();
 	};
 	m_func["/control"]        = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_control_reply(m_videoCapture, in);
+		return m_v4l2web.send_control_reply(in);
 	};	
 	m_func["/start"]          = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_start_reply(m_videoCapture);
+		return m_v4l2web.send_start_reply();
 	};
 	m_func["/stop"]           = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_start_reply(m_videoCapture);
+		return m_v4l2web.send_start_reply();
 	};
 	m_func["/isCapturing"]    = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-		return send_isCapturing_reply(m_videoCapture);
+		return m_v4l2web.send_isCapturing_reply();
 	};
 	
 	m_func["/help"]           = [this](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
