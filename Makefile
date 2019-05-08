@@ -48,7 +48,7 @@ libv4l2wrapper.a:
 	
 LIBS+=libv4l2wrapper.a
 
-v4l2web: src/main.cpp src/v4l2web.cpp $(LIBS)
+v4l2web: src/main.cpp src/v4l2web.cpp src/HttpServerRequestHandler.cpp $(LIBS)
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:

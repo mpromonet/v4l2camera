@@ -18,9 +18,8 @@
 #include "logger.h"
 
 #include "V4l2Capture.h"
-
 #include "v4l2web.h"
-
+#include "HttpServerRequestHandler.h"
 
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
