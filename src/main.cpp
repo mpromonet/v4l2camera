@@ -193,34 +193,41 @@ int main(int argc, char* argv[])
 		// http api callbacks
 		std::map<std::string,HttpServerRequestHandler::httpFunction> func;
 		V4l2web v4l2web(videoCapture);
-		func["/capabilities"]   = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/capabilities"]   = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_capabilities_reply();
 		};
-		func["/inputs"]         = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/inputs"]         = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_inputs_reply();
 		};
-		func["/formats"]        = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/formats"]        = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_formats_reply();
 		};
-		func["/format"]         = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/format"]         = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_format_reply(in);
 		};
-		func["/controls"]       = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/controls"]       = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_controls_reply();
 		};
-		func["/control"]        = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/control"]        = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_control_reply(in);
 		};	
-		func["/start"]          = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/start"]          = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_start_reply();
 		};
-		func["/stop"]           = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/stop"]           = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_start_reply();
 		};
-		func["/isCapturing"]    = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+		func["/isCapturing"]    = [v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return v4l2web.send_isCapturing_reply();
 		};
-	
+		func["/help"]           = [func](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			Json::Value answer;
+			for (auto it : func) {
+				answer.append(it.first);
+			}
+			return answer;
+		};	
+    
 		HttpServerRequestHandler httpServer(func, options);
 		if (httpServer.getContext() == NULL)
 		{
