@@ -51,13 +51,11 @@ class RequestHandler : public CivetHandler
         HttpServerRequestHandler::httpFunction fct = httpServer->getFunction(req_info->request_uri);
         if (fct != NULL)
         {
-            Json::Value  jmessage;			
-            
             // read input
             Json::Value  in = this->getInputMessage(req_info, conn);
             
             // invoke API implementation
-            Json::Value out(fct(conn, jmessage));
+            Json::Value out(fct(req_info, in));
             
             // fill out
             if (out.isNull() == false)
@@ -67,7 +65,7 @@ class RequestHandler : public CivetHandler
 
                 mg_printf(conn,"HTTP/1.1 200 OK\r\n");
                 mg_printf(conn,"Access-Control-Allow-Origin: *\r\n");
-                mg_printf(conn,"Content-Type: text/plain\r\n");
+                mg_printf(conn,"Content-Type: application/json\r\n");
                 mg_printf(conn,"Content-Length: %zd\r\n", answer.size());
                 mg_printf(conn,"Connection: close\r\n");
                 mg_printf(conn,"\r\n");
@@ -170,15 +168,6 @@ class WebsocketHandler: public CivetWebSocketHandler {
 HttpServerRequestHandler::HttpServerRequestHandler(std::map<std::string,httpFunction>& func, const std::vector<std::string>& options) 
     : CivetServer(options, getCivetCallbacks()), m_func(func)
 {
-
-    m_func["/help"]           = [func](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
-        Json::Value answer;
-        for (auto it : func) {
-            answer.append(it.first);
-        }
-        return answer;
-    };
-        
     // register handlers
     for (auto it : m_func) {
         this->addHandler(it.first, new RequestHandler());

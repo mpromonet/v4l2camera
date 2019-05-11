@@ -23,7 +23,7 @@
 class HttpServerRequestHandler : public CivetServer
 {
 	public:
-		typedef std::function<Json::Value(struct mg_connection *conn, const Json::Value &)> httpFunction;
+		typedef std::function<Json::Value(const struct mg_request_info *, const Json::Value &)> httpFunction;
 	
 		HttpServerRequestHandler(std::map<std::string,httpFunction>& func, const std::vector<std::string>& options); 
 	
