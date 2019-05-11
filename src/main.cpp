@@ -183,13 +183,45 @@ int main(int argc, char* argv[])
 	}
 	else
 	{		
+		// http options
 		std::vector<std::string> options;
 		options.push_back("document_root");
 		options.push_back(webroot);
 		options.push_back("listening_ports");
 		options.push_back(port);
 		
-		HttpServerRequestHandler httpServer(videoCapture, options);
+		// http api callbacks
+		std::map<std::string,HttpServerRequestHandler::httpFunction> func;
+		V4l2web v4l2web(videoCapture);
+		func["/capabilities"]   = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_capabilities_reply();
+		};
+		func["/inputs"]         = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_inputs_reply();
+		};
+		func["/formats"]        = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_formats_reply();
+		};
+		func["/format"]         = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_format_reply(in);
+		};
+		func["/controls"]       = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_controls_reply();
+		};
+		func["/control"]        = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_control_reply(in);
+		};	
+		func["/start"]          = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_start_reply();
+		};
+		func["/stop"]           = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_start_reply();
+		};
+		func["/isCapturing"]    = [v4l2web](struct mg_connection *conn, const Json::Value & in) -> Json::Value { 
+			return v4l2web.send_isCapturing_reply();
+		};
+	
+		HttpServerRequestHandler httpServer(func, options);
 		if (httpServer.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
