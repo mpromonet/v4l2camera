@@ -1,0 +1,18 @@
+version: 2
+
+jobs:
+  build_x86_64:
+    docker:
+      - image: circleci/ubuntu-server
+    steps:
+      - checkout
+      - run: sudo apt-get update; sudo apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev liblivemedia-dev libjsoncpp-dev
+      - run: make install PREFIX=/tmp/artifact
+      - store_artifacts:
+          path: /tmp/artifact 
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build_x86_64
