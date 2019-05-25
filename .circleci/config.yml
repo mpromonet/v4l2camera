@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: sudo apt-get update; sudo apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev
-      - run: make install PREFIX=/tmp/artifact
+      - run: make install DESTDIR=/tmp/artifact
       - store_artifacts:
           path: /tmp/artifact 
 
