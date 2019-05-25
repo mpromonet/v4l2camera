@@ -1,4 +1,5 @@
 [![Build status](https://travis-ci.org/mpromonet/v4l2web.png)](https://travis-ci.org/mpromonet/v4l2web)
+[![CircleCI](https://circleci.com/gh/mpromonet/v4l2web.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2web)
 
 v4l2web
 =======
