@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 as builder
 LABEL maintainer michel.promonet@free.fr
 WORKDIR /v4l2web	
 COPY . /v4l2web
