@@ -1,7 +1,7 @@
 CFLAGS = -W -Wall -std=c++11 -pthread -g -pipe $(CFLAGS_EXTRA)
 RM = rm -rf
 ALL_PROGS = v4l2web
-PREFIX=/usr/local
+PREFIX=/usr
 DESTDIR?=$(PREFIX)
 
 C = $(CROSS)gcc
@@ -14,7 +14,7 @@ LDFLAGS += -llog4cpp
 endif
 
 # jsoncpp
-CFLAGS += -I $(PREFIX)/include/jsoncpp 
+CFLAGS += -I $(SYSROOT)$(PREFIX)/include/jsoncpp 
 LDFLAGS += -ljsoncpp 
 
 #
