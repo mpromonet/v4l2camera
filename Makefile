@@ -1,7 +1,7 @@
 CFLAGS = -W -Wall -std=c++11 -pthread -g -pipe $(CFLAGS_EXTRA)
 RM = rm -rf
 ALL_PROGS = v4l2web
-PREFIX=/usr
+PREFIX=/usr/local
 DESTDIR?=$(PREFIX)
 
 C = $(CROSS)gcc
@@ -59,4 +59,6 @@ clean:
 install: all
 	mkdir -p $(DESTDIR)/bin
 	install -D -m 0755 $(ALL_PROGS) $(DESTDIR)/bin
+	mkdir -p $(DESTDIR)/share/v4l2web/webroot
+	install webroot/* -t $(DESTDIR)/share/v4l2web/
 
