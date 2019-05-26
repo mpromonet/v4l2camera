@@ -1,4 +1,4 @@
-FROM debian as builder
+FROM ubuntu:18.04
 LABEL maintainer michel.promonet@free.fr
 WORKDIR /v4l2web	
 COPY . /v4l2web
