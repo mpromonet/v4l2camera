@@ -9,7 +9,7 @@
   confinement: strict
 
   parts:
-    v4l2rtspserver:
+    v4l2web:
       plugin: make
       source: .
       source-type: git
