@@ -6,8 +6,8 @@ publish_docker_builder:
     - linux
     - windows
   env:
-    DOCKERHUB_USER: ENCRYPTED[bea6c673c5d29047e9ac193e0acf65d21f213a25021438e72b12471f3eabb991fe68f288059cae920e5d9449cf8400cf]
-    DOCKERHUB_PASS: ENCRYPTED[53cfe08d15ffdb89b477ceebf39fcd05f34a99edc60f7a494ebb2f4e99e9410457ada52a8c03cd6fab32df6d1f31e51d]
+    DOCKERHUB_USER: ENCRYPTED[2685e1e6510d65ee80ef5b60759d0780ce25674bffede1a34ae7f880cb812c6f3de9d61ee807992e13205033eff3e607]
+    DOCKERHUB_PASS: ENCRYPTED[2266391061fded5e8db8300e5a53276e4081eb8bdd73caf665e48c19ef3a8946b7bd7188f011ca588c3b9cdfd840e0fd]
   script: | 
     mkdir $HOME/.docker
     sh -c 'echo "{ \"experimental\": \"enabled\" }" >> $HOME/.docker/config.json'
