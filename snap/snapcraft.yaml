@@ -18,7 +18,7 @@
       - make
       - pkg-config
       - liblog4cpp5-dev
-      - libjson-dev
+      - libjsoncpp-dev
       - libjpeg-dev
       stage-packages:
       - liblog4cpp5v5
