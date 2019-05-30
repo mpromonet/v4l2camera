@@ -26,7 +26,7 @@
       - libjpeg8
 
   apps:
-    v4l2rtspserver:
+    v4l2web:
       command: v4l2web -P $SNAP/share/v4l2web/
       daemon: simple   
       plugs: [network-bind]

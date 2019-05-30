@@ -59,6 +59,6 @@ clean:
 install: all
 	mkdir -p $(DESTDIR)/bin
 	install -D -m 0755 $(ALL_PROGS) $(DESTDIR)/bin
-	mkdir -p $(DESTDIR)/share/v4l2web/webroot
+	mkdir -p $(DESTDIR)/share/v4l2web
 	install webroot/* -t $(DESTDIR)/share/v4l2web/
 
