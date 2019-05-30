@@ -1,0 +1,32 @@
+
+  name: v4l2web
+  version: git
+  summary: Web interface to V4L2
+  description: |
+    This is a Web interface to V4L2, the http server use civetweb. 
+
+  grade: stable 
+  confinement: strict
+
+  parts:
+    v4l2rtspserver:
+      plugin: make
+      source: .
+      source-type: git
+      build-packages:
+      - g++
+      - make
+      - pkg-config
+      - liblog4cpp5-dev
+      - libjson-dev
+      - libjpeg-dev
+      stage-packages:
+      - liblog4cpp5v5
+      - libjsoncpp1 
+      - libjpeg8
+
+  apps:
+    v4l2rtspserver:
+      command: v4l2web -P $SNAP/share/v4l2web/
+      daemon: simple   
+      plugs: [network-bind]
