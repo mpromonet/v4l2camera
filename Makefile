@@ -13,13 +13,9 @@ CFLAGS += -DHAVE_LOG4CPP -I $(SYSROOT)$(PREFIX)/include
 LDFLAGS += -llog4cpp
 endif
 
-# jsoncpp
-CFLAGS += -I $(SYSROOT)$(PREFIX)/include/jsoncpp 
-LDFLAGS += -ljsoncpp 
-
 #
 CFLAGS += -g -fpermissive
-CFLAGS +=  -I v4l2wrapper/inc -I inc
+CFLAGS +=  -I inc
 LDFLAGS += -ljpeg -ldl
 
 all: $(ALL_PROGS)
@@ -29,16 +25,15 @@ upgrade:
 
 
 # civetweb
-civetweb/Makefile:
-	git submodule update --init civetweb
+libhttpjsonserver/Makefile:
+	git submodule update --recursive --init libhttpjsonserver
 	
-libcivetweb.a: civetweb/Makefile
-	make lib WITH_CPP=1 COPT="$(CFLAGS)" -C civetweb
-	mv civetweb/$@ .
-	make -C civetweb clean
+libhttpjsonserver.a: libhttpjsonserver/Makefile
+	cd libhttpjsonserver && cmake . && make	httpjsonserver
+	mv libhttpjsonserver/$@ .
 
-CFLAGS += -I civetweb/include -DUSE_WEBSOCKET
-LIBS+=libcivetweb.a
+CFLAGS += -I libhttpjsonserver/inc  -I libhttpjsonserver/civetweb/include -I libhttpjsonserver/jsoncpp/include
+LIBS+=libhttpjsonserver.a -lssl -lcrypto
 
 # libv4l2cpp
 libv4l2wrapper.a: 
@@ -48,9 +43,10 @@ libv4l2wrapper.a:
 	mv v4l2wrapper/libv4l2wrapper.a .
 	make -C v4l2wrapper clean
 	
+CFLAGS += -I v4l2wrapper/inc 
 LIBS+=libv4l2wrapper.a
 
-v4l2web: src/main.cpp src/v4l2web.cpp src/HttpServerRequestHandler.cpp $(LIBS)
+v4l2web: src/main.cpp src/v4l2web.cpp $(LIBS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
