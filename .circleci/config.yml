@@ -3,7 +3,7 @@ version: 2
 jobs:
   build_x86_64:
     docker:
-      - image: circleci/ubuntu-server
+      - image: heroku/heroku:18
     steps:
       - checkout
       - run: sudo apt-get update; sudo apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev
