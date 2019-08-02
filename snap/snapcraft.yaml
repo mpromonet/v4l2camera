@@ -20,6 +20,7 @@
       - liblog4cpp5-dev
       - libjsoncpp-dev
       - libjpeg-dev
+      - libssl-dev
       stage-packages:
       - liblog4cpp5v5
       - libjsoncpp1 
