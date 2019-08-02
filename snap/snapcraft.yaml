@@ -16,6 +16,7 @@
       build-packages:
       - g++
       - make
+      - cmake
       - pkg-config
       - liblog4cpp5-dev
       - libjsoncpp-dev
