@@ -26,7 +26,7 @@
       - liblog4cpp5v5
       - libjsoncpp1 
       - libjpeg8
-      - libssl1.0
+      - libssl1
 
   apps:
     v4l2web:
