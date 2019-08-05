@@ -53,4 +53,4 @@ The container entry point is the v4l2web application, then you can :
 
 * run the container specifying some paramters :
 
-        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web -H800 -H600 
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web -W800 -H600 
