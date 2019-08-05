@@ -6,7 +6,7 @@ jobs:
       - image: heroku/heroku:18
     steps:
       - checkout
-      - run: apt-get update; apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev
+      - run: apt-get update; apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev libssl-dev
       - run: make install DESTDIR=/tmp/artifact
       - store_artifacts:
           path: /tmp/artifact 
