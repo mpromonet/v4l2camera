@@ -34,3 +34,23 @@ Usage
 		 -M       : V4L2 capture using memory mapped buffers (default use read interface)
 		 device   : V4L2 capture device (default /dev/video0)
 
+
+Using Docker image
+===============
+You can start the application using the docker image :
+
+        docker run -p 8080:8080 -it mpromonet/v4l2web
+
+You can expose V4L2 devices from your host using :
+
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web
+
+The container entry point is the v4l2web application, then you can :
+
+* get the help using :
+
+        docker run -it mpromonet/v4l2web -h
+
+* run the container specifying some paramters :
+
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web -H800 -H600 
