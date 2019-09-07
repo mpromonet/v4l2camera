@@ -263,9 +263,6 @@ Json::Value V4l2web::send_format_reply(const Json::Value & input)
 	// set format POST
 	if (input.isNull() == false)
 	{		
-		Json::StyledWriter writer;
-		std::cout << writer.write(input) << std::endl;		
-		
 		struct v4l2_format     format;
 		memset(&format,0,sizeof(format));
 		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -366,10 +363,7 @@ Json::Value V4l2web::send_control_reply(const Json::Value & input)
 	Json::Value output;
 		
 	if (input.isNull() == false)
-	{
-		Json::StyledWriter writer;
-		std::cout << writer.write(input) << std::endl;		
-			
+	{		
 		try
 		{
 			unsigned int key = input["id"].asUInt();

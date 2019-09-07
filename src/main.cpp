@@ -109,7 +109,7 @@ void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int wid
 				// post to subscribers
 				if (size>0)
 				{
-					server.notifyWebsocketConnection(buf, size);
+					server.publishBin("/ws",buf, size);
 				}
 			}
 		}
@@ -228,7 +228,15 @@ int main(int argc, char* argv[])
 			return answer;
 		};	
     
-		HttpServerRequestHandler httpServer(func, options);
+		std::map<std::string,HttpServerRequestHandler::wsFunction> wsfunc;
+		Json::StreamWriterBuilder jsonWriterBuilder;
+		wsfunc["/ws"]  = [&jsonWriterBuilder](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			std::string msg(Json::writeString(jsonWriterBuilder,in));
+			std::cout << "message:" << msg << std::endl; 
+			return in;
+		};
+	
+		HttpServerRequestHandler httpServer(func, wsfunc, options);
 		if (httpServer.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 

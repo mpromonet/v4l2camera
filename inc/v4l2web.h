@@ -30,7 +30,7 @@ class V4l2web {
 		Json::Value send_isCapturing_reply();
 	
 	private:
-		V4l2Capture*                            m_videoCapture;
+		V4l2Capture*              m_videoCapture;
 };
 
 
