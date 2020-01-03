@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-format',
@@ -39,14 +40,15 @@ export class FormatComponent implements OnInit {
  	formatList = {};
 	selectedFormat = {};
 	
-	constructor(private _httpClient: HttpClient) {
+	constructor(@Inject(DOCUMENT) private _document: any, 
+				private _httpClient: HttpClient) {
 	}
 
 	ngOnInit() {
-		this._httpClient.get("http://127.0.0.1:8080/formats")
+		this._httpClient.get(this._document.location.href + "/api/formats")
 		    .subscribe(data => {
 				this.formatList = data;
-				this._httpClient.get("http://127.0.0.1:8080/format").subscribe(data => {
+				this._httpClient.get(this._document.location.href + "/api/format").subscribe(data => {
 					     this.selectedFormat = data;
 				    });
 		    });

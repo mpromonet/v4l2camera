@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-controls',
@@ -53,11 +54,12 @@ import { HttpClient } from '@angular/common/http';
 export class ControlsComponent implements OnInit {
 
 	controlList = {};
-	constructor(private _httpClient: HttpClient) {
+	constructor(@Inject(DOCUMENT) private _document: any, 
+				private _httpClient: HttpClient) {
 	}
 	
 	ngOnInit() {
-		this._httpClient.get("http://127.0.0.1:8080/controls")
+		this._httpClient.get(this._document.location.href + "/api/controls")
 		    .subscribe(data => {
 			     this.controlList = data;
 		    });

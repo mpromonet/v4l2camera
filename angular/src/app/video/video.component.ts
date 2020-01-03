@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { WebsocketService } from "../websocket.service";
-import * as Rx from 'rxjs';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-video',
@@ -12,8 +12,13 @@ import * as Rx from 'rxjs';
 export class VideoComponent implements OnInit {
    image = "";
 	
-  constructor(wsService: WebsocketService) { 
-	let ws = wsService.connect("ws://127.0.0.1:8080/ws");
+  constructor(@Inject(DOCUMENT) private _document: any,
+  				private wsService: WebsocketService) { 
+  }
+
+  ngOnInit() {
+	const wsurl = this._document.location.href.replace("http","ws") + "/ws";  
+	let ws = this.wsService.connect(wsurl);
 	ws.subscribe((response: MessageEvent) => {
 		let data = response.data;
 		if (data instanceof Blob) {
@@ -25,9 +30,6 @@ export class VideoComponent implements OnInit {
 			})
 		}
 	});
-  }
-
-  ngOnInit() {
   }
 
 }

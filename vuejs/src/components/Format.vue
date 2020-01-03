@@ -19,13 +19,13 @@ var serviceurl = ''
 
 export default {
   mounted() {
-        axios({ method: "GET", "url": serviceurl+ "/capabilities"}).then(response => {
+        axios({ method: "GET", "url": serviceurl+ "/api/capabilities"}).then(response => {
 		this.msg = response.data.card;
         });
-        axios({ method: "GET", "url": serviceurl+ "/formats"}).then(response => {
+        axios({ method: "GET", "url": serviceurl+ "/api/formats"}).then(response => {
 		this.formats = response.data;
 
-		axios({ method: "GET", "url": serviceurl+ "/format"}).then(response => {
+		axios({ method: "GET", "url": serviceurl+ "/api/format"}).then(response => {
 			this.format = response.data;
 			this.formats.forEach( item => { 
 				if (item.format === this.format.format ) {

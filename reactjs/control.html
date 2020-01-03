@@ -17,7 +17,7 @@
 
 	    componentDidMount: function(){
 		var self = this;
-		$.getJSON('controls', function(result){		
+		$.getJSON('/api/controls', function(result){		
 		    if(!result || !result.length){
 			return;
 		    }

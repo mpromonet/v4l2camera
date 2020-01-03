@@ -30,7 +30,7 @@ var serviceurl = ''
 
 export default {
   mounted() {
-        axios({ method: "GET", "url": serviceurl+ "/controls"}).then(response => {
+        axios({ method: "GET", "url": serviceurl+ "/api/controls"}).then(response => {
 		this.controls = response.data;
 	});
     },

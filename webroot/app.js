@@ -4,14 +4,14 @@ var app = angular.module('App', ['ngResource']);
 // service
 app.factory('$api', ['$resource', function($resource){ 
 	return {
-		capabilities : $resource('/capabilities', {}, {'query':{isArray:false}}),
-		inputs : $resource('/inputs'),
-		controlList : $resource('/controls'),
-		control : $resource('/control',{},{'update':{method:'POST'}}),				
-		formatList : $resource('/formats'), 
-		format : $resource('/format', {}, {'query':{method:'GET', isArray:false} }, {'update':{method:'POST'} } ) ,
-		start : $resource('/start'),
-		stop : $resource('/stop')				
+		capabilities : $resource('/api/capabilities', {}, {'query':{isArray:false}}),
+		inputs : $resource('/api/inputs'),
+		controlList : $resource('/api/controls'),
+		control : $resource('/api/control',{},{'update':{method:'POST'}}),				
+		formatList : $resource('/api/formats'), 
+		format : $resource('/api/format', {}, {'query':{method:'GET', isArray:false} }, {'update':{method:'POST'} } ) ,
+		start : $resource('/api/start'),
+		stop : $resource('/api/stop')				
 	}
 }]);	
 
