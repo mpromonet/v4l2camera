@@ -12,7 +12,7 @@
 		App.Item = Ember.Object.extend();
 		App.Item.reopenClass({
 			all: function() {
-				return $.getJSON("/controls").then(function(response) {
+				return $.getJSON("/api/controls").then(function(response) {
 					var items = [];					
 					response.forEach( function (item) { items.push( App.Item.create(item) ); });
 					return items;

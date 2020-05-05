@@ -40,14 +40,6 @@ app.controller('AppVidController', function($scope, $api) {
 		var img = document.getElementById('wsimage');
 		img.src = '';
 	}
-	$scope.mjpegStart= function() {
-		var img = document.getElementById('mjpegimage');
-		img.src = '/jpeg';
-	}
-	$scope.mjpegStop= function() {
-		var img = document.getElementById('mjpegimage');
-		img.src = '';
-	}
 });
 
 // Control controller

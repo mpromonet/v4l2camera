@@ -172,6 +172,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	std::list<unsigned int> formatList;
+	formatList.push_back(V4L2_PIX_FMT_MJPEG);
 	formatList.push_back(V4L2_PIX_FMT_JPEG);
 	formatList.push_back(V4L2_PIX_FMT_YUYV);
 	formatList.push_back(0);
