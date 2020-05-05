@@ -1,6 +1,6 @@
 <template>
-<div>
-    <image :src="image">
+<div style="display:block;">
+    <img :src="image" style="overflow:auto" />
 </div>    
 </template>
 
@@ -8,16 +8,15 @@
 export default {
   data: function() {
     return {
-      connection: null,
       image: ""
     }
   },
   created: function() {
     console.log("Starting connection to WebSocket Server")
     const wsurl = document.location.href.replace("http","ws") + "/ws"; 
-    this.connection = new WebSocket(wsurl)
+    const connection = new WebSocket(wsurl)
 
-    this.connection.onmessage = function(message) {
+    connection.onmessage = (message) => {
       	let data = message.data;
 		if (data instanceof Blob) {
 			new Response(data).arrayBuffer().then( (binary) => {
