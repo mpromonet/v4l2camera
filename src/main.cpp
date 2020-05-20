@@ -86,6 +86,7 @@ void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int wid
 		int fd = dev->getFd();
 		struct timeval tv;
 		timerclear(&tv);
+		tv.tv_sec = 1;
 		fd_set read_set;
 		FD_ZERO(&read_set);
 		FD_SET(fd,&read_set);
@@ -130,8 +131,9 @@ int main(int argc, char* argv[])
 	const char * port = "8080";
 	V4l2Access::IoType ioTypeIn = V4l2Access::IOTYPE_MMAP;
 	std::string webroot = "webroot";
+	std::string nbthreads;
 	
-	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:N:")) != -1)
 	{
 		switch (c)
 		{
@@ -143,6 +145,7 @@ int main(int argc, char* argv[])
 			case 'r':	ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;			
 
 			case 'P':	port = optarg; break;
+			case 'N':   nbthreads = optarg; break;
 			case 'p':	webroot = optarg; break;			
 			case 'h':
 			{
@@ -188,8 +191,18 @@ int main(int argc, char* argv[])
 		std::vector<std::string> options;
 		options.push_back("document_root");
 		options.push_back(webroot);
+		options.push_back("enable_directory_listing");
+		options.push_back("no");
+		options.push_back("additional_header");
+		options.push_back("X-Frame-Options: SAMEORIGIN");
+		options.push_back("access_control_allow_origin");
+		options.push_back("*");		
 		options.push_back("listening_ports");
 		options.push_back(port);
+		if (!nbthreads.empty()) {
+			options.push_back("num_threads");
+			options.push_back(nbthreads);
+		}		
 		
 		// http api callbacks
 		std::map<std::string,HttpServerRequestHandler::httpFunction> func;
