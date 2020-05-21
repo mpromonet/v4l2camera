@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <linux/videodev2.h>
+#include <signal.h>
 
 #include <stdio.h>
 #include <jpeglib.h>
@@ -19,6 +20,20 @@
 
 #include "V4l2Capture.h"
 #include "v4l2web.h"
+
+/* ---------------------------------------------------------------------------
+**  end condition
+** -------------------------------------------------------------------------*/
+int stop=0;
+
+/* ---------------------------------------------------------------------------
+**  SIGINT handler
+** -------------------------------------------------------------------------*/
+void sighandler(int)
+{ 
+       printf("SIGINT\n");
+       stop =1;
+}
 
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
@@ -78,7 +93,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 /* ---------------------------------------------------------------------------
 **  V4L2 processing
 ** -------------------------------------------------------------------------*/
-void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int width, int height)
+void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev)
 {
 	if (dev->isReady())
 	{
@@ -104,7 +119,7 @@ void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int wid
 				// compress 
 				if ( (size>0) && (dev->getFormat() == V4L2_PIX_FMT_YUYV) )
 				{
-					size = yuyv2jpeg(buf, width, height, 95);							
+					size = yuyv2jpeg(buf, dev->getWidth(), dev->getHeight(), 95);							
 				}
 				// post to subscribers
 				if (size>0)
@@ -113,6 +128,8 @@ void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev, int wid
 				}
 			}
 		}
+	} else {
+		sleep(1); 
 	}
 }
 
@@ -132,7 +149,7 @@ int main(int argc, char* argv[])
 	std::string webroot = "webroot";
 	std::string nbthreads;
 	
-	while ((c = getopt (argc, argv, "hv::" "W:H:F:r" "P:p:N:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "W:H:F:G:" "r" "P:p:N:")) != -1)
 	{
 		switch (c)
 		{
@@ -141,6 +158,8 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
+			case 'G':   sscanf(optarg,"%dx%dx%d", &width, &height, &fps); break;
+
 			case 'r':	ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;			
 
 			case 'P':	port = optarg; break;
@@ -157,7 +176,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
 				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
-				
+				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
+
 				std::cout << "\t -r       : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
 
 				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
@@ -216,9 +236,10 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			LOG(NOTICE) << "Started on port:" << port << " webroot:" << webroot; 
-			while (true) {
-				v4l2processing(httpServer, videoCapture, width, height);
+			LOG(NOTICE) << "Started on port:" << port << " webroot:" << webroot;
+			signal(SIGINT,sighandler);	 
+			while (!stop) {
+				v4l2processing(httpServer, videoCapture);
 			}
 		}
 		delete videoCapture;
