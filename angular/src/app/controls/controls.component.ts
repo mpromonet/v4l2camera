@@ -17,25 +17,26 @@ import { DOCUMENT } from '@angular/common';
 			</tr>
 		</thead>
 		<tbody>
-			<tr *ngFor="let control of controlList" >
+			<tr *ngFor="let control of controlList; let index = index" >
 				<td>{{control.name}}</td>
 				<td>
 					<input #name placeholder="{{control.value}}" type="text" size="8"/>				
 				</td>
 				<td>{{control.minimum}}</td>
-				<td>{{control.maximum}}</td>
 				<td>
 					<!-- combo for enumerate -->
-					<select *ngIf="control.menu" [value]="control.value" style="width: 300px">
-							<option *ngFor="let menu of control.menu" [value]="menu.value">{{ menu.label }}</option>
+					<select *ngIf="control.menu" 
+							[value]="control.value" (change)="changed(control.id,$event.target.value,index)" 
+							style="width: 300px">
+								<option *ngFor="let menu of control.menu" [value]="menu.value">{{ menu.label }}</option>
 					</select>
 					<!-- checkbox for [0,1] -->
 					<input *ngIf="!control.menu && ( (control.minimum==0) && (control.maximum==1) )"
-							[checked]="control.value" 
+							[checked]="control.value" (change)="changed(control.id,$event.target.checked?1:0,index)"
 							type="checkbox" />							
 					<!-- slider for others -->
 					<input *ngIf="!control.menu && !( (control.minimum==0) && (control.maximum==1) )"
-							[value]="control.value"
+							[value]="control.value" (change)="changed(control.id,$event.target.value,index)"
 							ng-trim="false" 
 							min="{{control.minimum}}"
 							max="{{control.maximum}}"
@@ -43,6 +44,7 @@ import { DOCUMENT } from '@angular/common';
 							step="{{control.step}}"
 							style="width: 300px; margin: 0px"/>							
 				</td>
+				<td>{{control.maximum}}</td>
 			</tr>      
 		</tbody>
 	</table>
@@ -64,4 +66,11 @@ export class ControlsComponent implements OnInit {
 			     this.controlList = data;
 		    });
 	}	
+
+	changed(id: string, value: any, idx: number) {
+		value = parseInt(value)
+		this._httpClient.post(this._document.location.href + "/api/control", {id, value}).subscribe( (data: any) => {
+			    this.controlList[idx].value = data.value;		
+		})
+	}
 }
