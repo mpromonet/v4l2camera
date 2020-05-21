@@ -1,3 +1,4 @@
 *.o
 v4l2web
 *.a
+*/node_modules/**

@@ -134,9 +134,52 @@ static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int wi
 	}
 	frameSize["intervals"] = frameIntervals;
 }
-		
 
-Json::Value V4l2web::send_capabilities_reply() 
+V4l2web::V4l2web(V4l2Capture*  videoCapture): 
+	m_videoCapture(videoCapture) {	
+
+		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->capabilities();
+		};
+		m_httpfunc["/api/inputs"]         = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->inputs();
+		};
+		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->formats();
+		};
+		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->format(in);
+		};
+		m_httpfunc["/api/controls"]       = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->controls();
+		};
+		m_httpfunc["/api/control"]        = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->control(in);
+		};	
+		m_httpfunc["/api/start"]          = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->start();
+		};
+		m_httpfunc["/api/stop"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->stop();
+		};
+		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->isCapturing();
+		};
+		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			Json::Value answer;
+			for (auto it : this->m_httpfunc) {
+				answer.append(it.first);
+			}
+			return answer;
+		};	
+
+		m_wsfunc["/ws"]  = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return in;
+		};
+
+}
+
+Json::Value V4l2web::capabilities() 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value json;
@@ -165,7 +208,7 @@ Json::Value V4l2web::send_capabilities_reply()
 	return json;
 }
 
-Json::Value V4l2web::send_inputs_reply() 
+Json::Value V4l2web::inputs() 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value json;
@@ -195,7 +238,7 @@ Json::Value V4l2web::send_inputs_reply()
 	return json;
 }
 		
-Json::Value V4l2web::send_formats_reply() 
+Json::Value V4l2web::formats() 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value json;
@@ -255,7 +298,7 @@ Json::Value V4l2web::send_formats_reply()
 	return json;
 }
 
-Json::Value V4l2web::send_format_reply(const Json::Value & input) 
+Json::Value V4l2web::format(const Json::Value & input) 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value output;
@@ -348,7 +391,7 @@ Json::Value V4l2web::send_format_reply(const Json::Value & input)
 	return output;
 }
 
-Json::Value V4l2web::send_controls_reply() 
+Json::Value V4l2web::controls() 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value json;
@@ -357,7 +400,7 @@ Json::Value V4l2web::send_controls_reply()
 	return json;
 }
 
-Json::Value V4l2web::send_control_reply(const Json::Value & input) 
+Json::Value V4l2web::control(const Json::Value & input) 
 {
 	int fd = m_videoCapture->getFd();		
 	Json::Value output;
@@ -400,19 +443,19 @@ Json::Value V4l2web::send_control_reply(const Json::Value & input)
 	return output;
 }
 
-Json::Value V4l2web::send_start_reply() 
+Json::Value V4l2web::start() 
 {
 	Json::Value answer(m_videoCapture->start());
 	return answer;	
 }
 
-Json::Value V4l2web::send_stop_reply() 
+Json::Value V4l2web::stop() 
 {
 	Json::Value answer(m_videoCapture->stop());
 	return answer;	
 }
 
-Json::Value V4l2web::send_isCapturing_reply() 
+Json::Value V4l2web::isCapturing() 
 {
 	Json::Value answer(m_videoCapture->isReady());
 	return answer;	

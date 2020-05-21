@@ -14,23 +14,30 @@
 
 #include "json/json.h"
 
+#include "HttpServerRequestHandler.h"
 
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture): m_videoCapture(videoCapture) {}
+		V4l2web(V4l2Capture*  videoCapture);
 	
-		Json::Value send_capabilities_reply(); 
-		Json::Value send_inputs_reply();
-		Json::Value send_formats_reply();
-		Json::Value send_format_reply(const Json::Value & input);
-		Json::Value send_controls_reply() ;
-		Json::Value send_control_reply(const Json::Value & input) ;
-		Json::Value send_start_reply();
-		Json::Value send_stop_reply();
-		Json::Value send_isCapturing_reply();
-	
+		// http api callback
+		Json::Value capabilities(); 
+		Json::Value inputs();
+		Json::Value formats();
+		Json::Value format(const Json::Value & input);
+		Json::Value controls() ;
+		Json::Value control(const Json::Value & input) ;
+		Json::Value start();
+		Json::Value stop();
+		Json::Value isCapturing();
+
+		const std::map<std::string,HttpServerRequestHandler::httpFunction> getHttpApi() { return m_httpfunc; }; 		
+		const std::map<std::string,HttpServerRequestHandler::wsFunction> getWsApi() { return m_wsfunc; };
+
 	private:
-		V4l2Capture*              m_videoCapture;
+		V4l2Capture*                                                  m_videoCapture;
+		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
+		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;
 };
 
 

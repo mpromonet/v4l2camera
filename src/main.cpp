@@ -19,7 +19,6 @@
 
 #include "V4l2Capture.h"
 #include "v4l2web.h"
-#include "HttpServerRequestHandler.h"
 
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
@@ -158,6 +157,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
 				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				
 				std::cout << "\t -r       : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
 
 				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
@@ -205,52 +205,11 @@ int main(int argc, char* argv[])
 		}		
 		
 		// http api callbacks
-		std::map<std::string,HttpServerRequestHandler::httpFunction> func;
 		V4l2web v4l2web(videoCapture);
-		func["/api/capabilities"]   = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_capabilities_reply();
-		};
-		func["/api/inputs"]         = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_inputs_reply();
-		};
-		func["/api/formats"]        = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_formats_reply();
-		};
-		func["/api/format"]         = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_format_reply(in);
-		};
-		func["/api/controls"]       = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_controls_reply();
-		};
-		func["/api/control"]        = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_control_reply(in);
-		};	
-		func["/api/start"]          = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_start_reply();
-		};
-		func["/api/stop"]           = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_start_reply();
-		};
-		func["/api/isCapturing"]    = [&v4l2web](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return v4l2web.send_isCapturing_reply();
-		};
-		func["/api/help"]           = [&func](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			Json::Value answer;
-			for (auto it : func) {
-				answer.append(it.first);
-			}
-			return answer;
-		};	
-    
-		std::map<std::string,HttpServerRequestHandler::wsFunction> wsfunc;
-		Json::StreamWriterBuilder jsonWriterBuilder;
-		wsfunc["/ws"]  = [&jsonWriterBuilder](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			std::string msg(Json::writeString(jsonWriterBuilder,in));
-			std::cout << "message:" << msg << std::endl; 
-			return in;
-		};
+		std::map<std::string,HttpServerRequestHandler::httpFunction> httpfunc = v4l2web.getHttpApi();    
+		std::map<std::string,HttpServerRequestHandler::wsFunction> wsfunc = v4l2web.getWsApi();;
 	
-		HttpServerRequestHandler httpServer(func, wsfunc, options);
+		HttpServerRequestHandler httpServer(httpfunc, wsfunc, options);
 		if (httpServer.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
