@@ -11,6 +11,7 @@
 
 #include <functional>
 #include <list>
+#include <thread>
 
 #include "json/json.h"
 
@@ -18,8 +19,11 @@
 
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture);
+		V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & options);
+		virtual ~V4l2web();
+		const void* getContext() { return m_httpServer.getContext(); }
 	
+	private:	
 		// http api callback
 		Json::Value capabilities(); 
 		Json::Value inputs();
@@ -30,14 +34,19 @@ class V4l2web {
 		Json::Value start();
 		Json::Value stop();
 		Json::Value isCapturing();
-
-		const std::map<std::string,HttpServerRequestHandler::httpFunction> getHttpApi() { return m_httpfunc; }; 		
-		const std::map<std::string,HttpServerRequestHandler::wsFunction> getWsApi() { return m_wsfunc; };
+		
+		void capturing();
+	
+		std::map<std::string,HttpServerRequestHandler::httpFunction>& getHttpFunc();
+		std::map<std::string,HttpServerRequestHandler::wsFunction>&   getWsFunc();
 
 	private:
 		V4l2Capture*                                                  m_videoCapture;
 		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
 		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;
+		std::thread                                                   m_capturing;
+		HttpServerRequestHandler                                      m_httpServer;
+		bool                                                          m_isCapturing; 
 };
 
 

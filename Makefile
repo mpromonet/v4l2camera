@@ -16,7 +16,7 @@ endif
 #
 CFLAGS += -g -fpermissive
 CFLAGS +=  -I inc
-LDFLAGS += -ljpeg -ldl
+LDFLAGS += -ldl
 
 all: $(ALL_PROGS)
 

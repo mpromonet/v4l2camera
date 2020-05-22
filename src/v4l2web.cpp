@@ -20,6 +20,8 @@
 #include <stdexcept>
 #include <iostream>
 	
+#include "logger.h"
+
 #include "V4l2Capture.h"
 #include "v4l2web.h"
 
@@ -96,16 +98,6 @@ static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 	return ret;
 }
 
-static std::string get_fourcc(unsigned int pixelformat)
-{
-	std::string fourcc;
-	fourcc.append(1, pixelformat&0xff);
-	fourcc.append(1, (pixelformat>>8)&0xff);
-	fourcc.append(1, (pixelformat>>16)&0xff);
-	fourcc.append(1, (pixelformat>>24)&0xff);
-	return fourcc;
-}
-
 static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
 {
 	Json::Value frameIntervals;
@@ -135,9 +127,8 @@ static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int wi
 	frameSize["intervals"] = frameIntervals;
 }
 
-V4l2web::V4l2web(V4l2Capture*  videoCapture): 
-	m_videoCapture(videoCapture) {	
-
+std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFunc() {
+	if (m_httpfunc.empty()) {
 		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return this->capabilities();
 		};
@@ -172,11 +163,70 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture):
 			}
 			return answer;
 		};	
+	}
+	return m_httpfunc;
+}
 
+std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc() {
+	if (m_wsfunc.empty()) {
 		m_wsfunc["/ws"]  = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return in;
 		};
+	}
+	return m_wsfunc;
+}
+	
+V4l2web::V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & options): 
+	m_videoCapture(videoCapture),
+	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
+	m_isCapturing(true) {	
 
+	m_capturing = std::thread([this]() {
+		this->capturing();
+	});
+}
+
+V4l2web::~V4l2web() {
+	m_isCapturing = false;
+	m_capturing.join();
+}
+
+void V4l2web::capturing()
+{
+	while (m_isCapturing) {
+		if (m_videoCapture->isReady())
+		{
+			int fd = m_videoCapture->getFd();
+			struct timeval tv;
+			timerclear(&tv);
+			tv.tv_sec = 1;
+			fd_set read_set;
+			FD_ZERO(&read_set);
+			FD_SET(fd,&read_set);
+			if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
+			{
+				if (FD_ISSET(fd,&read_set))
+				{
+					// update format informations
+					m_videoCapture->queryFormat();
+					
+					// read image
+					int bufferSize = m_videoCapture->getBufferSize();
+					char buf[bufferSize];
+					ssize_t size = m_videoCapture->read(buf, bufferSize);
+					LOG(DEBUG) << "read size:" << size << " buffersize:" << bufferSize;
+					
+					// post to subscribers
+					if (size>0)
+					{
+						m_httpServer.publishBin("/ws",buf, size);
+					}
+				}
+			}
+		} else {
+			sleep(1); 
+		}
+	}
 }
 
 Json::Value V4l2web::capabilities() 
@@ -254,7 +304,7 @@ Json::Value V4l2web::formats()
 		Json::Value value;
 		value["description"] = (const char*)fmtdesc.description;
 		value["type"]        = fmtdesc.type;
-		value["format"]      = get_fourcc(fmtdesc.pixelformat);		
+		value["format"]      = V4l2Device::fourcc(fmtdesc.pixelformat);		
 
 		Json::Value frameSizeList;
 		struct v4l2_frmsizeenum frmsize;
@@ -368,7 +418,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 		output["width"]     = format.fmt.pix.width;
 		output["height"]    = format.fmt.pix.height;
 		output["sizeimage"] = format.fmt.pix.sizeimage;
-		output["format"]    = get_fourcc(format.fmt.pix.pixelformat);			
+		output["format"]    = V4l2Device::fourcc(format.fmt.pix.pixelformat);			
 		
 	}
 	struct v4l2_streamparm parm;

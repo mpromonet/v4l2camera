@@ -14,7 +14,6 @@
 #include <signal.h>
 
 #include <stdio.h>
-#include <jpeglib.h>
 
 #include "logger.h"
 
@@ -33,104 +32,6 @@ void sighandler(int)
 { 
        printf("SIGINT\n");
        stop =1;
-}
-
-/* ---------------------------------------------------------------------------
-**  convert yuyv -> jpeg
-** -------------------------------------------------------------------------*/
-unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
-{
-	struct jpeg_error_mgr jerr;
-	struct jpeg_compress_struct cinfo;	
-	jpeg_create_compress(&cinfo);
-	cinfo.image_width = width;
-	cinfo.image_height = height;
-	cinfo.input_components = 3;	
-	cinfo.err = jpeg_std_error(&jerr);
-	
-	unsigned char* dest = NULL;
-	unsigned long  destsize = 0;
-	jpeg_mem_dest(&cinfo, &dest, &destsize);
-	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, quality, TRUE);
-	jpeg_start_compress(&cinfo, TRUE);
-
-	unsigned char bufline[cinfo.image_width * 3]; 
-	while (cinfo.next_scanline < cinfo.image_height) 
-	{ 
-		// convert line from YUYV -> YUV
-		for (unsigned int i = 0; i < cinfo.image_width; i += 2) 
-		{ 
-			unsigned int base = cinfo.next_scanline*cinfo.image_width * 2 ;
-			bufline[i*3  ] = image_buffer[base + i*2  ]; 
-			bufline[i*3+1] = image_buffer[base + i*2+1]; 
-			bufline[i*3+2] = image_buffer[base + i*2+3]; 
-			bufline[i*3+3] = image_buffer[base + i*2+2]; 
-			bufline[i*3+4] = image_buffer[base + i*2+1]; 
-			bufline[i*3+5] = image_buffer[base + i*2+3]; 
-		} 
-		JSAMPROW row = bufline; 
-		jpeg_write_scanlines(&cinfo, &row, 1); 
-	}
-	jpeg_finish_compress(&cinfo);
-	if (dest != NULL)
-	{
-		if (destsize < width*height*2)
-		{
-			memcpy(image_buffer, dest, destsize);
-		}
-		else
-		{
-			LOG(WARN) << "Buffer to small size:" << width*height*2 << " " << destsize; 
-		}
-		free(dest);
-	}
-	jpeg_destroy_compress(&cinfo);
-	
-	return destsize;
-}
-
-/* ---------------------------------------------------------------------------
-**  V4L2 processing
-** -------------------------------------------------------------------------*/
-void v4l2processing(HttpServerRequestHandler & server, V4l2Capture* dev)
-{
-	if (dev->isReady())
-	{
-		int fd = dev->getFd();
-		struct timeval tv;
-		timerclear(&tv);
-		tv.tv_sec = 1;
-		fd_set read_set;
-		FD_ZERO(&read_set);
-		FD_SET(fd,&read_set);
-		if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
-		{
-			if (FD_ISSET(fd,&read_set))
-			{
-				// update format informations
-				dev->queryFormat();
-				
-				// read image
-				char buf[dev->getBufferSize()];
-				ssize_t size = dev->read(buf, dev->getBufferSize());
-				LOG(DEBUG) << "read size:" << size << " buffersize:" << dev->getBufferSize();
-				
-				// compress 
-				if ( (size>0) && (dev->getFormat() == V4L2_PIX_FMT_YUYV) )
-				{
-					size = yuyv2jpeg(buf, dev->getWidth(), dev->getHeight(), 95);							
-				}
-				// post to subscribers
-				if (size>0)
-				{
-					server.publishBin("/ws",buf, size);
-				}
-			}
-		}
-	} else {
-		sleep(1); 
-	}
 }
 
 /* ---------------------------------------------------------------------------
@@ -167,20 +68,20 @@ int main(int argc, char* argv[])
 			case 'p':	webroot = optarg; break;			
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [device]" << std::endl;
-				std::cout << "\t -v       : verbose " << std::endl;
-				std::cout << "\t -v v     : very verbose " << std::endl;
-				std::cout << "\t -P port  : server port (default "<< port << ")" << std::endl;
-				std::cout << "\t -p path  : server root path (default "<< webroot << ")" << std::endl;
+				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [-F fps] [-G <w>x<h>x<f>] [device]" << std::endl;
+				std::cout << "\t -v               : verbose " << std::endl;
+				std::cout << "\t -v v             : very verbose " << std::endl;
+				std::cout << "\t -P port          : server port (default "<< port << ")" << std::endl;
+				std::cout << "\t -p path          : server root path (default "<< webroot << ")" << std::endl;
 
-				std::cout << "\t -W width : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height: V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps   : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				std::cout << "\t -W width         : V4L2 capture width (default "<< width << ")" << std::endl;
+				std::cout << "\t -H height        : V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t -F fps           : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
 
-				std::cout << "\t -r       : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
+				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
 
-				std::cout << "\t device   : V4L2 capture device (default "<< dev_name << ")" << std::endl;
+				std::cout << "\t device           : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
 			}
 		}
@@ -207,6 +108,8 @@ int main(int argc, char* argv[])
 	}
 	else
 	{		
+
+
 		// http options
 		std::vector<std::string> options;
 		options.push_back("document_root");
@@ -224,22 +127,18 @@ int main(int argc, char* argv[])
 			options.push_back(nbthreads);
 		}		
 		
-		// http api callbacks
-		V4l2web v4l2web(videoCapture);
-		std::map<std::string,HttpServerRequestHandler::httpFunction> httpfunc = v4l2web.getHttpApi();    
-		std::map<std::string,HttpServerRequestHandler::wsFunction> wsfunc = v4l2web.getWsApi();;
-	
-		HttpServerRequestHandler httpServer(httpfunc, wsfunc, options);
-		if (httpServer.getContext() == NULL)
+		// api server
+		V4l2web v4l2web(videoCapture, options);
+		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
 		}
 		else
-		{
+		{		
 			LOG(NOTICE) << "Started on port:" << port << " webroot:" << webroot;
 			signal(SIGINT,sighandler);	 
 			while (!stop) {
-				v4l2processing(httpServer, videoCapture);
+				sleep(1); 
 			}
 		}
 		delete videoCapture;
