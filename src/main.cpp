@@ -34,20 +34,6 @@ void sighandler(int)
        stop =1;
 }
 
-// -----------------------------------------
-//    convert string video format to fourcc 
-// -----------------------------------------
-int decodeVideoFormat(const char* fmt)
-{
-	char fourcc[4];
-	memset(&fourcc, 0, sizeof(fourcc));
-	if (fmt != NULL)
-	{
-		strncpy(fourcc, fmt, 4);	
-	}
-	return v4l2_fourcc(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
-}
-
 /* ---------------------------------------------------------------------------
 **  main
 ** -------------------------------------------------------------------------*/
@@ -72,7 +58,7 @@ int main(int argc, char* argv[])
 		{
 			case 'v': verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 
-			case 'f':	format    = decodeVideoFormat(optarg); if (format) {videoformatList.push_back(format);};  break;
+			case 'f': format = V4l2Device::fourcc(optarg); if (format) {videoformatList.push_back(format);};  break;
 			case 'W': width = atoi(optarg); break;
 			case 'H': height = atoi(optarg); break;
 			case 'F': fps = atoi(optarg); break;
