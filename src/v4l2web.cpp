@@ -361,6 +361,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
 		{
+			Json::Value setfmt;
 			try
 			{
 				format.fmt.pix.width = input.get("width",format.fmt.pix.width).asUInt();
@@ -368,22 +369,18 @@ Json::Value V4l2web::format(const Json::Value & input)
 				std::string formatstr = input.get("format","").asString();
 				if (!formatstr.empty())
 				{
-					const char* fourcc[4];
-					memset(&fourcc,0, sizeof(fourcc));
-					unsigned len = sizeof(format);
-					if (formatstr.size()<len) len = formatstr.size();
-					memcpy(&fourcc,formatstr.c_str(),len);
-					format.fmt.pix.pixelformat = v4l2_fourcc(fourcc[0],fourcc[1],fourcc[2],fourcc[3]);
+					format.fmt.pix.pixelformat = V4l2Device::fourcc(formatstr.c_str());
 				}
 				errno=0;
-				output["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
-				output["errno"]  = errno;
-				output["error"]  = strerror(errno);	
+				setfmt["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
+				setfmt["errno"]  = errno;
+				setfmt["error"]  = strerror(errno);	
 			}
 			catch (const std::runtime_error &e)
 			{
-				output["exception"]  = e.what();
+				setfmt["exception"]  = e.what();
 			}			
+			output["setfmt"] = setfmt;
 		}		
 		struct v4l2_streamparm parm;
 		memset(&parm,0,sizeof(parm));
@@ -392,19 +389,21 @@ Json::Value V4l2web::format(const Json::Value & input)
 		{
 			if (parm.parm.capture.timeperframe.numerator != 0)
 			{
+				Json::Value setparm;
 				try
 				{
 					parm.parm.capture.timeperframe.denominator=input.get("fps",parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asUInt();
 					parm.parm.capture.timeperframe.numerator=1;
 					errno=0;
-					output["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
-					output["errno"]  = errno;
-					output["error"]  = strerror(errno);	
+					setparm["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
+					setparm["errno"]  = errno;
+					setparm["error"]  = strerror(errno);	
 				}
 				catch (const std::runtime_error &e)
 				{
-					output["exception"]  = e.what();
+					setparm["exception"]  = e.what();
 				}			
+				output["setparm"] = setparm;
 			}
 		}
 	}
