@@ -197,6 +197,8 @@ void V4l2web::capturing()
 	while (!m_stopCapturing) {
 		if (m_isCapturing && m_videoCapture->isReady())
 		{
+			const std::lock_guard<std::mutex> lock(m_deviceMutex);
+			
 			struct timeval tv;
 			timerclear(&tv);
 			tv.tv_sec = 1;
@@ -204,7 +206,6 @@ void V4l2web::capturing()
 			{
 				// update format informations
 				m_videoCapture->queryFormat();
-				
 				// read image
 				int bufferSize = m_videoCapture->getBufferSize();
 				char buf[bufferSize];
@@ -350,6 +351,11 @@ Json::Value V4l2web::format(const Json::Value & input)
 	// set format POST
 	if (input.isNull() == false)
 	{		
+		const std::lock_guard<std::mutex> lock(m_deviceMutex);
+		if (m_isCapturing) {
+			m_videoCapture->stop();
+		}
+		
 		struct v4l2_format     format;
 		memset(&format,0,sizeof(format));
 		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -399,6 +405,9 @@ Json::Value V4l2web::format(const Json::Value & input)
 				}			
 				output["setparm"] = setparm;
 			}
+		}
+		if (m_isCapturing) {
+			m_videoCapture->start();
 		}
 	}
 
@@ -488,6 +497,7 @@ Json::Value V4l2web::control(const Json::Value & input)
 
 Json::Value V4l2web::start() 
 {
+	const std::lock_guard<std::mutex> lock(m_deviceMutex);
 	m_isCapturing = true;
 	Json::Value answer(m_videoCapture->start());
 	return answer;	
@@ -495,6 +505,7 @@ Json::Value V4l2web::start()
 
 Json::Value V4l2web::stop() 
 {
+	const std::lock_guard<std::mutex> lock(m_deviceMutex);
 	m_isCapturing = false;
 	Json::Value answer(m_videoCapture->stop());
 	return answer;	

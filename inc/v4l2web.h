@@ -12,6 +12,7 @@
 #include <functional>
 #include <list>
 #include <thread>
+#include <mutex>
 
 #include "json/json.h"
 
@@ -48,6 +49,7 @@ class V4l2web {
 		HttpServerRequestHandler                                      m_httpServer;
 		bool                                                          m_isCapturing; 
 		bool                                                          m_stopCapturing; 
+		std::mutex                                                    m_deviceMutex; 
 };
 
 
