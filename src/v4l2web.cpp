@@ -179,7 +179,8 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 V4l2web::V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & options): 
 	m_videoCapture(videoCapture),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
-	m_isCapturing(true) {	
+	m_isCapturing(true),
+	m_stopCapturing(false) {	
 
 	m_capturing = std::thread([this]() {
 		this->capturing();
@@ -187,40 +188,33 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & op
 }
 
 V4l2web::~V4l2web() {
-	m_isCapturing = false;
+	m_stopCapturing = true;
 	m_capturing.join();
 }
 
 void V4l2web::capturing()
 {
-	while (m_isCapturing) {
-		if (m_videoCapture->isReady())
+	while (!m_stopCapturing) {
+		if (m_isCapturing && m_videoCapture->isReady())
 		{
-			int fd = m_videoCapture->getFd();
 			struct timeval tv;
 			timerclear(&tv);
 			tv.tv_sec = 1;
-			fd_set read_set;
-			FD_ZERO(&read_set);
-			FD_SET(fd,&read_set);
-			if (select(fd+1, &read_set, NULL, NULL, &tv) >0)
+			if (m_videoCapture->isReadable(&tv))
 			{
-				if (FD_ISSET(fd,&read_set))
+				// update format informations
+				m_videoCapture->queryFormat();
+				
+				// read image
+				int bufferSize = m_videoCapture->getBufferSize();
+				char buf[bufferSize];
+				ssize_t size = m_videoCapture->read(buf, bufferSize);
+				LOG(DEBUG) << "read size:" << size << " buffersize:" << bufferSize;
+				
+				// post to subscribers
+				if (size>0)
 				{
-					// update format informations
-					m_videoCapture->queryFormat();
-					
-					// read image
-					int bufferSize = m_videoCapture->getBufferSize();
-					char buf[bufferSize];
-					ssize_t size = m_videoCapture->read(buf, bufferSize);
-					LOG(DEBUG) << "read size:" << size << " buffersize:" << bufferSize;
-					
-					// post to subscribers
-					if (size>0)
-					{
-						m_httpServer.publishBin("/ws",buf, size);
-					}
+					m_httpServer.publishBin("/ws",buf, size);
 				}
 			}
 		} else {
@@ -494,19 +488,21 @@ Json::Value V4l2web::control(const Json::Value & input)
 
 Json::Value V4l2web::start() 
 {
+	m_isCapturing = true;
 	Json::Value answer(m_videoCapture->start());
 	return answer;	
 }
 
 Json::Value V4l2web::stop() 
 {
+	m_isCapturing = false;
 	Json::Value answer(m_videoCapture->stop());
 	return answer;	
 }
 
 Json::Value V4l2web::isCapturing() 
 {
-	Json::Value answer(m_videoCapture->isReady());
+	Json::Value answer(m_isCapturing && m_videoCapture->isReady());
 	return answer;	
 }
 

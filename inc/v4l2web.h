@@ -47,6 +47,7 @@ class V4l2web {
 		std::thread                                                   m_capturing;
 		HttpServerRequestHandler                                      m_httpServer;
 		bool                                                          m_isCapturing; 
+		bool                                                          m_stopCapturing; 
 };
 
 
