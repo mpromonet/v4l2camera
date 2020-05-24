@@ -18,11 +18,46 @@ CFLAGS += -g -fpermissive
 CFLAGS +=  -I inc
 LDFLAGS += -ldl
 
+
 all: $(ALL_PROGS)
 
 upgrade:
 	git submodule foreach git pull origin master
 
+# v4l2tools
+v4l2tools/Makefile:
+	git submodule update --recursive --init v4l2tools
+
+v4l2tools/libyuv.a: v4l2tools/Makefile
+	make -C v4l2tools libyuv.a
+	
+CFLAGS +=  -I v4l2tools/include -I v4l2tools/libyuv/include
+LIBS+=v4l2tools/libyuv.a
+
+# libx264
+ifneq ($(wildcard /usr/include/x264.h),)
+CFLAGS += -DHAVE_X264
+LDFLAGS += -lx264
+endif
+
+# libx265
+ifneq ($(wildcard /usr/include/x265.h),)
+CFLAGS += -DHAVE_X265
+LDFLAGS += -lx265
+endif
+
+# libvpx
+ifneq ($(wildcard /usr/include/vpx),)
+CFLAGS += -DHAVE_VPX
+LDFLAGS += -lvpx
+endif
+
+# libjpeg
+ifneq ($(wildcard /usr/include/jpeglib.h),)
+ALL_PROGS+=v4l2uncompress_jpeg
+CFLAGS += -DHAVE_JPEG
+LDFLAGS += -ljpeg
+endif
 
 # civetweb
 libhttpjsonserver/Makefile:

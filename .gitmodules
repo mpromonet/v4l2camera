@@ -4,3 +4,6 @@
 [submodule "libhttpjsonserver"]
 	path = libhttpjsonserver
 	url = https://github.com/mpromonet/libhttpjsonserver
+[submodule "v4l2tools"]
+	path = v4l2tools
+	url = https://github.com/mpromonet/v4l2tools

@@ -23,6 +23,7 @@
 #include "logger.h"
 
 #include "V4l2Capture.h"
+#include "V4l2Output.h"
 #include "v4l2web.h"
 
 static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
@@ -176,8 +177,10 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 	return m_wsfunc;
 }
 	
-V4l2web::V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & options): 
+V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options): 
 	m_videoCapture(videoCapture),
+	m_videoOutput(videoOutput),
+	m_encoder(NULL),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
 	m_isCapturing(true),
 	m_stopCapturing(false) {	
@@ -216,6 +219,11 @@ void V4l2web::capturing()
 				if (size>0)
 				{
 					m_httpServer.publishBin("/ws",buf, size);
+				}
+				
+				// encode
+				if (m_encoder && m_videoOutput) {
+					m_encoder->convertEncodeWrite(buf, size, m_videoCapture->getFormat(), m_videoOutput);
 				}
 			}
 		} else {
@@ -406,6 +414,26 @@ Json::Value V4l2web::format(const Json::Value & input)
 				output["setparm"] = setparm;
 			}
 		}
+		
+		std::string outformatStr = input.get("outformat","").asString();
+		if (!outformatStr.empty() && m_videoOutput) {
+			if (m_encoder) {
+				delete m_encoder;
+			}
+			std::map<std::string,std::string> opt;
+			int outformat = V4l2Device::fourcc(outformatStr.c_str());
+			int width = m_videoCapture->getWidth();
+			int height = m_videoCapture->getHeight();
+			
+			m_videoOutput->setFormat(outformat, width, height);
+			
+			m_encoder = EncoderFactory::Create(outformat, width, height, opt, 0);
+			if (!m_encoder)
+			{
+				LOG(WARN) << "Cannot create encoder " << outformatStr; 
+			}
+		}
+		
 		if (m_isCapturing) {
 			m_videoCapture->start();
 		}

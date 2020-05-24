@@ -18,9 +18,11 @@
 
 #include "HttpServerRequestHandler.h"
 
+#include "encoderfactory.h"
+
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture, const std::vector<std::string> & options);
+		V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options);
 		virtual ~V4l2web();
 		const void* getContext() { return m_httpServer.getContext(); }
 	
@@ -43,6 +45,8 @@ class V4l2web {
 
 	private:
 		V4l2Capture*                                                  m_videoCapture;
+		V4l2Output*                                                   m_videoOutput;
+		Encoder*                                                      m_encoder;
 		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
 		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;
 		std::thread                                                   m_capturing;

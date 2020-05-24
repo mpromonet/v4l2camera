@@ -18,6 +18,7 @@
 #include "logger.h"
 
 #include "V4l2Capture.h"
+#include "V4l2Output.h"
 #include "v4l2web.h"
 
 /* ---------------------------------------------------------------------------
@@ -47,12 +48,14 @@ int main(int argc, char* argv[])
 	int c = 0;
 	const char * port = "8080";
 	V4l2Access::IoType ioTypeIn = V4l2Access::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	std::string webroot = "webroot";
 	std::string nbthreads;
 	unsigned int format = ~0;
 	std::list<unsigned int> videoformatList;	
+	std::string out_devname;	
 	
-	while ((c = getopt (argc, argv, "hv::" "f:W:H:F:G:" "r" "P:p:N:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f:W:H:F:G:" "rw" "P:p:N:")) != -1)
 	{
 		switch (c)
 		{
@@ -64,7 +67,8 @@ int main(int argc, char* argv[])
 			case 'F': fps = atoi(optarg); break;
 			case 'G': sscanf(optarg,"%dx%dx%d", &width, &height, &fps); break;
 
-			case 'r': ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'r': ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;
+			case 'w': ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;				
 
 			case 'P': port = optarg; break;
 			case 'N': nbthreads = optarg; break;
@@ -83,7 +87,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t -F fps           : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
 
-				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;				
+				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;
+				std::cout << "\t -w                   : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
 
 				std::cout << "\t device           : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
@@ -93,6 +98,12 @@ int main(int argc, char* argv[])
 	if (optind<argc)
 	{
 		dev_name = argv[optind];
+		optind++;
+	}	
+	if (optind<argc)
+	{
+		out_devname = argv[optind];
+		optind++;
 	}	
 
 	// initialize log4cpp
@@ -114,7 +125,11 @@ int main(int argc, char* argv[])
 	}
 	else
 	{		
-
+		V4l2Output* videoOutput = NULL;
+		if (!out_devname.empty()) {
+			V4L2DeviceParameters outparam(out_devname.c_str(), 0, 0, 0, 0, verbose);
+			videoOutput = V4l2Output::create(outparam, ioTypeOut);
+		}
 
 		// http options
 		std::vector<std::string> options;
@@ -134,7 +149,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture, options);
+		V4l2web v4l2web(videoCapture, videoOutput, options);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
@@ -147,6 +162,7 @@ int main(int argc, char* argv[])
 				sleep(1); 
 			}
 		}
+		delete videoOutput;
 		delete videoCapture;
 	}
 	
