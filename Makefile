@@ -54,7 +54,6 @@ endif
 
 # libjpeg
 ifneq ($(wildcard /usr/include/jpeglib.h),)
-ALL_PROGS+=v4l2uncompress_jpeg
 CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
