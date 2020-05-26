@@ -54,8 +54,9 @@ int main(int argc, char* argv[])
 	unsigned int format = ~0;
 	std::list<unsigned int> videoformatList;	
 	std::string out_devname;	
+	unsigned int outFormat = V4L2_PIX_FMT_H264;
 	
-	while ((c = getopt (argc, argv, "hv::" "f:W:H:F:G:" "rw" "P:p:N:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:")) != -1)
 	{
 		switch (c)
 		{
@@ -66,6 +67,8 @@ int main(int argc, char* argv[])
 			case 'H': height = atoi(optarg); break;
 			case 'F': fps = atoi(optarg); break;
 			case 'G': sscanf(optarg,"%dx%dx%d", &width, &height, &fps); break;
+			
+			case 'O': outFormat = V4l2Device::fourcc(optarg); break;
 
 			case 'r': ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;
 			case 'w': ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;				
@@ -88,7 +91,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
 
 				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;
-				std::cout << "\t -w                   : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
+				std::cout << "\t -w               : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
 
 				std::cout << "\t device           : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
@@ -127,7 +130,7 @@ int main(int argc, char* argv[])
 	{		
 		V4l2Output* videoOutput = NULL;
 		if (!out_devname.empty()) {
-			V4L2DeviceParameters outparam(out_devname.c_str(), 0, 0, 0, 0, verbose);
+			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, verbose);
 			videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		}
 

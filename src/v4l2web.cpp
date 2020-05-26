@@ -185,6 +185,16 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	m_isCapturing(true),
 	m_stopCapturing(false) {	
 
+		
+	if (m_videoOutput && m_videoCapture) {
+		std::map<std::string,std::string> opt;
+		m_encoder = EncoderFactory::Create(m_videoOutput->getFormat(), m_videoCapture->getWidth(), m_videoCapture->getHeight(), opt, 0);
+		if (!m_encoder)
+		{
+			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(m_videoOutput->getFormat()); 
+		}
+	}
+			
 	m_capturing = std::thread([this]() {
 		this->capturing();
 	});
@@ -468,6 +478,10 @@ Json::Value V4l2web::format(const Json::Value & input)
 		double fps = 0.0;
 		if (parm.parm.capture.timeperframe.numerator != 0) fps = 1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator;
 		output["fps"]           = fps; 
+	}
+	
+	if (m_videoOutput) {
+		output["outformat"]    = V4l2Device::fourcc(m_videoOutput->getFormat());		
 	}
 	
 	return output;
