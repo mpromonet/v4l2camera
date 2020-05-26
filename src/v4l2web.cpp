@@ -425,7 +425,9 @@ Json::Value V4l2web::format(const Json::Value & input)
 			int width = m_videoCapture->getWidth();
 			int height = m_videoCapture->getHeight();
 			
+			m_videoOutput->stop();
 			m_videoOutput->setFormat(outformat, width, height);
+			m_videoOutput->start();
 			
 			m_encoder = EncoderFactory::Create(outformat, width, height, opt, 0);
 			if (!m_encoder)
