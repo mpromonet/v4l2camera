@@ -7,3 +7,6 @@
 [submodule "v4l2tools"]
 	path = v4l2tools
 	url = https://github.com/mpromonet/v4l2tools
+[submodule "v4l2rtspserver"]
+	path = v4l2rtspserver
+	url = https://github.com/mpromonet/v4l2rtspserver

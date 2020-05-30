@@ -30,8 +30,20 @@ v4l2tools/Makefile:
 
 v4l2tools/libyuv.a: v4l2tools/Makefile
 	make -C v4l2tools libyuv.a
-	
-CFLAGS +=  -I v4l2tools/include -I v4l2tools/libyuv/include
+
+# v4l2rtsp
+v4l2rtspserver/CMakeList.txt:
+	git submodule update --recursive --init v4l2rtspserver
+
+v4l2rtspserver/liblibv4l2rtspserver.a: v4l2rtspserver/CMakeList.txt
+	cd v4l2rtspserver && cmake . && make libv4l2rtspserver		
+
+LIVE = v4l2rtspserver/live
+CFLAGS += -I ${LIVE}/groupsock/include -I ${LIVE}/liveMedia/include -I ${LIVE}/UsageEnvironment/include -I ${LIVE}/BasicUsageEnvironment/include
+CFLAGS += -I v4l2rtspserver/inc
+LIBS+=v4l2rtspserver/liblibv4l2rtspserver.a 
+
+CFLAGS +=  -I v4l2tools/include -I v4l2tools/libyuv/include 
 LIBS+=v4l2tools/libyuv.a
 
 # libx264
