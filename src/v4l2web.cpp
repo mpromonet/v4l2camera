@@ -26,6 +26,8 @@
 #include "V4l2Output.h"
 #include "v4l2web.h"
 
+#include "DeviceSourceFactory.h"
+
 static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;
@@ -182,8 +184,10 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	m_videoOutput(videoOutput),
 	m_encoder(NULL),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
-	m_isCapturing(true),
-	m_stopCapturing(false) {	
+	m_isCapturing(false),
+	m_stopCapturing(false),
+	m_rtspServer(8554),
+	m_stopStreaming(0) {	
 
 		
 	if (m_videoOutput && m_videoCapture) {
@@ -198,11 +202,27 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	m_capturing = std::thread([this]() {
 		this->capturing();
 	});
+
+	m_streaming = std::thread([this]() {
+		this->streaming();
+	});
 }
 
 V4l2web::~V4l2web() {
 	m_stopCapturing = true;
 	m_capturing.join();
+	m_stopStreaming = 1;
+	m_streaming.join();
+}
+
+void V4l2web::streaming()
+{
+	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new DeviceCaptureAccess<V4l2Capture>(m_videoCapture));
+	if (videoReplicator)
+	{
+		m_rtspServer.addSession("", UnicastServerMediaSubsession::createNew(*m_rtspServer.env(), videoReplicator, V4l2RTSPServer::getVideoRtpFormat(m_videoCapture->getFormat())));			
+		m_rtspServer.eventLoop(&m_stopStreaming); 
+	}	
 }
 
 void V4l2web::capturing()

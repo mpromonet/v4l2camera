@@ -17,8 +17,8 @@
 #include "json/json.h"
 
 #include "HttpServerRequestHandler.h"
-
 #include "encoderfactory.h"
+#include "V4l2RTSPServer.h"
 
 class V4l2web {
 	public:
@@ -39,21 +39,28 @@ class V4l2web {
 		Json::Value isCapturing();
 		
 		void capturing();
+		void streaming();
 	
 		std::map<std::string,HttpServerRequestHandler::httpFunction>& getHttpFunc();
 		std::map<std::string,HttpServerRequestHandler::wsFunction>&   getWsFunc();
 
 	private:
+		std::mutex                                                    m_deviceMutex; 
 		V4l2Capture*                                                  m_videoCapture;
 		V4l2Output*                                                   m_videoOutput;
 		Encoder*                                                      m_encoder;
+
 		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
 		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;
-		std::thread                                                   m_capturing;
 		HttpServerRequestHandler                                      m_httpServer;
+
 		bool                                                          m_isCapturing; 
-		bool                                                          m_stopCapturing; 
-		std::mutex                                                    m_deviceMutex; 
+		std::thread                                                   m_capturing;
+		bool                                                          m_stopCapturing;
+
+		V4l2RTSPServer                                                m_rtspServer;
+		std::thread                                                   m_streaming;
+		char                                                          m_stopStreaming;
 };
 
 
