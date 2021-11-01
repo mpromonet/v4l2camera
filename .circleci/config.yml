@@ -3,7 +3,7 @@ version: 2
 jobs:
   build_x86_64:
     docker:
-      - image: ubuntu:18.04
+      - image: ubuntu:20.04
     steps:
       - checkout
       - run: apt-get update; apt-get install -y --no-install-recommends ca-certificates autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev libssl-dev npm

@@ -11,11 +11,10 @@ publish_docker_builder:
   depends_on: 
     - linux
   env:
+    DOCKER_CLI_EXPERIMENTAL: enabled
     DOCKERHUB_USER: ENCRYPTED[98e575fd2885ba39b429cdcd5c7bbfad8db12e0c4f391f0f58fea9952bf41c2d25a7567b52dc17bfff1faa810921f6de]
     DOCKERHUB_PASS: ENCRYPTED[2266391061fded5e8db8300e5a53276e4081eb8bdd73caf665e48c19ef3a8946b7bd7188f011ca588c3b9cdfd840e0fd]
   script: | 
-    mkdir ~/.docker
-    echo "{ \"experimental\": \"enabled\" }" >> ~/.docker/config.json
     docker info
     docker manifest create --amend $CIRRUS_REPO_FULL_NAME:latest $CIRRUS_REPO_FULL_NAME:latest-amd64
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
