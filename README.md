@@ -9,7 +9,7 @@ v4l2web
 =======
 Web server for V4L2 interface
 
-The civetweb HTTP server give access to the Video4Linux interface and the web interface using AngularJS/EmberJS/ReactJS or Angular.
+The civetweb HTTP server give access to the Video4Linux interface and the web interface using VueJS
 
 
 Dependencies
