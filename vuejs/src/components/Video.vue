@@ -1,10 +1,20 @@
 <template>
-  <div style="display: block">
-    <img :src="image" style="overflow: auto" />
+  <div>
+    <div style="display: block">
+      <button v-on:click="start">Start</button>
+      <button v-on:click="stop">Stop</button>
+    </div>
+    <div style="display: block">
+      <img :src="image" style="overflow: auto" />
+    </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+
+var serviceurl = "";
+
 export default {
   data: function () {
     return {
@@ -33,5 +43,13 @@ export default {
       console.log("Successfully connected to websocket ...");
     };
   },
+  methods: {
+    start: function() {
+      axios.get(serviceurl + "/api/start")
+    },
+    stop: function() {
+      axios.get(serviceurl + "/api/stop")
+    }
+  }
 };
 </script>
