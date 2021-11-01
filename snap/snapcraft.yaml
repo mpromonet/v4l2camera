@@ -22,6 +22,7 @@
       - libjsoncpp-dev
       - libjpeg-dev
       - libssl-dev
+      - npm
       stage-packages:
       - libjsoncpp1 
       - libjpeg8
