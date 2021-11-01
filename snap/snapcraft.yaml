@@ -7,7 +7,7 @@
 
   grade: stable 
   confinement: strict
-  base: core18
+  base: core20
 
   parts:
     v4l2web:
@@ -19,18 +19,16 @@
       - make
       - cmake
       - pkg-config
-      - liblog4cpp5-dev
       - libjsoncpp-dev
       - libjpeg-dev
       - libssl-dev
       stage-packages:
-      - liblog4cpp5v5
       - libjsoncpp1 
       - libjpeg8
-      - libssl1.0.0
+      - libssl1.1
 
   apps:
     v4l2web:
-      command: v4l2web -P $SNAP/share/v4l2web/
+      command: v4l2web -P $SNAP/share/v4l2web/webroot
       daemon: simple   
       plugs: [network-bind]
