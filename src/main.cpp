@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 	const char * port = "8080";
 	V4l2IoType ioTypeIn = IOTYPE_MMAP;
 	V4l2IoType ioTypeOut = IOTYPE_MMAP;
-	std::string webroot = "webroot";
+	std::string webroot = "./vuejs/dist";
 	std::string nbthreads;
 	unsigned int format = ~0;
 	std::list<unsigned int> videoformatList;	
