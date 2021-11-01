@@ -15,4 +15,4 @@ RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates libjsoncpp1 libjpeg8 libssl1.1
 
 ENTRYPOINT [ "/usr/bin/v4l2web" ]
-CMD [ "-p", "/usr/share/v4l2web/" ]
+CMD [ "-p", "/usr/share/v4l2web/webroot" ]
