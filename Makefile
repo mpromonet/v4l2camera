@@ -1,6 +1,6 @@
 CFLAGS = -W -Wall -std=c++11 -pthread -g -pipe $(CFLAGS_EXTRA)
 RM = rm -rf
-ALL_PROGS = v4l2web
+ALL_PROGS = v4l2web webroot
 PREFIX=/usr
 DESTDIR?=$(PREFIX)
 
@@ -23,6 +23,9 @@ all: $(ALL_PROGS)
 
 upgrade:
 	git submodule foreach git pull origin master
+
+webroot:
+	npm run build -C vuejs
 
 # v4l2tools
 v4l2tools/Makefile:

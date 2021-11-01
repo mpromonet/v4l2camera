@@ -4,7 +4,7 @@ WORKDIR /v4l2web
 COPY . /v4l2web
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake make pkg-config git liblog4cpp5-dev libjsoncpp-dev libjpeg-dev libssl-dev \
+    && apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake make pkg-config git liblog4cpp5-dev libjsoncpp-dev libjpeg-dev libssl-dev npm \
     && make install && apt-get clean && rm -rf /var/lib/apt/lists/
 
 FROM ubuntu:18.04
