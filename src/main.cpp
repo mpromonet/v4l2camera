@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 	int fps = 10;	
 	int c = 0;
 	const char * port = "8080";
-	V4l2Access::IoType ioTypeIn = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	std::string webroot = "webroot";
 	std::string nbthreads;
 	unsigned int format = ~0;
@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
 			
 			case 'O': outFormat = V4l2Device::fourcc(optarg); break;
 
-			case 'r': ioTypeIn = V4l2Access::IOTYPE_READWRITE; break;
-			case 'w': ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;				
+			case 'r': ioTypeIn = IOTYPE_READWRITE; break;
+			case 'w': ioTypeOut = IOTYPE_READWRITE; break;				
 
 			case 'P': port = optarg; break;
 			case 'N': nbthreads = optarg; break;
@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
 		videoformatList.push_back(0);
 	}
 
-	V4L2DeviceParameters param(dev_name,videoformatList,width,height,fps,verbose);
-	V4l2Capture* videoCapture =  V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(dev_name, videoformatList, width, height, fps, ioTypeIn, verbose);
+	V4l2Capture* videoCapture =  V4l2Capture::create(param);
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
@@ -130,8 +130,8 @@ int main(int argc, char* argv[])
 	{		
 		V4l2Output* videoOutput = NULL;
 		if (!out_devname.empty()) {
-			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, verbose);
-			videoOutput = V4l2Output::create(outparam, ioTypeOut);
+			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, ioTypeOut, verbose);
+			videoOutput = V4l2Output::create(outparam);
 		}
 
 		// http options

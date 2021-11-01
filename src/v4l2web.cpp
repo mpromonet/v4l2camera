@@ -192,7 +192,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 		
 	if (m_videoOutput && m_videoCapture) {
 		std::map<std::string,std::string> opt;
-		m_encoder = EncoderFactory::Create(m_videoOutput->getFormat(), m_videoCapture->getWidth(), m_videoCapture->getHeight(), opt, 0);
+		m_encoder = CodecFactory::get().Create(m_videoCapture->getFormat(), m_videoOutput->getFormat(), m_videoCapture->getWidth(), m_videoCapture->getHeight(), opt, 0);
 		if (!m_encoder)
 		{
 			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(m_videoOutput->getFormat()); 
@@ -217,10 +217,10 @@ V4l2web::~V4l2web() {
 
 void V4l2web::streaming()
 {
-	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new DeviceCaptureAccess<V4l2Capture>(m_videoCapture));
+	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture));
 	if (videoReplicator)
 	{
-		m_rtspServer.addSession("", UnicastServerMediaSubsession::createNew(*m_rtspServer.env(), videoReplicator, V4l2RTSPServer::getVideoRtpFormat(m_videoCapture->getFormat())));			
+		m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
 		m_rtspServer.eventLoop(&m_stopStreaming); 
 	}	
 }
@@ -253,7 +253,7 @@ void V4l2web::capturing()
 				
 				// encode
 				if (m_encoder && m_videoOutput) {
-					m_encoder->convertEncodeWrite(buf, size, m_videoCapture->getFormat(), m_videoOutput);
+					m_encoder->convertAndWrite(buf, size, m_videoOutput);
 				}
 			}
 		} else {
@@ -459,7 +459,8 @@ Json::Value V4l2web::format(const Json::Value & input)
 			m_videoOutput->setFormat(outformat, width, height);
 			m_videoOutput->start();
 			
-			m_encoder = EncoderFactory::Create(outformat, width, height, opt, 0);
+			m_encoder = CodecFactory::get().Create(outformat, m_videoCapture->getFormat(),  width, height, opt, 0);
+
 			if (!m_encoder)
 			{
 				LOG(WARN) << "Cannot create encoder " << outformatStr; 

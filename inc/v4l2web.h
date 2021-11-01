@@ -17,7 +17,7 @@
 #include "json/json.h"
 
 #include "HttpServerRequestHandler.h"
-#include "encoderfactory.h"
+#include "codecfactory.h"
 #include "V4l2RTSPServer.h"
 
 class V4l2web {
@@ -48,7 +48,7 @@ class V4l2web {
 		std::mutex                                                    m_deviceMutex; 
 		V4l2Capture*                                                  m_videoCapture;
 		V4l2Output*                                                   m_videoOutput;
-		Encoder*                                                      m_encoder;
+		Codec*                                                        m_encoder;
 
 		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
 		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;

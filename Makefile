@@ -78,7 +78,7 @@ libhttpjsonserver.a: libhttpjsonserver/Makefile
 	cd libhttpjsonserver && cmake . && make	httpjsonserver
 	mv libhttpjsonserver/$@ .
 
-CFLAGS += -I libhttpjsonserver/inc  -I libhttpjsonserver/civetweb/include -I libhttpjsonserver/jsoncpp/include
+CFLAGS += -I libhttpjsonserver/inc  -I libhttpjsonserver/civetweb/include -I libhttpjsonserver/jsoncpp/include -DOPENSSL_API_1_1 -DCRYPTO_LIB="libcrypto.so.1.1" -DSSL_LIB="libssl.so.1.1"
 LIBS+=libhttpjsonserver.a -lssl -lcrypto
 
 # libv4l2cpp
