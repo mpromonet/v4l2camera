@@ -24,7 +24,10 @@ all: $(ALL_PROGS)
 upgrade:
 	git submodule foreach git pull origin master
 
-webroot:
+vuejs/node_modules:
+	npm i -C vuejs
+
+webroot: vuejs/node_modules $(wildcard vuejs/src/* vuejs/src/*/*)
 	npm run build -C vuejs
 
 # v4l2tools
