@@ -184,7 +184,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	m_videoOutput(videoOutput),
 	m_encoder(NULL),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
-	m_isCapturing(false),
+	m_isCapturing(true),
 	m_stopCapturing(false),
 	m_rtspServer(8554),
 	m_stopStreaming(0) {	
@@ -204,7 +204,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	});
 
 	m_streaming = std::thread([this]() {
-		this->streaming();
+		m_rtspServer.eventLoop(&m_stopStreaming); 
 	});
 }
 
@@ -215,18 +215,14 @@ V4l2web::~V4l2web() {
 	m_streaming.join();
 }
 
-void V4l2web::streaming()
+void V4l2web::capturing()
 {
-	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture));
+	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 5, V4L2DeviceSource::NOCAPTURE);
 	if (videoReplicator)
 	{
 		m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
-		m_rtspServer.eventLoop(&m_stopStreaming); 
-	}	
-}
+	}
 
-void V4l2web::capturing()
-{
 	while (!m_stopCapturing) {
 		if (m_isCapturing && m_videoCapture->isReady())
 		{
@@ -240,6 +236,8 @@ void V4l2web::capturing()
 				// update format informations
 				m_videoCapture->queryFormat();
 				// read image
+				timeval ref;
+				gettimeofday(&ref, NULL);	
 				int bufferSize = m_videoCapture->getBufferSize();
 				char buf[bufferSize];
 				ssize_t size = m_videoCapture->read(buf, bufferSize);
@@ -249,8 +247,15 @@ void V4l2web::capturing()
 				if (size>0)
 				{
 					m_httpServer.publishBin("/ws",buf, size);
+					if (videoReplicator)
+					{
+						V4L2DeviceSource* source = (V4L2DeviceSource*)videoReplicator->inputSource();
+						char* buffer = new char[bufferSize];
+						memcpy(buffer, buf, bufferSize);	
+						source->postFrame(buffer, bufferSize, ref);
+					}
 				}
-				
+
 				// encode
 				if (m_encoder && m_videoOutput) {
 					m_encoder->convertAndWrite(buf, size, m_videoOutput);
@@ -390,8 +395,9 @@ Json::Value V4l2web::format(const Json::Value & input)
 	if (input.isNull() == false)
 	{		
 		const std::lock_guard<std::mutex> lock(m_deviceMutex);
+		bool isCapturing = m_isCapturing;
 		if (m_isCapturing) {
-			m_videoCapture->stop();
+			m_isCapturing = false;
 		}
 		
 		struct v4l2_format     format;
@@ -467,8 +473,8 @@ Json::Value V4l2web::format(const Json::Value & input)
 			}
 		}
 		
-		if (m_isCapturing) {
-			m_videoCapture->start();
+		if (isCapturing) {
+			m_isCapturing = false;
 		}
 	}
 
@@ -562,18 +568,14 @@ Json::Value V4l2web::control(const Json::Value & input)
 
 Json::Value V4l2web::start() 
 {
-	const std::lock_guard<std::mutex> lock(m_deviceMutex);
 	m_isCapturing = true;
-	Json::Value answer(m_videoCapture->start());
-	return answer;	
+	return Json::Value(m_isCapturing);	
 }
 
 Json::Value V4l2web::stop() 
 {
-	const std::lock_guard<std::mutex> lock(m_deviceMutex);
 	m_isCapturing = false;
-	Json::Value answer(m_videoCapture->stop());
-	return answer;	
+	return Json::Value(m_isCapturing);	
 }
 
 Json::Value V4l2web::isCapturing() 

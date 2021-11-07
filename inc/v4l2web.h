@@ -19,6 +19,7 @@
 #include "HttpServerRequestHandler.h"
 #include "codecfactory.h"
 #include "V4l2RTSPServer.h"
+#include "VideoCaptureAccess.h"
 
 class V4l2web {
 	public:
@@ -39,7 +40,6 @@ class V4l2web {
 		Json::Value isCapturing();
 		
 		void capturing();
-		void streaming();
 	
 		std::map<std::string,HttpServerRequestHandler::httpFunction>& getHttpFunc();
 		std::map<std::string,HttpServerRequestHandler::wsFunction>&   getWsFunc();
