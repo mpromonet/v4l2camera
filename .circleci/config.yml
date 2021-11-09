@@ -6,7 +6,7 @@ jobs:
       - image: ubuntu:20.04
     steps:
       - checkout
-      - run: apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates pkg-config autoconf automake libtool git cmake make g++ liblog4cpp5-dev libjsoncpp-dev libjpeg-dev libssl-dev npm
+      - run: apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates pkg-config autoconf automake libtool git cmake make g++  libjsoncpp-dev libjpeg-dev libssl-dev npm
       - run: make install DESTDIR=/tmp/artifact
       - store_artifacts:
           path: /tmp/artifact 
