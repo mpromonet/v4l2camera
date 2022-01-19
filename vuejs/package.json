@@ -10,7 +10,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "axios": "^0.21.2",
+    "axios": "^0.25.0",
     "vue": "^2.6.14",
     "vue-config": "^1.0.0"
   },
@@ -31,7 +31,7 @@
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.30.1",
-    "node-notifier": "^8.0.1",
+    "node-notifier": "^10.0.0",
     "optimize-css-assets-webpack-plugin": "^3.2.1",
     "ora": "^1.2.0",
     "postcss-import": "^11.0.0",
@@ -48,7 +48,7 @@
     "webpack": "^3.6.0",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.2",
+    "webpack-dev-server": "^3.11.3",
     "webpack-merge": "^4.2.2"
   },
   "engines": {
