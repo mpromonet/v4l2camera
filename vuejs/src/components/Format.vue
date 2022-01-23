@@ -3,7 +3,10 @@
     <h1>{{ msg }}</h1>
     <tr>
       <td>
-        <select v-model="format.format">
+        <select
+          v-model="format.format"
+          v-on:change="updateValue(format)"
+        >
           <option v-for="o in formats" :selected="o.format === format.format">
             {{ o.format }}
           </option>
@@ -33,11 +36,7 @@ export default {
         axios({ method: "GET", url: serviceurl + "/api/format" }).then(
           (response) => {
             this.format = response.data;
-            this.formats.forEach((item) => {
-              if (item.format === this.format.format) {
-                this.format.description = item.description;
-              }
-            });
+            this.format.description = this.formats.filter((d) => d.format == this.format.format)[0].description;
           }
         );
       }
@@ -47,10 +46,19 @@ export default {
     return {
       msg: "loading...",
       formats: [],
-      format: "",
-      controls: [],
+      format: ""
     };
   },
+  methods: {
+    updateValue: function(format) {
+      axios.post(serviceurl + "/api/format", format ).then(
+        (response) => {
+          this.format = response.data;
+          this.format.description = this.formats.filter((d) => d.format == this.format.format)[0].description;
+        }
+		  );
+	  }
+  }  
 };
 </script>
 
