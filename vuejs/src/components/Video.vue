@@ -5,7 +5,7 @@
       <button v-on:click="stop">Stop</button>
     </div>
     <div style="display: block">
-      <img :src="image" style="overflow: auto" />
+      <img v-if="visibility" :src="image" style="overflow: auto" />
     </div>
   </div>
 </template>
@@ -19,6 +19,7 @@ export default {
   data: function () {
     return {
       image: "",
+      visibility: true,
     };
   },
   created: function () {
@@ -45,10 +46,12 @@ export default {
   },
   methods: {
     start: function() {
-      axios.get(serviceurl + "/api/start")
+      axios.get(serviceurl + "/api/start");
+      this.visibility = true;
     },
     stop: function() {
-      axios.get(serviceurl + "/api/stop")
+      axios.get(serviceurl + "/api/stop");
+      this.visibility = false;
     }
   }
 };

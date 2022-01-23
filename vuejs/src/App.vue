@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Video/>
     <Format/>
+    <Video/>
     <Controls/>
   </div>
 </template>
