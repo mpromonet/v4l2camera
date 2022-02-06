@@ -179,14 +179,14 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 	return m_wsfunc;
 }
 	
-V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options): 
+V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport): 
 	m_videoCapture(videoCapture),
 	m_videoOutput(videoOutput),
 	m_encoder(NULL),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
 	m_isCapturing(true),
 	m_stopCapturing(false),
-	m_rtspServer(8554),
+	m_rtspServer(rtspport),
 	m_stopStreaming(0) {	
 
 		

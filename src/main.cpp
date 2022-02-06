@@ -47,6 +47,7 @@ int main(int argc, char* argv[])
 	int fps = 10;	
 	int c = 0;
 	const char * port = "8080";
+	int rtspport = 8554;
 	V4l2IoType ioTypeIn = IOTYPE_MMAP;
 	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	std::string webroot = "webroot";
@@ -56,7 +57,7 @@ int main(int argc, char* argv[])
 	std::string out_devname;	
 	unsigned int outFormat = V4L2_PIX_FMT_H264;
 	
-	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:R:")) != -1)
 	{
 		switch (c)
 		{
@@ -74,6 +75,7 @@ int main(int argc, char* argv[])
 			case 'w': ioTypeOut = IOTYPE_READWRITE; break;				
 
 			case 'P': port = optarg; break;
+			case 'R': rtspport = atoi(optarg); break;
 			case 'N': nbthreads = optarg; break;
 			case 'p': webroot = optarg; break;			
 			case 'h':
@@ -83,6 +85,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -v v             : very verbose " << std::endl;
 				std::cout << "\t -P port          : server port (default "<< port << ")" << std::endl;
 				std::cout << "\t -p path          : server root path (default "<< webroot << ")" << std::endl;
+				std::cout << "\t -R port          : RTSP server port (default "<< rtspport << ")" << std::endl;
 
 				std::cout << "\t -f format        : V4L2 capture using format" << std::endl;
 				std::cout << "\t -W width         : V4L2 capture width (default "<< width << ")" << std::endl;
@@ -126,7 +129,6 @@ int main(int argc, char* argv[])
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
 	}
-	else
 	{		
 		V4l2Output* videoOutput = NULL;
 		if (!out_devname.empty()) {
@@ -152,7 +154,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture, videoOutput, options);
+		V4l2web v4l2web(videoCapture, videoOutput, options, rtspport);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 

@@ -25,15 +25,19 @@ Build
 Usage
 ------- 
 	./v4l2web [-v[v]] [-P port] [-W width] [-H height] [device]
-		 -v       : verbose 
-		 -v v     : very verbose 
-		 -P port  : server port (default 8080)
-		 -W width : V4L2 capture width (default 320)
-		 -H height: V4L2 capture height (default 240)
-		 -F fps   : V4L2 capture framerate (default 10)
-		 -M       : V4L2 capture using memory mapped buffers (default use read interface)
-		 device   : V4L2 capture device (default /dev/video0)
-
+         -v               : verbose 
+         -v v             : very verbose 
+         -P port          : server port (default 8080)
+         -p path          : server root path (default webroot)
+         -R port          : RTSP server port (default 8554)
+         -f format        : V4L2 capture using format
+         -W width         : V4L2 capture width (default 640)
+         -H height        : V4L2 capture height (default 480)
+         -F fps           : V4L2 capture framerate (default 10)
+         -G <w>x<h>[x<f>] : V4L2 capture format (default 640x480x10)
+         -r               : V4L2 capture using memory mapped buffers (default use read interface)
+         -w               : V4L2 capture using write interface (default use memory mapped buffers)
+         device           : V4L2 capture device (default /dev/video0)
 
 Using Docker image
 ===============
