@@ -1,5 +1,5 @@
 [![Build status](https://travis-ci.org/mpromonet/v4l2web.png)](https://travis-ci.org/mpromonet/v4l2web)
-[![CircleCI](https://circleci.com/gh/mpromonet/v4l2web.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2web)
+[![CircleCI](https://circleci.com/gh/mpromonet/v4l2camera.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2camera)
 [![CirusCI](https://api.cirrus-ci.com/github/mpromonet/v4l2web.svg?branch=master)](https://cirrus-ci.com/github/mpromonet/v4l2web)
 [![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2web.svg)](https://build.snapcraft.io/user/mpromonet/v4l2web)
 
