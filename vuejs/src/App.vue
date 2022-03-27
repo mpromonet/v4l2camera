@@ -7,9 +7,9 @@
 </template>
 
 <script>
-import Video from './components/Video'
-import Format from './components/Format'
-import Controls from './components/Controls'
+import Video from './components/Video.vue'
+import Format from './components/Format.vue'
+import Controls from './components/Controls.vue'
 
 export default {
   name: 'App',
