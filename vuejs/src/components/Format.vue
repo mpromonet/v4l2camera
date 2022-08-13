@@ -6,15 +6,10 @@
       v-model="format.format"
       v-on:change="updateValue(format)"
     >
-      <option v-for="o in formats" :key="o.format" :selected="o.format === format.format">
-        {{ o.format }}
-      </option>
+      <option v-for="o in formats" :key="o.format" >{{ o.format }}</option>
     </select>
-
-    <select>
-      <option v-for="f in format.frameSizes" :selected="f.width === format.width && f.height === format.height">
-        {{ f.width }}x{{ f.height }}
-      </option>
+    <select v-model="geometry" v-on:change="updateGeometry()">
+      <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
     </select>
   </div>
 </template>
@@ -48,7 +43,8 @@ export default {
     return {
       msg: "loading...",
       formats: [],
-      format: ""
+      format: "",
+      geometry: ""
     };
   },
   methods: {
@@ -60,7 +56,13 @@ export default {
         }
 		  );
 	  },
+    updateGeometry: function() {
+      console.log(this.geometry)
+      this.format = {...this.format, ...this.geometry};
+      this.updateValue(this.format);
+	  },
     updateFormatFields: function() {
+        this.geometry = `${this.format.width}x${this.format.height}`;
         this.format.description = this.formats.filter((d) => d.format == this.format.format)[0].description;
         this.format.frameSizes = this.formats.filter((d) => d.format == this.format.format)[0].frameSizes;
     }

@@ -61,6 +61,7 @@ class V4l2web {
 		V4l2RTSPServer                                                m_rtspServer;
 		std::thread                                                   m_streaming;
 		char                                                          m_stopStreaming;
+		std::string                                                   m_snapshot;
 };
 
 

@@ -159,6 +159,9 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return this->isCapturing();
 		};
+		m_httpfunc["/api/snapshot"]       = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return m_snapshot;
+		};
 		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			Json::Value answer;
 			for (auto it : this->m_httpfunc) {
@@ -253,6 +256,7 @@ void V4l2web::capturing()
 						char* buffer = new char[bufferSize];
 						memcpy(buffer, buf, bufferSize);	
 						source->postFrame(buffer, bufferSize, ref);
+						m_snapshot.assign(buffer, bufferSize);
 					}
 				}
 
