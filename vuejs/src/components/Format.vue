@@ -58,7 +58,9 @@ export default {
 	  },
     updateGeometry: function() {
       console.log(this.geometry)
-      this.format = {...this.format, ...this.geometry};
+      const sizes = this.geometry.split('x');
+      this.format.width = parseInt(sizes[0]);
+      this.format.height = parseInt(sizes[1]);
       this.updateValue(this.format);
 	  },
     updateFormatFields: function() {
