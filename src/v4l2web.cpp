@@ -401,57 +401,16 @@ Json::Value V4l2web::format(const Json::Value & input)
 		if (m_isCapturing) {
 			m_isCapturing = false;
 		}
-		
-		struct v4l2_format     format;
-		memset(&format,0,sizeof(format));
-		format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
-		{
-			Json::Value setfmt;
-			try
-			{
-				format.fmt.pix.width = input.get("width",format.fmt.pix.width).asUInt();
-				format.fmt.pix.height = input.get("height",format.fmt.pix.height).asUInt();
-				std::string formatstr = input.get("format","").asString();
-				if (!formatstr.empty())
-				{
-					format.fmt.pix.pixelformat = V4l2Device::fourcc(formatstr.c_str());
-				}
-				errno=0;
-				setfmt["ioctl"] = ioctl(fd,VIDIOC_S_FMT,&format);
-				setfmt["errno"]  = errno;
-				setfmt["error"]  = strerror(errno);	
-			}
-			catch (const std::runtime_error &e)
-			{
-				setfmt["exception"]  = e.what();
-			}			
-			output["setfmt"] = setfmt;
-		}		
-		struct v4l2_streamparm parm;
-		memset(&parm,0,sizeof(parm));
-		parm.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
-		{
-			if (parm.parm.capture.timeperframe.numerator != 0)
-			{
-				Json::Value setparm;
-				try
-				{
-					parm.parm.capture.timeperframe.denominator=input.get("fps",parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator).asUInt();
-					parm.parm.capture.timeperframe.numerator=1;
-					errno=0;
-					setparm["ioctl"] = ioctl(fd,VIDIOC_S_PARM,&parm);
-					setparm["errno"]  = errno;
-					setparm["error"]  = strerror(errno);	
-				}
-				catch (const std::runtime_error &e)
-				{
-					setparm["exception"]  = e.what();
-				}			
-				output["setparm"] = setparm;
-			}
-		}
+		int width = input.get("width",m_videoCapture->getWidth()).asUInt();
+		int height = input.get("height",m_videoCapture->getHeight()).asUInt();
+		std::string informatstr = input.get("format","").asString();
+		int informat = V4l2Device::fourcc(informatstr.c_str());
+		int fps = input.get("fps",0).asUInt();
+
+		m_videoCapture->stop();
+		m_videoCapture->setFormat(informat, width, height);
+		m_videoCapture->setFps(fps);
+		m_videoCapture->start();
 		
 		std::string outformatStr = input.get("outformat","").asString();
 		if (!outformatStr.empty() && m_videoOutput) {
@@ -467,7 +426,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 			m_videoOutput->setFormat(outformat, width, height);
 			m_videoOutput->start();
 			
-			m_encoder = CodecFactory::get().Create(outformat, m_videoCapture->getFormat(),  width, height, opt, 0);
+			m_encoder = CodecFactory::get().Create(outformat, m_videoCapture->getFormat(), width, height, opt, 0);
 
 			if (!m_encoder)
 			{
