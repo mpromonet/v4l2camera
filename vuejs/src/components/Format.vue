@@ -24,6 +24,7 @@
           :max="format.frameSizes[0].width.max"
           type="range"
           :step="format.frameSizes[0].width.step" 
+          v-on:change="updateValue(format)"
         />
       {{format.frameSizes[0].width.max}} 
 
@@ -34,6 +35,7 @@
           :max="format.frameSizes[0].height.max"
           type="range"
           :step="format.frameSizes[0].height.step" 
+          v-on:change="updateValue(format)"
         />
       {{format.frameSizes[0].height.max}} 
     </div>  
@@ -46,6 +48,7 @@
           :max="format.frameSizes[0].intervals[0].fps.max"
           type="range"
           :step="format.frameSizes[0].intervals[0].fps.step" 
+          v-on:change="updateValue(format)"
         />
       {{format.frameSizes[0].intervals[0].fps.max}}
     </div>     
