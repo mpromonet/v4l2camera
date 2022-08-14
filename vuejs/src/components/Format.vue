@@ -11,6 +11,9 @@
     <select v-model="geometry" v-on:change="updateGeometry()">
       <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
     </select>
+    <select v-model="format.fps">
+      <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
+    </select>
   </div>
 </template>
 
