@@ -434,9 +434,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 			}
 		}
 		
-		if (isCapturing) {
-			m_isCapturing = false;
-		}
+		m_isCapturing = isCapturing;
 	}
 
 	// query the format
