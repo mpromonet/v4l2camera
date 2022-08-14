@@ -1,6 +1,6 @@
 <template>
   <div>
-    <tr v-for="c in controls">
+    <tr v-for="c in controls" :key="c.name">
       <td>{{ c.name }}</td>
       <td>
 		  <input v-model="c.value" type="text" />
@@ -9,7 +9,7 @@
       <td>{{ c.maximum }} ]</td>
       <td>
         <select v-if="c.menu" v-model="c.value" v-on:change="updateValue(c.id,parseInt(c.value))">
-          <option v-for="m in c.menu" v-bind:value="m.value">{{ m.label }}</option>
+          <option v-for="m in c.menu" :key="m.label" :value="m.value">{{ m.label }}</option>
         </select>
         <input
           v-if="!c.menu && c.minimum == 0 && c.maximum == 1"
@@ -51,7 +51,7 @@ export default {
     updateValue: function(id, value) {
 		axios.post(serviceurl + "/api/control", {id, value} ).then(
 			(response) => {
-				this.controls.filter((d) => d.id == id).value = response.data.value;
+				this.controls.filter((d) => d.id == id)[0].value = response.data.value;
 			}
 		);
 	}
