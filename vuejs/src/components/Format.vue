@@ -8,12 +8,47 @@
     >
       <option v-for="o in formats" :key="o.format" >{{ o.format }}</option>
     </select>
-    <select v-model="geometry" v-on:change="updateGeometry()">
+
+    <select v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'" v-model="geometry" v-on:change="updateGeometry()">
       <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
     </select>
-    <select v-model="format.fps">
+    <select v-if="typeof format.frameSizes[0].fps === 'object'" v-model="format.fps">
       <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
     </select>
+
+    <div v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+      {{format.frameSizes[0].width.min}} 
+      <input
+          v-model.number="format.width"
+          :min="format.frameSizes[0].width.min"
+          :max="format.frameSizes[0].width.max"
+          type="range"
+          :step="format.frameSizes[0].width.step" 
+        />
+      {{format.frameSizes[0].width.max}} 
+
+      {{format.frameSizes[0].height.min}} 
+      <input
+          v-model.number="format.height"
+          :min="format.frameSizes[0].height.min"
+          :max="format.frameSizes[0].height.max"
+          type="range"
+          :step="format.frameSizes[0].height.step" 
+        />
+      {{format.frameSizes[0].height.max}} 
+    </div>  
+
+    <div v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
+      {{format.frameSizes[0].intervals[0].fps.min}} 
+      <input
+          v-model.number="format.fps"
+          :min="format.frameSizes[0].intervals[0].fps.min"
+          :max="format.frameSizes[0].intervals[0].fps.max"
+          type="range"
+          :step="format.frameSizes[0].intervals[0].fps.step" 
+        />
+      {{format.frameSizes[0].intervals[0].fps.max}}
+    </div>     
   </div>
 </template>
 
