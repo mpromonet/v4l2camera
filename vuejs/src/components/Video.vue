@@ -6,12 +6,14 @@
     </div>
     <div style="display: block">
       <img v-if="visibility" :src="image" style="overflow: auto" />
+      <video id="player"></video>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import JMuxer from 'jmuxer';
 
 var serviceurl = "";
 
@@ -19,7 +21,7 @@ export default {
   data: function () {
     return {
       image: "",
-      visibility: true,
+      visibility: true
     };
   },
   created: function () {
@@ -31,11 +33,21 @@ export default {
       let data = message.data;
       if (data instanceof Blob) {
         new Response(data).arrayBuffer().then((binary) => {
-          var bytes = new Uint8Array(binary);
-          var binaryStr = "";
-          for (let i = 0; i < bytes.length; i++)
-            binaryStr += String.fromCharCode(bytes[i]);
-          this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+          const bytes = new Uint8Array(binary);
+          if ((bytes[0] === 255) && (bytes[1] === 216)) {
+            // JPEG
+            let binaryStr = "";
+            for (let i = 0; i < bytes.length; i++)
+              binaryStr += String.fromCharCode(bytes[i]);
+            this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+          } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
+            console.log(`nal:${bytes[4]&0xf}`)
+            // H264
+            if (!connection.jmuxer) {
+              connection.jmuxer = new JMuxer({node: 'player', debug: true});
+            }
+            connection.jmuxer.feed({ video: bytes, duration: 10 })
+          }
         });
       }
     };
