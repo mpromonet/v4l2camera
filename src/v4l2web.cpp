@@ -180,6 +180,7 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 }
 	
 V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport): 
+	m_askToInterupt(false),
 	m_videoCapture(videoCapture),
 	m_videoOutput(videoOutput),
 	m_encoder(NULL),
@@ -227,7 +228,7 @@ void V4l2web::capturing()
 		if (m_isCapturing && m_videoCapture->isReady())
 		{
 			std::unique_lock<std::mutex> lock(m_deviceMutex);
-			m_actionPending.wait(lock, [this] {return !m_askToInterupt;});
+			m_actionPending.wait(lock, [this] {return !bool(m_askToInterupt);});
 
 			struct timeval tv;
 			timerclear(&tv);
