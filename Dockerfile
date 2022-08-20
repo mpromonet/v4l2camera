@@ -8,6 +8,7 @@ FROM ubuntu:22.04 as builder
 WORKDIR /v4l2web	
 COPY . /v4l2web
 COPY --from=npm /v4l2web/webroot .
+COPY --from=npm /v4l2web/vuejs/node_modules /v4l2web/vuejs/
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake make pkg-config git libjsoncpp-dev libjpeg-dev libssl-dev \
