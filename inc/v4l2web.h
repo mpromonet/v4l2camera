@@ -13,6 +13,8 @@
 #include <list>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include "json/json.h"
 
@@ -46,6 +48,9 @@ class V4l2web {
 
 	private:
 		std::mutex                                                    m_deviceMutex; 
+		std::condition_variable                                       m_actionPending;
+		std::atomic<bool>                                             m_askToInterupt;
+
 		V4l2Capture*                                                  m_videoCapture;
 		V4l2Output*                                                   m_videoOutput;
 		Codec*                                                        m_encoder;

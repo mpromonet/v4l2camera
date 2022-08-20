@@ -226,8 +226,9 @@ void V4l2web::capturing()
 	while (!m_stopCapturing) {
 		if (m_isCapturing && m_videoCapture->isReady())
 		{
-			const std::lock_guard<std::mutex> lock(m_deviceMutex);
-			
+			std::unique_lock<std::mutex> lock(m_deviceMutex);
+			m_actionPending.wait(lock, [this] {return !m_askToInterupt;});
+
 			struct timeval tv;
 			timerclear(&tv);
 			tv.tv_sec = 1;
@@ -265,7 +266,6 @@ void V4l2web::capturing()
 		} else {
 			sleep(1); 
 		}
-		std::this_thread::yield();
 	}
 }
 
@@ -396,7 +396,11 @@ Json::Value V4l2web::format(const Json::Value & input)
 	// set format POST
 	if (input.isNull() == false)
 	{		
+		m_askToInterupt = true;
 		const std::lock_guard<std::mutex> lock(m_deviceMutex);
+		m_askToInterupt = false;
+		m_actionPending.notify_all();
+
 		bool isCapturing = m_isCapturing;
 		if (m_isCapturing) {
 			m_isCapturing = false;
