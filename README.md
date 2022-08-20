@@ -1,11 +1,10 @@
-[![Build status](https://travis-ci.org/mpromonet/v4l2web.png)](https://travis-ci.org/mpromonet/v4l2web)
 [![CircleCI](https://circleci.com/gh/mpromonet/v4l2camera.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2camera)
 [![CirusCI](https://api.cirrus-ci.com/github/mpromonet/v4l2camera.svg?branch=master)](https://cirrus-ci.com/github/mpromonet/v4l2camera)
-[![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2web.svg)](https://build.snapcraft.io/user/mpromonet/v4l2web)
+[![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2camera.svg)](https://build.snapcraft.io/user/mpromonet/v4l2camera)
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2web.svg)](https://hub.docker.com/r/mpromonet/v4l2web)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2camera.svg)](https://hub.docker.com/r/mpromonet/v4l2camera)
 
-v4l2web
+v4l2camera
 =======
 Web server for V4L2 interface
 
@@ -14,9 +13,7 @@ The civetweb HTTP server give access to the Video4Linux interface and the web in
 
 Dependencies
 ------------
- - libjsoncpp-dev 
  - libjpeg-dev
- - liblog4cpp5-dev
  
 Build
 ------- 
@@ -43,18 +40,18 @@ Using Docker image
 ===============
 You can start the application using the docker image :
 
-        docker run -p 8080:8080 -it mpromonet/v4l2web
+        docker run -p 8080:8080 -it mpromonet/v4l2camera
 
 You can expose V4L2 devices from your host using :
 
-        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2camera
 
 The container entry point is the v4l2web application, then you can :
 
 * get the help using :
 
-        docker run -it mpromonet/v4l2web -h
+        docker run -it mpromonet/v4l2camera -h
 
 * run the container specifying some paramters :
 
-        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2web -W800 -H600 
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2camera -W800 -H600 
