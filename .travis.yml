@@ -3,7 +3,6 @@ addons:
   apt:
     packages:
     - liblog4cpp5-dev 
-    - libjsoncpp-dev
     - libjpeg-dev
 language: cpp
 compiler:
