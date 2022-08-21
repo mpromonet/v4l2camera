@@ -6,7 +6,7 @@
     </div>
     <div style="display: block">
       <img v-if="visibility" :src="image" style="overflow: auto" />
-      <video v-if="!image" id="player" controls autoplay muted></video>
+      <video v-if="!image" id="player" autoplay muted playsinline ></video>
     </div>
   </div>
 </template>
@@ -41,7 +41,7 @@ export default {
             console.log(`size:${bytes.length} nal:${bytes[4]&0xf}`)
             // H264
             if (!ws.jmuxer) {
-              ws.jmuxer = new JMuxer({node: 'player', flushingTime: 1000, debug: true});
+              ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, flushingTime: 1000});
             }
             ws.jmuxer.feed({ video: bytes })
         }
