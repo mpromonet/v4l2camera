@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
+    "jmuxer": "^2.0.4",
     "vue": "^3.2.37"
   },
   "devDependencies": {
