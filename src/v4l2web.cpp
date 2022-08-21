@@ -101,7 +101,7 @@ static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 	return ret;
 }
 
-static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height, Json::Value & frameSize) 
+static Json::Value getframeIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height) 
 {
 	Json::Value frameIntervals;
 	struct v4l2_frmivalenum frmival;
@@ -127,7 +127,7 @@ static void add_frameIntervals(int fd, unsigned int pixelformat, unsigned int wi
 		frameIntervals.append(frameInter);
 		frmival.index++;
 	}
-	frameSize["intervals"] = frameIntervals;
+	return frameIntervals;
 }
 
 std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFunc() {
@@ -328,7 +328,45 @@ Json::Value V4l2web::inputs()
 	}
 	return json;
 }
-		
+
+static Json::Value getFrameSizeList(int fd, int pixelformat) {
+		Json::Value frameSizeList;
+		struct v4l2_frmsizeenum frmsize;
+		memset(&frmsize,0,sizeof(frmsize));
+		frmsize.pixel_format = pixelformat;
+		frmsize.index = 0;
+		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
+		{
+			Json::Value frameSize;
+			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
+			{				
+				frameSize["width"] = frmsize.discrete.width;
+				frameSize["height"] = frmsize.discrete.height;
+				frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height);
+			}
+			else 
+			{
+				Json::Value width;
+				width["min"] = frmsize.stepwise.min_width;
+				width["max"] = frmsize.stepwise.max_width;
+				width["step"] = frmsize.stepwise.step_width;				
+				frameSize["width"] = width;
+				
+				Json::Value height;
+				height["min"] = frmsize.stepwise.min_height;
+				height["max"] = frmsize.stepwise.max_height;
+				height["step"] = frmsize.stepwise.step_height;				
+				frameSize["height"] = height;
+				
+				frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height);
+			}
+			
+			frameSizeList.append(frameSize);
+			frmsize.index++;
+		}
+	return frameSizeList;
+}
+
 Json::Value V4l2web::formats() 
 {
 	int fd = m_videoCapture->getFd();		
@@ -342,49 +380,13 @@ Json::Value V4l2web::formats()
 		if (-1 == ioctl(fd,VIDIOC_ENUM_FMT,&fmtdesc))
 			break;
 		
-		Json::Value value;
-		value["description"] = (const char*)fmtdesc.description;
-		value["type"]        = fmtdesc.type;
-		value["format"]      = V4l2Device::fourcc(fmtdesc.pixelformat);		
+		Json::Value format;
+		format["description"] = (const char*)fmtdesc.description;
+		format["type"]        = fmtdesc.type;
+		format["format"]      = V4l2Device::fourcc(fmtdesc.pixelformat);		
+		format["frameSizes"]  = getFrameSizeList(fd, fmtdesc.pixelformat);
 
-		Json::Value frameSizeList;
-		struct v4l2_frmsizeenum frmsize;
-		memset(&frmsize,0,sizeof(frmsize));
-		frmsize.pixel_format = fmtdesc.pixelformat;
-		frmsize.index = 0;
-		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
-		{
-			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
-			{				
-				Json::Value frameSize;
-				frameSize["width"] = frmsize.discrete.width;
-				frameSize["height"] = frmsize.discrete.height;
-				add_frameIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height, frameSize);
-				frameSizeList.append(frameSize);
-			}
-			else 
-			{
-				Json::Value frameSize;				
-				Json::Value width;
-				width["min"] = frmsize.stepwise.min_width;
-				width["max"] = frmsize.stepwise.max_width;
-				width["step"] = frmsize.stepwise.step_width;				
-				frameSize["width"] = width;
-				
-				Json::Value height;
-				height["min"] = frmsize.stepwise.min_height;
-				height["max"] = frmsize.stepwise.max_height;
-				height["step"] = frmsize.stepwise.step_height;				
-				frameSize["height"] = height;
-				
-				add_frameIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height, frameSize);
-				frameSizeList.append(frameSize);				
-			}
-			frmsize.index++;
-		}
-		value["frameSizes"]     = frameSizeList;
-
-		json.append(value);
+		json.append(format);
 	}
 	return json;
 }
