@@ -6,7 +6,7 @@
     </div>
     <div style="display: block">
       <img v-if="visibility" :src="image" style="overflow: auto" />
-      <video id="player"></video>
+      <video v-if="!image" id="player" controls autoplay muted></video>
     </div>
   </div>
 </template>
@@ -27,33 +27,24 @@ export default {
   created: function () {
     console.log("Starting connection to WebSocket Server");
     const wsurl = document.location.href.replace("http", "ws") + "/ws";
-    const connection = new WebSocket(wsurl);
-
-    connection.onmessage = (message) => {
-      let data = message.data;
-      if (data instanceof Blob) {
-        new Response(data).arrayBuffer().then((binary) => {
-          const bytes = new Uint8Array(binary);
-          if ((bytes[0] === 255) && (bytes[1] === 216)) {
+    const ws = new WebSocket(wsurl);
+    ws.binaryType = 'arraybuffer';
+    ws.onmessage = (message) => {
+        const bytes = new Uint8Array(message.data);
+        if ((bytes[0] === 255) && (bytes[1] === 216)) {
             // JPEG
             let binaryStr = "";
             for (let i = 0; i < bytes.length; i++)
               binaryStr += String.fromCharCode(bytes[i]);
             this.image = "data:image/jpeg;base64," + btoa(binaryStr);
-          } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
-            console.log(`nal:${bytes[4]&0xf}`)
+        } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
+            console.log(`size:${bytes.length} nal:${bytes[4]&0xf}`)
             // H264
-            if (!connection.jmuxer) {
-              connection.jmuxer = new JMuxer({node: 'player', debug: true});
+            if (!ws.jmuxer) {
+              ws.jmuxer = new JMuxer({node: 'player', flushingTime: 1000, debug: true});
             }
-            connection.jmuxer.feed({ video: bytes, duration: 10 })
-          }
-        });
-      }
-    };
-
-    connection.onopen = function (event) {
-      console.log("Successfully connected to websocket ...");
+            ws.jmuxer.feed({ video: bytes })
+        }
     };
   },
   methods: {
