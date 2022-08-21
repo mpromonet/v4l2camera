@@ -218,7 +218,7 @@ V4l2web::~V4l2web() {
 
 void V4l2web::capturing()
 {
-	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 5, V4L2DeviceSource::NOCAPTURE);
+	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 10, V4L2DeviceSource::NOCAPTURE);
 	if (videoReplicator)
 	{
 		m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
@@ -252,10 +252,10 @@ void V4l2web::capturing()
 					if (videoReplicator)
 					{
 						V4L2DeviceSource* source = (V4L2DeviceSource*)videoReplicator->inputSource();
-						char* buffer = new char[bufferSize];
-						memcpy(buffer, buf, bufferSize);	
-						source->postFrame(buffer, bufferSize, ref);
-						m_snapshot.assign(buffer, bufferSize);
+						char* buffer = new char[size];
+						memcpy(buffer, buf, size);	
+						source->postFrame(buffer, size, ref);
+						m_snapshot.assign(buffer, size);
 					}
 				}
 
