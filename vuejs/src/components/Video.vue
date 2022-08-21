@@ -6,7 +6,7 @@
     </div>
     <div style="display: block">
       <img v-if="visibility" :src="image" style="overflow: auto" />
-      <video v-if="!image" id="player" autoplay muted playsinline ></video>
+      <video v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
     </div>
   </div>
 </template>
@@ -34,11 +34,13 @@ export default {
         if ((bytes[0] === 255) && (bytes[1] === 216)) {
             // JPEG
             let binaryStr = "";
-            for (let i = 0; i < bytes.length; i++)
+            for (let i = 0; i < bytes.length; i++) {
               binaryStr += String.fromCharCode(bytes[i]);
+            }
             this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+            ws.jmuxer = null;
         } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
-            console.log(`size:${bytes.length} nal:${bytes[4]&0xf}`)
+            this.image = "";
             // H264
             if (!ws.jmuxer) {
               ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, flushingTime: 1000});
