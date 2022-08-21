@@ -28,6 +28,33 @@
 
 #include "DeviceSourceFactory.h"
 
+static Json::Value getMenuControl(int fd, int id, int type, int min, int max) {
+	Json::Value menu;
+	struct v4l2_querymenu querymenu;
+	memset(&querymenu,0,sizeof(querymenu));
+	querymenu.id = id;
+	for (querymenu.index = min; querymenu.index <= max; querymenu.index++) 
+	{
+		if (0 == ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
+		{
+			Json::Value label;
+			label["value"] = querymenu.index;
+			if (type == V4L2_CTRL_TYPE_MENU)
+			{
+				label["label"] = (const char*)querymenu.name;
+			}
+#ifdef V4L2_CTRL_TYPE_INTEGER_MENU 
+			else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
+			{
+				label["label"] = (int)querymenu.value;
+			}
+#endif
+			menu.append(label);
+		}
+	}
+	return menu;
+}
+
 static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;
@@ -68,30 +95,7 @@ static unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 #endif
 				   )
 				{
-					Json::Value menu;
-					struct v4l2_querymenu querymenu;
-					memset(&querymenu,0,sizeof(querymenu));
-					querymenu.id = qctrl.id;
-					for (querymenu.index = qctrl.minimum; querymenu.index <= qctrl.maximum; querymenu.index++) 
-					{
-						if (0 == ioctl(fd,VIDIOC_QUERYMENU,&querymenu))
-						{
-							Json::Value label;
-							label["value"] = querymenu.index;
-							if (qctrl.type == V4L2_CTRL_TYPE_MENU)
-							{
-								label["label"] = (const char*)querymenu.name;
-							}
-#ifdef V4L2_CTRL_TYPE_INTEGER_MENU 
-							else if (qctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
-							{
-								label["label"] = (int)querymenu.value;
-							}
-#endif
-							menu.append(label);
-						}
-					}
-					value["menu"] = menu;
+					value["menu"] = getMenuControl(fd, qctrl.id, qctrl.type, qctrl.minimum, qctrl.maximum);
 				}
 				json.append(value);
 			}
@@ -330,40 +334,40 @@ Json::Value V4l2web::inputs()
 }
 
 static Json::Value getFrameSizeList(int fd, int pixelformat) {
-		Json::Value frameSizeList;
-		struct v4l2_frmsizeenum frmsize;
-		memset(&frmsize,0,sizeof(frmsize));
-		frmsize.pixel_format = pixelformat;
-		frmsize.index = 0;
-		while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
-		{
-			Json::Value frameSize;
-			if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
-			{				
-				frameSize["width"] = frmsize.discrete.width;
-				frameSize["height"] = frmsize.discrete.height;
-				frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height);
-			}
-			else 
-			{
-				Json::Value width;
-				width["min"] = frmsize.stepwise.min_width;
-				width["max"] = frmsize.stepwise.max_width;
-				width["step"] = frmsize.stepwise.step_width;				
-				frameSize["width"] = width;
-				
-				Json::Value height;
-				height["min"] = frmsize.stepwise.min_height;
-				height["max"] = frmsize.stepwise.max_height;
-				height["step"] = frmsize.stepwise.step_height;				
-				frameSize["height"] = height;
-				
-				frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height);
-			}
-			
-			frameSizeList.append(frameSize);
-			frmsize.index++;
+	Json::Value frameSizeList;
+	struct v4l2_frmsizeenum frmsize;
+	memset(&frmsize,0,sizeof(frmsize));
+	frmsize.pixel_format = pixelformat;
+	frmsize.index = 0;
+	while (ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) 
+	{
+		Json::Value frameSize;
+		if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) 
+		{				
+			frameSize["width"] = frmsize.discrete.width;
+			frameSize["height"] = frmsize.discrete.height;
+			frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.discrete.width, frmsize.discrete.height);
 		}
+		else 
+		{
+			Json::Value width;
+			width["min"] = frmsize.stepwise.min_width;
+			width["max"] = frmsize.stepwise.max_width;
+			width["step"] = frmsize.stepwise.step_width;				
+			frameSize["width"] = width;
+			
+			Json::Value height;
+			height["min"] = frmsize.stepwise.min_height;
+			height["max"] = frmsize.stepwise.max_height;
+			height["step"] = frmsize.stepwise.step_height;				
+			frameSize["height"] = height;
+			
+			frameSize["intervals"] = getframeIntervals(fd, frmsize.pixel_format, frmsize.stepwise.max_width, frmsize.stepwise.max_height);
+		}
+		
+		frameSizeList.append(frameSize);
+		frmsize.index++;
+	}
 	return frameSizeList;
 }
 
