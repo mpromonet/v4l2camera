@@ -2,6 +2,7 @@
 [![CirusCI](https://api.cirrus-ci.com/github/mpromonet/v4l2camera.svg?branch=master)](https://cirrus-ci.com/github/mpromonet/v4l2camera)
 [![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2camera.svg)](https://build.snapcraft.io/user/mpromonet/v4l2camera)
 
+[![Release](https://img.shields.io/github/release/mpromonet/v4l2camera.svg)](https://github.com/mpromonet/v4l2camera/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2camera.svg)](https://hub.docker.com/r/mpromonet/v4l2camera)
 
 v4l2camera
