@@ -1,5 +1,5 @@
 
-  name: v4l2web
+  name: v4l2camera
   version: git
   summary: Web interface to V4L2
   description: |
