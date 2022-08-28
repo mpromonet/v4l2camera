@@ -139,9 +139,6 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return this->capabilities();
 		};
-		m_httpfunc["/api/inputs"]         = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
-			return this->inputs();
-		};
 		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return this->formats();
 		};
@@ -287,11 +284,18 @@ Json::Value V4l2web::capabilities()
 		json["bus_info"]   = (const char*)cap.bus_info;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
 		Json::Value capabilities;
-		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE");
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT" );
-		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"    );
-		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"      );
-		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"    );
+		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE" );
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"  );
+		if (cap.device_caps & V4L2_CAP_VIDEO_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OVERLAY" );
+		
+		if (cap.device_caps & V4L2_CAP_VIDEO_M2M    ) capabilities.append("V4L2_CAP_VIDEO_M2M"     );
+		if (cap.device_caps & V4L2_CAP_META_CAPTURE ) capabilities.append("V4L2_CAP_META_CAPTURE"  );
+		
+		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"     );
+		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"       );
+		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"     );
+		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"     );
+			
 		json["capabilities"]   = capabilities;
 #endif		
 	}
@@ -299,36 +303,6 @@ Json::Value V4l2web::capabilities()
 	{
 		json["errno"]  = errno;
 		json["error"]  = strerror(errno);			
-	}
-	return json;
-}
-
-Json::Value V4l2web::inputs() 
-{
-	int fd = m_videoCapture->getFd();		
-	Json::Value json;
-	for (int i = 0;; i++) 
-	{
-		v4l2_input input;
-		memset(&input,0,sizeof(input));
-		input.index = i;
-		if (-1 == ioctl(fd,VIDIOC_ENUMINPUT,&input))
-			break;
-		
-		Json::Value value;
-		value["name"]   = (const char*)input.name;
-		switch (input.type)
-		{
-			case V4L2_INPUT_TYPE_TUNER : value["type"] = "V4L2_INPUT_TYPE_TUNER" ; break;
-			case V4L2_INPUT_TYPE_CAMERA: value["type"] = "V4L2_INPUT_TYPE_CAMERA"; break;
-			default : break;
-		}		
-		Json::Value status;
-		if (input.status & V4L2_IN_ST_NO_POWER ) status.append("V4L2_IN_ST_NO_POWER" );
-		if (input.status & V4L2_IN_ST_NO_SIGNAL) status.append("V4L2_IN_ST_NO_SIGNAL");
-		if (input.status & V4L2_IN_ST_NO_COLOR ) status.append("V4L2_IN_ST_NO_COLOR" );
-		value["status"] = status;			
-		json.append(value);
 	}
 	return json;
 }
