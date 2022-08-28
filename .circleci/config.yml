@@ -3,7 +3,7 @@ version: 2
 jobs:
   build_x86_64:
     docker:
-      - image: ubuntu:22.04
+      - image: node
     steps:
       - checkout
       - run: apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates pkg-config autoconf automake libtool git cmake make g++  libjsoncpp-dev libjpeg-dev libssl-dev npm
