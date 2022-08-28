@@ -9,12 +9,8 @@ v4l2camera
 =======
 Web server for V4L2 interface
 
-The civetweb HTTP server give access to the Video4Linux interface and the web interface using VueJS
+The civetweb HTTP server give access to the Video4Linux interface, web interface is using VueJS, RTSP server is using project [v4l2rtspserver](https://github.com/mpromonet/v4l2rtspserver)
 
-
-Dependencies
-------------
- - libjpeg-dev
  
 Build
 ------- 
