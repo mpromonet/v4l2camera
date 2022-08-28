@@ -403,15 +403,12 @@ Json::Value V4l2web::format(const Json::Value & input)
 	// set format POST
 	if (input.isNull() == false)
 	{		
+		// ask to interrupt capture loop & wait 
 		m_askToInterupt = true;
 		const std::lock_guard<std::mutex> lock(m_deviceMutex);
 		m_askToInterupt = false;
 		m_actionPending.notify_all();
 
-		bool isCapturing = m_isCapturing;
-		if (m_isCapturing) {
-			m_isCapturing = false;
-		}
 		int width = input.get("width",m_videoCapture->getWidth()).asUInt();
 		int height = input.get("height",m_videoCapture->getHeight()).asUInt();
 		std::string informatstr = input.get("format","").asString();
@@ -444,8 +441,6 @@ Json::Value V4l2web::format(const Json::Value & input)
 				LOG(WARN) << "Cannot create encoder " << outformatStr; 
 			}
 		}
-		
-		m_isCapturing = isCapturing;
 	}
 
 	// query the format
