@@ -1,57 +1,73 @@
 <template>
   <div>
-    <h1>{{ msg }}</h1>
-    {{ format.description }} {{ format.width }}x{{ format.height }}x{{ format.fps }}
-    <select
-      v-model="format.format"
-      v-on:change="updateValue(format)"
-    >
-      <option v-for="o in formats" :key="o.format" >{{ o.format }}</option>
-    </select>
-
-    <select v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'" v-model="geometry" v-on:change="updateGeometry()">
-      <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
-    </select>
-    <select v-if="typeof format.frameSizes[0].fps === 'object'" v-model="format.fps">
-      <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
-    </select>
-
-    <div v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
-      {{format.frameSizes[0].width.min}} 
-      <input
-          v-model.number="format.width"
-          :min="format.frameSizes[0].width.min"
-          :max="format.frameSizes[0].width.max"
-          type="range"
-          :step="format.frameSizes[0].width.step" 
+    <tr>
+      {{ format.description }} {{ format.width }}x{{ format.height }}x{{ format.fps }}
+    </tr>
+    <tr>
+      <td>Format:</td>
+      <td>
+        <select
+          v-model="format.format"
           v-on:change="updateValue(format)"
-        />
-      {{format.frameSizes[0].width.max}} 
+        ><option v-for="o in formats" :key="o.format" >{{ o.format }}</option></select>
+      </td>
+    </tr>
+    <tr>
+      <td>Geometry:</td>
+      <td v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
+        <select v-model="geometry" v-on:change="updateGeometry()">
+          <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
+        </select>
+      </td>
+      <td v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+        <div>
+          {{format.frameSizes[0].width.min}} 
+          <input
+              v-model.number="format.width"
+              :min="format.frameSizes[0].width.min"
+              :max="format.frameSizes[0].width.max"
+              type="range"
+              :step="format.frameSizes[0].width.step" 
+              v-on:change="updateValue(format)"
+            />
+          {{format.frameSizes[0].width.max}} 
 
-      {{format.frameSizes[0].height.min}} 
-      <input
-          v-model.number="format.height"
-          :min="format.frameSizes[0].height.min"
-          :max="format.frameSizes[0].height.max"
-          type="range"
-          :step="format.frameSizes[0].height.step" 
-          v-on:change="updateValue(format)"
-        />
-      {{format.frameSizes[0].height.max}} 
-    </div>  
-
-    <div v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
-      {{format.frameSizes[0].intervals[0].fps.min}} 
-      <input
-          v-model.number="format.fps"
-          :min="format.frameSizes[0].intervals[0].fps.min"
-          :max="format.frameSizes[0].intervals[0].fps.max"
-          type="range"
-          :step="format.frameSizes[0].intervals[0].fps.step" 
-          v-on:change="updateValue(format)"
-        />
-      {{format.frameSizes[0].intervals[0].fps.max}}
-    </div>     
+          {{format.frameSizes[0].height.min}} 
+          <input
+              v-model.number="format.height"
+              :min="format.frameSizes[0].height.min"
+              :max="format.frameSizes[0].height.max"
+              type="range"
+              :step="format.frameSizes[0].height.step" 
+              v-on:change="updateValue(format)"
+            />
+          {{format.frameSizes[0].height.max}} 
+        </div>  
+      </td>
+    </tr>
+    <tr>
+      <td>Fps:</td>
+      <td v-if="typeof format.frameSizes[0].fps === 'object'" >
+        <select v-model="format.fps">
+          <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
+        </select>
+      </td>
+      <td v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
+        <div>
+        {{format.frameSizes[0].intervals[0].fps.min}} 
+        <input
+            v-model.number="format.fps"
+            :min="format.frameSizes[0].intervals[0].fps.min"
+            :max="format.frameSizes[0].intervals[0].fps.max"
+            type="range"
+            :step="format.frameSizes[0].intervals[0].fps.step" 
+            v-on:change="updateValue(format)"
+          />
+        {{format.frameSizes[0].intervals[0].fps.max}}
+       </div>
+      </td>
+    </tr>
+     
   </div>
 </template>
 
@@ -62,11 +78,6 @@ var serviceurl = "";
 
 export default {
   mounted() {
-    axios({ method: "GET", url: serviceurl + "/api/capabilities" }).then(
-      (response) => {
-        this.msg = response.data.card;
-      }
-    );
     axios({ method: "GET", url: serviceurl + "/api/formats" }).then(
       (response) => {
         this.formats = response.data;
@@ -82,7 +93,6 @@ export default {
   },
   data() {
     return {
-      msg: "loading...",
       formats: [],
       format: "",
       geometry: ""

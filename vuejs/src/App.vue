@@ -1,15 +1,19 @@
 <template>
   <div id="app">
-    <Format/>
+    <h1>{{ msg }}</h1>
     <Video/>
+    <Format/>
     <Controls/>
   </div>
 </template>
 
 <script>
-import Video from './components/Video.vue'
-import Format from './components/Format.vue'
-import Controls from './components/Controls.vue'
+import Video from './components/Video.vue';
+import Format from './components/Format.vue';
+import Controls from './components/Controls.vue';
+import axios from "axios";
+
+var serviceurl = "";
 
 export default {
   name: 'App',
@@ -17,6 +21,16 @@ export default {
     Format,
     Controls,
     Video
+  },
+  mounted() {
+    axios({ method: "GET", url: serviceurl + "/api/capabilities" }).then(
+      (response) => this.msg = response.data.card
+    );
+  },
+  data() {
+    return {
+      msg: "loading..."
+    };
   }
 }
 </script>

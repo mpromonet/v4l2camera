@@ -3,8 +3,8 @@
     <tr v-for="c in controls" :key="c.name">
       <td>{{ c.name }}</td>
       <td>
-		  <input v-model="c.value" type="text" />
-	  </td>
+		    <input v-model="c.value" type="text" />
+	    </td>
       <td>[ {{ c.minimum }} ,</td>
       <td>{{ c.maximum }} ]</td>
       <td>
@@ -37,9 +37,7 @@ var serviceurl = "";
 export default {
   mounted() {
     axios.get(serviceurl + "/api/controls").then(
-      (response) => {
-        this.controls = response.data;
-      }
+      (response) => this.controls = response.data
     );
   },
   data() {
@@ -50,9 +48,7 @@ export default {
   methods: {
     updateValue: function(id, value) {
 		axios.post(serviceurl + "/api/control", {id, value} ).then(
-			(response) => {
-				this.controls.filter((d) => d.id == id)[0].value = response.data.value;
-			}
+			(response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
 		);
 	}
   }
