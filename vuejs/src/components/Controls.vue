@@ -2,28 +2,35 @@
   <div>
     <tr v-for="c in controls" :key="c.name">
       <td>{{ c.name }}</td>
-      <td>
-		    <input v-model="c.value" type="text" />
-	    </td>
-      <td>[ {{ c.minimum }} ,</td>
-      <td>{{ c.maximum }} ]</td>
-      <td>
-        <select v-if="c.menu" v-model="c.value" v-on:change="updateValue(c.id,parseInt(c.value))">
+      <td v-if="c.menu">
+        <select v-model.number="c.value" v-on:change="updateValue(c.id,c.value)">
           <option v-for="m in c.menu" :key="m.label" :value="m.value">{{ m.label }}</option>
         </select>
+      </td>        
+      <td v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
         <input
-          v-if="!c.menu && c.minimum == 0 && c.maximum == 1"
-          v-model="c.value" true-value="1" false-value="0"
-          type="checkbox" v-on:change="updateValue(c.id,parseInt(c.value))"
+          v-model.number="c.value" true-value="1" false-value="0"
+          type="checkbox" 
+          v-on:change="updateValue(c.id,c.value)"
         />
-        <input
-          v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)"
-          v-model="c.value"
+      </td>        
+      <td v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+        <v-slider
+          v-model.number="c.value" 
+          color="blue"
+          thumb-label="true"          
           :min="c.minimum"
-          :max="c.maximum"
-          type="range"
-          :step="c.step" v-on:change="updateValue(c.id,parseInt(c.value))"
-        />
+          :max="c.maximum" 
+          v-on:change="updateValue(c.id,c.value)"
+        >
+          <template v-slot:prepend>{{c.minimum}}</template>
+          <template v-slot:append>{{c.maximum}}
+                <v-text-field
+                  v-model.number="c.value"
+                  v-on:change="updateValue(c.id,c.value)"
+                ></v-text-field>
+          </template>
+        </v-slider>
       </td>
     </tr>
   </div>
@@ -47,10 +54,10 @@ export default {
   },
   methods: {
     updateValue: function(id, value) {
-		axios.post(serviceurl + "/api/control", {id, value} ).then(
-			(response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
-		);
-	}
+      axios.post(serviceurl + "/api/control", {id, value} ).then(
+        (response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
+      );
+    }
   }
 };
 </script>

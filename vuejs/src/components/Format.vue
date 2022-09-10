@@ -30,7 +30,12 @@
               v-on:change="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].width.min}}</template>
-            <template v-slot:append>{{format.frameSizes[0].width.max}}</template>
+            <template v-slot:append>{{format.frameSizes[0].width.max}}
+                <v-text-field
+                  v-model.number="format.width"
+                  v-on:change="updateValue(format)"
+                ></v-text-field>
+            </template>
           </v-slider>
 
           <v-slider
@@ -43,7 +48,12 @@
               v-on:change="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].height.min}}</template>
-            <template v-slot:append>{{format.frameSizes[0].height.max}}</template>
+            <template v-slot:append>{{format.frameSizes[0].height.max}}
+                <v-text-field
+                  v-model.number="format.height"
+                  v-on:change="updateValue(format)"
+                ></v-text-field>
+            </template>
           </v-slider> 
       </td>
     </tr>
@@ -60,12 +70,17 @@
             :min="format.frameSizes[0].intervals[0].fps.min"
             :max="format.frameSizes[0].intervals[0].fps.max"
             color="blue"
-            thumb-label="always"
+            thumb-label="true"
             :step="format.frameSizes[0].intervals[0].fps.step" 
             v-on:change="updateValue(format)"
           >
             <template v-slot:prepend>{{format.frameSizes[0].intervals[0].fps.min}}</template>
-            <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}</template>
+            <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}
+                <v-text-field
+                  v-model.number="format.fps"
+                  v-on:change="updateValue(format)"
+                ></v-text-field>
+            </template>
         </v-slider>
       </td>
     </tr>
