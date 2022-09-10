@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "jmuxer": "^2.0.4",
-    "vue": "^3.2.37"
+    "jmuxer": "^2.0.5",
+    "vue": "^3.2.29"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.0.3",
-    "vite": "^3.0.7"
+    "vite": "^3.1.0"
   }
 }
