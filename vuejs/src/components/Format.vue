@@ -20,29 +20,31 @@
         </select>
       </td>
       <td v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
-        <div>
-          {{format.frameSizes[0].width.min}} 
-          <input
+          <v-slider
               v-model.number="format.width"
               :min="format.frameSizes[0].width.min"
               :max="format.frameSizes[0].width.max"
-              type="range"
               :step="format.frameSizes[0].width.step" 
+              color="blue"
+              thumb-label="always"
               v-on:change="updateValue(format)"
-            />
-          {{format.frameSizes[0].width.max}} 
+            >
+            <template v-slot:prepend>{{format.frameSizes[0].width.min}}</template>
+            <template v-slot:append>{{format.frameSizes[0].width.max}}</template>
+          </v-slider>
 
-          {{format.frameSizes[0].height.min}} 
-          <input
+          <v-slider
               v-model.number="format.height"
               :min="format.frameSizes[0].height.min"
               :max="format.frameSizes[0].height.max"
-              type="range"
+              color="blue"
+              thumb-label="always"
               :step="format.frameSizes[0].height.step" 
               v-on:change="updateValue(format)"
-            />
-          {{format.frameSizes[0].height.max}} 
-        </div>  
+            >
+            <template v-slot:prepend>{{format.frameSizes[0].height.min}}</template>
+            <template v-slot:append>{{format.frameSizes[0].height.max}}</template>
+          </v-slider> 
       </td>
     </tr>
     <tr>
@@ -53,18 +55,18 @@
         </select>
       </td>
       <td v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
-        <div>
-        {{format.frameSizes[0].intervals[0].fps.min}} 
-        <input
+        <v-slider 
             v-model.number="format.fps"
             :min="format.frameSizes[0].intervals[0].fps.min"
             :max="format.frameSizes[0].intervals[0].fps.max"
-            type="range"
+            color="blue"
+            thumb-label="always"
             :step="format.frameSizes[0].intervals[0].fps.step" 
             v-on:change="updateValue(format)"
-          />
-        {{format.frameSizes[0].intervals[0].fps.max}}
-       </div>
+          >
+            <template v-slot:prepend>{{format.frameSizes[0].intervals[0].fps.min}}</template>
+            <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}</template>
+        </v-slider>
       </td>
     </tr>
      

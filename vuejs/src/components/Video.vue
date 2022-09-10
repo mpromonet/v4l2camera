@@ -1,8 +1,8 @@
 <template>
   <div>
     <div style="display: block">
-      <button v-on:click="start">Start</button>
-      <button v-on:click="stop">Stop</button>
+      <v-btn v-on:click="start">Start</v-btn>
+      <v-btn v-on:click="stop">Stop</v-btn>
     </div>
     <div style="display: block">
       <img v-if="visibility" :src="image" style="overflow: auto" />
