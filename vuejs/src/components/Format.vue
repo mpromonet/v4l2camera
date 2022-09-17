@@ -7,6 +7,7 @@
           v-model="format.format"
           :items="getFormats(formats)"
           :hint="format.description"
+          persistent-hint
           @update:modelValue="updateValue(format)" >
         </v-select>
       </v-col>
@@ -26,7 +27,6 @@
               :max="format.frameSizes[0].width.max"
               :step="format.frameSizes[0].width.step" 
               color="blue"
-              thumb-label="always"
               @update:modelValue="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].width.min}}</template>
@@ -38,7 +38,6 @@
               :min="format.frameSizes[0].height.min"
               :max="format.frameSizes[0].height.max"
               color="blue"
-              thumb-label="always"
               :step="format.frameSizes[0].height.step" @change="alert($event)"
               @update:modelValue="updateValue(format)"
             >

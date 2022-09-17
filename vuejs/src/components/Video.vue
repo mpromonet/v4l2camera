@@ -2,14 +2,14 @@
   <div>
     <v-container>
       <v-row align="center" justify="space-around" >
-        <v-btn v-on:click="start">Start</v-btn>
-        <v-btn v-on:click="stop">Stop</v-btn>
+          <v-btn v-on:click="start">Start</v-btn>
+          <v-btn v-on:click="stop">Stop</v-btn>
       </v-row>
     </v-container>
     <v-container>
-      <v-row align="center" justify="space-around" >
-        <img class="video" v-if="visibility" :src="image" style="overflow: auto" />
-        <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
+      <v-row align="center" justify="center">
+          <img class="video" v-if="visibility" :src="image" />
+          <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
       </v-row>
     </v-container>
   </div>
