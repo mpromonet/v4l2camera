@@ -6,7 +6,7 @@
         <div>
           <v-select :items="getItems(c.menu)"
                     v-model.number="c.value"
-                    v-on:change="updateValue(c.id,c.value)">
+                    @update:modelValue="updateValue(c.id,c.value)">
           </v-select>
         </div>
       </td>        
@@ -16,7 +16,7 @@
           color="blue"
           :true-value="1" 
           :false-value="0"
-          v-on:change="updateValue(c.id,c.value)">
+          @update:modelValue="updateValue(c.id,c.value)">
         </v-switch>
       </td>        
       <td class="value" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
@@ -26,13 +26,13 @@
           thumb-label="true"          
           :min="c.minimum"
           :max="c.maximum" 
-          v-on:change="updateValue(c.id,c.value)"
+          @update:modelValue="updateValue(c.id,c.value)"
         >
           <template v-slot:prepend>{{c.minimum}}</template>
           <template v-slot:append>{{c.maximum}}
                 <v-text-field
                   v-model.number="c.value"
-                  v-on:change="updateValue(c.id,c.value)"
+                  @update:modelValue="updateValue(c.id,c.value)"
                 ></v-text-field>
           </template>
         </v-slider>
@@ -59,11 +59,14 @@ export default {
   methods: {
     updateValue: function(id, value) {
       axios.post(config.serviceurl + "/api/control", {id, value} ).then(
-        (response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
+        (response) => this.controls.filter((d) => d.id == id)[0].foreach((element) => element.value = response.data.value)
       );
     },
     getItems: function(menu) {
       return menu.map(item => ({"title": item.label, "value": item.value}))
+    },
+    updatefunction: function(e) {
+      console.error(e);
     }
   }
 };
