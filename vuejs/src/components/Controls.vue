@@ -3,16 +3,21 @@
     <tr v-for="c in controls" :key="c.name">
       <td class="key">{{ c.name }}</td>
       <td class="value" v-if="c.menu">
-        <select v-model.number="c.value" v-on:change="updateValue(c.id,c.value)">
-          <option v-for="m in c.menu" :key="m.label" :value="m.value">{{ m.label }}</option>
-        </select>
+        <div>
+          <v-select :items="getItems(c.menu)"
+                    v-model.number="c.value"
+                    v-on:change="updateValue(c.id,c.value)">
+          </v-select>
+        </div>
       </td>        
       <td class="value" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
-        <input
-          v-model.number="c.value" true-value="1" false-value="0"
-          type="checkbox" 
-          v-on:change="updateValue(c.id,c.value)"
-        />
+        <v-switch
+          v-model.number="c.value"
+          color="blue"
+          :true-value="1" 
+          :false-value="0"
+          v-on:change="updateValue(c.id,c.value)">
+        </v-switch>
       </td>        
       <td class="value" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
         <v-slider
@@ -57,6 +62,9 @@ export default {
       axios.post(serviceurl + "/api/control", {id, value} ).then(
         (response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
       );
+    },
+    getItems: function(menu) {
+      return menu.map(item => ({"title": item.label, "value": item.value}))
     }
   }
 };
@@ -64,7 +72,7 @@ export default {
 
 <style scoped>
 tr {
-  width: 100%;
+  display: flex;
 }
 .key {
   width: 20%;

@@ -142,7 +142,7 @@ export default {
 
 <style scoped>
 tr {
-  width: 100%;
+  display: flex;
 }
 .key {
   width: 20%;
