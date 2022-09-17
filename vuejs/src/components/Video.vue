@@ -1,13 +1,17 @@
 <template>
   <div>
-    <div>
-      <v-btn v-on:click="start">Start</v-btn>
-      <v-btn v-on:click="stop">Stop</v-btn>
-    </div>
-    <div>
-      <img class="video" v-if="visibility" :src="image" style="overflow: auto" />
-      <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
-    </div>
+    <v-container>
+      <v-row align="center" justify="space-around" >
+        <v-btn v-on:click="start">Start</v-btn>
+        <v-btn v-on:click="stop">Stop</v-btn>
+      </v-row>
+    </v-container>
+    <v-container>
+      <v-row align="center" justify="space-around" >
+        <img class="video" v-if="visibility" :src="image" style="overflow: auto" />
+        <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
@@ -70,8 +74,4 @@ export default {
 </script>
 
 <style>
-.video {
-  margin: auto;
-  display: flex;
-}
 </style>

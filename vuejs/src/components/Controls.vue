@@ -1,16 +1,14 @@
 <template>
-  <div>
-    <tr v-for="c in controls" :key="c.name">
-      <td class="key">{{ c.name }}</td>
-      <td class="value" v-if="c.menu">
-        <div>
+  <v-container>
+    <v-row v-for="c in controls" :key="c.name">
+      <v-col>{{ c.name }}</v-col>
+      <v-col cols="8" v-if="c.menu">
           <v-select :items="getItems(c.menu)"
                     v-model.number="c.value"
                     @update:modelValue="updateValue(c.id,c.value)">
           </v-select>
-        </div>
-      </td>        
-      <td class="value" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
+      </v-col>        
+      <v-col cols="8" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
         <v-switch
           v-model.number="c.value"
           color="blue"
@@ -18,8 +16,8 @@
           :false-value="0"
           @update:modelValue="updateValue(c.id,c.value)">
         </v-switch>
-      </td>        
-      <td class="value" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+      </v-col>        
+      <v-col cols="7" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
         <v-slider
           v-model.number="c.value" 
           color="blue"
@@ -30,15 +28,17 @@
         >
           <template v-slot:prepend>{{c.minimum}}</template>
           <template v-slot:append>{{c.maximum}}
-                <v-text-field
-                  v-model.number="c.value"
-                  @update:modelValue="updateValue(c.id,c.value)"
-                ></v-text-field>
           </template>
         </v-slider>
-      </td>
-    </tr>
-  </div>
+      </v-col>
+      <v-col cols="1" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+          <v-text-field
+            v-model.number="c.value"
+            @update:modelValue="updateValue(c.id,c.value)">
+          </v-text-field>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -73,13 +73,4 @@ export default {
 </script>
 
 <style scoped>
-tr {
-  display: flex;
-}
-.key {
-  width: 20%;
-}
-.value {
-  width: 80%;
-}
 </style>

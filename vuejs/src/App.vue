@@ -1,8 +1,11 @@
 <template>
   <div id="app">
     <h1>{{ msg }}</h1>
+    <v-divider></v-divider>
     <Video/>
+    <v-divider></v-divider>
     <Format/>
+    <v-divider></v-divider>
     <Controls/>
   </div>
 </template>
