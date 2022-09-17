@@ -2,10 +2,9 @@
   "name": "v4l2camera",
   "version": "0.0.0",
   "scripts": {
-    "serve": "vite preview",
+    "serve": "vite --host=0.0.0.0 preview",
     "build": "vite build --emptyOutDir",
-    "dev": "vite",
-    "preview": "vite preview --port 5050"
+    "dev": "vite --host=0.0.0.0"
   },
   "dependencies": {
     "axios": "^0.27.2",

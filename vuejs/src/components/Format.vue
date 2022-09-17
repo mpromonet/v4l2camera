@@ -89,17 +89,16 @@
 </template>
 
 <script>
-import axios from "axios";
-
-var serviceurl = "";
+import axios from 'axios';
+import config from '../config.js';
 
 export default {
   mounted() {
-    axios({ method: "GET", url: serviceurl + "/api/formats" }).then(
+    axios({ method: "GET", url: config.serviceurl + "/api/formats" }).then(
       (response) => {
         this.formats = response.data;
 
-        axios({ method: "GET", url: serviceurl + "/api/format" }).then(
+        axios({ method: "GET", url: config.serviceurl + "/api/format" }).then(
           (response) => {
             this.format = response.data;
             this.updateFormatFields();
@@ -117,7 +116,7 @@ export default {
   },
   methods: {
     updateValue: function(format) {
-      axios.post(serviceurl + "/api/format", format ).then(
+      axios.post(config.serviceurl + "/api/format", format ).then(
         (response) => {
           this.format = response.data;
           this.updateFormatFields();

@@ -14,8 +14,7 @@
 <script>
 import axios from "axios";
 import JMuxer from 'jmuxer';
-
-var serviceurl = "";
+import config from '../config.js';
 
 export default {
   data: function () {
@@ -59,11 +58,11 @@ export default {
   },
   methods: {
     start: function() {
-      axios.get(serviceurl + "/api/start");
+      axios.get(config.serviceurl + "/api/start");
       this.visibility = true;
     },
     stop: function() {
-      axios.get(serviceurl + "/api/stop");
+      axios.get(config.serviceurl + "/api/stop");
       this.visibility = false;
     }
   }

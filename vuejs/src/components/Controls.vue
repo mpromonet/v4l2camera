@@ -43,12 +43,11 @@
 
 <script>
 import axios from "axios";
-
-var serviceurl = "";
+import config from '../config.js';
 
 export default {
   mounted() {
-    axios.get(serviceurl + "/api/controls").then(
+    axios.get(config.serviceurl + "/api/controls").then(
       (response) => this.controls = response.data
     );
   },
@@ -59,7 +58,7 @@ export default {
   },
   methods: {
     updateValue: function(id, value) {
-      axios.post(serviceurl + "/api/control", {id, value} ).then(
+      axios.post(config.serviceurl + "/api/control", {id, value} ).then(
         (response) => this.controls.filter((d) => d.id == id)[0].value = response.data.value
       );
     },
