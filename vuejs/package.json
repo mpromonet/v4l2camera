@@ -2,16 +2,15 @@
   "name": "v4l2camera",
   "version": "0.0.0",
   "scripts": {
-    "serve": "vite preview",
+    "serve": "vite --host=0.0.0.0 preview",
     "build": "vite build --emptyOutDir",
-    "dev": "vite",
-    "preview": "vite preview --port 5050"
+    "dev": "vite --host=0.0.0.0"
   },
   "dependencies": {
     "axios": "^0.27.2",
     "jmuxer": "^2.0.5",
     "vue": "^3.2.29",
-    "vuetify": "^3.0.0-beta.0"
+    "vuetify": "^3.0.0-beta.11"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.0.3",

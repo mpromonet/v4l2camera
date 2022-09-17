@@ -1,8 +1,11 @@
 <template>
   <div id="app">
     <h1>{{ msg }}</h1>
+    <v-divider></v-divider>
     <Video/>
+    <v-divider></v-divider>
     <Format/>
+    <v-divider></v-divider>
     <Controls/>
   </div>
 </template>
@@ -12,8 +15,7 @@ import Video from './components/Video.vue';
 import Format from './components/Format.vue';
 import Controls from './components/Controls.vue';
 import axios from "axios";
-
-var serviceurl = "";
+import config from './config.js';
 
 export default {
   name: 'App',
@@ -23,13 +25,13 @@ export default {
     Video
   },
   mounted() {
-    axios({ method: "GET", url: serviceurl + "/api/capabilities" }).then(
+    axios({ method: "GET", url: config.serviceurl + "/api/capabilities" }).then(
       (response) => this.msg = response.data.card
     );
   },
   data() {
     return {
-      msg: "loading..."
+      msg: "..."
     };
   }
 }
@@ -38,5 +40,8 @@ export default {
 <style>
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
+}
+h1 {
+  text-align: center;
 }
 </style>
