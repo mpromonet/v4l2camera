@@ -1,20 +1,20 @@
 <template>
   <div>
     <tr v-for="c in controls" :key="c.name">
-      <td>{{ c.name }}</td>
-      <td v-if="c.menu">
+      <td class="key">{{ c.name }}</td>
+      <td class="value" v-if="c.menu">
         <select v-model.number="c.value" v-on:change="updateValue(c.id,c.value)">
           <option v-for="m in c.menu" :key="m.label" :value="m.value">{{ m.label }}</option>
         </select>
       </td>        
-      <td v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
+      <td class="value" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
         <input
           v-model.number="c.value" true-value="1" false-value="0"
           type="checkbox" 
           v-on:change="updateValue(c.id,c.value)"
         />
       </td>        
-      <td v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+      <td class="value" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
         <v-slider
           v-model.number="c.value" 
           color="blue"
@@ -62,6 +62,14 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+tr {
+  width: 100%;
+}
+.key {
+  width: 20%;
+}
+.value {
+  width: 80%;
+}
 </style>

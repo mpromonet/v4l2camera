@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div style="display: block">
+    <div>
       <v-btn v-on:click="start">Start</v-btn>
       <v-btn v-on:click="stop">Stop</v-btn>
     </div>
-    <div style="display: block">
-      <img v-if="visibility" :src="image" style="overflow: auto" />
-      <video v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
+    <div>
+      <img class="video" v-if="visibility" :src="image" style="overflow: auto" />
+      <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
     </div>
   </div>
 </template>
@@ -69,3 +69,10 @@ export default {
   }
 };
 </script>
+
+<style>
+.video {
+  margin: auto;
+  display: flex;
+}
+</style>

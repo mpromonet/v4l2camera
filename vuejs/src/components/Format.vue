@@ -4,8 +4,8 @@
       {{ format.description }} {{ format.width }}x{{ format.height }}x{{ format.fps }}
     </tr>
     <tr>
-      <td>Format:</td>
-      <td>
+      <td class="key">Format:</td>
+      <td class="value">
         <select
           v-model="format.format"
           v-on:change="updateValue(format)"
@@ -13,13 +13,13 @@
       </td>
     </tr>
     <tr>
-      <td>Geometry:</td>
-      <td v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
+      <td class="key">Geometry:</td>
+      <td class="value" v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
         <select v-model="geometry" v-on:change="updateGeometry()">
           <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
         </select>
       </td>
-      <td v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+      <td class="value" v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
           <v-slider
               v-model.number="format.width"
               :min="format.frameSizes[0].width.min"
@@ -39,12 +39,12 @@
           </v-slider>
 
           <v-slider
-              v-model.number="format.height"
+              :value="format.height"
               :min="format.frameSizes[0].height.min"
               :max="format.frameSizes[0].height.max"
               color="blue"
               thumb-label="always"
-              :step="format.frameSizes[0].height.step" 
+              :step="format.frameSizes[0].height.step" @change="alert($event)"
               v-on:change="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].height.min}}</template>
@@ -58,15 +58,15 @@
       </td>
     </tr>
     <tr>
-      <td>Fps:</td>
-      <td v-if="typeof format.frameSizes[0].fps === 'object'" >
+      <td class="key">Fps:</td>
+      <td class="value" v-if="typeof format.frameSizes[0].fps === 'object'" >
         <select v-model="format.fps">
           <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
         </select>
       </td>
-      <td v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
+      <td class="value" v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
         <v-slider 
-            v-model.number="format.fps"
+            :value="format.fps"
             :min="format.frameSizes[0].intervals[0].fps.min"
             :max="format.frameSizes[0].intervals[0].fps.max"
             color="blue"
@@ -140,6 +140,14 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+tr {
+  width: 100%;
+}
+.key {
+  width: 20%;
+}
+.value {
+  width: 80%;
+}
 </style>
