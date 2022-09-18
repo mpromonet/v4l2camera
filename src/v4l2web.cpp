@@ -56,6 +56,9 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			return this->isCapturing();
 		};
+		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+			return this->getRtspInfo();
+		};
 		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
 			Json::Value answer;
 			for (auto it : this->m_httpfunc) {
@@ -118,7 +121,7 @@ void V4l2web::capturing()
 	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 10, V4L2DeviceSource::NOCAPTURE);
 	if (videoReplicator)
 	{
-		m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
+		m_sms = m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
 	}
 
 	while (!m_stopCapturing) {
@@ -378,6 +381,23 @@ Json::Value V4l2web::stop()
 Json::Value V4l2web::isCapturing() 
 {
 	Json::Value answer(m_isCapturing && m_videoCapture->isReady());
+	return answer;	
+}
+
+Json::Value V4l2web::getRtspInfo() 
+{
+	Json::Value answer;
+	if (m_sms) {
+		answer["url"] = m_rtspServer.getRtspUrl(m_sms);
+
+		Json::Value session;
+		ServerMediaSubsessionIterator iter(*m_sms);
+		ServerMediaSubsession* subsession;
+		while ((subsession = iter.next()) != NULL) {
+			session[subsession->name()] = subsession->sdpLines(0);
+		}
+		answer["media"] = session;
+	}
 	return answer;	
 }
 

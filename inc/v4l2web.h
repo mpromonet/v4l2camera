@@ -40,6 +40,7 @@ class V4l2web {
 		Json::Value start();
 		Json::Value stop();
 		Json::Value isCapturing();
+		Json::Value getRtspInfo();
 		
 		void capturing();
 	
@@ -64,6 +65,7 @@ class V4l2web {
 		bool                                                          m_stopCapturing;
 
 		V4l2RTSPServer                                                m_rtspServer;
+		ServerMediaSession*                                           m_sms;
 		std::thread                                                   m_streaming;
 		char                                                          m_stopStreaming;
 		std::string                                                   m_snapshot;
