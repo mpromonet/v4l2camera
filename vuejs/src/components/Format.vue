@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row>
-      <v-col>Format:</v-col>
+      <v-col>Format</v-col>
       <v-col cols="8">
         <v-select
           v-model="format.format"
@@ -14,11 +14,10 @@
     </v-row>
 
     <v-row>
-      <v-col>Geometry:</v-col>
+      <v-col>Geometry</v-col>
       <v-col cols="8" v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
-        <select v-model="geometry" v-on:change="updateGeometry()">
-          <option v-for="f in format.frameSizes" :key="f" >{{f.width}}x{{f.height}}</option>
-        </select>
+        <v-select v-model="geometry" :items="getGeometries(format.frameSizes)" @update:modelValue="updateGeometry()">
+        </v-select>
       </v-col>
       <v-col cols="7" v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
           <v-slider
@@ -58,11 +57,10 @@
     </v-row>
     
     <v-row>
-      <v-col>Fps:</v-col>
-      <v-col cols="8" v-if="typeof format.frameSizes[0].fps === 'object'" >
-        <select v-model.number="format.fps">
-          <option v-for="f in format.frameSizes.filter((fmt) => fmt.width + 'x' + fmt.height == geometry)[0].intervals" :key="f" >{{f.fps}}</option>
-        </select>
+      <v-col>Fps</v-col>
+      <v-col cols="8" v-if="typeof format.frameSizes[0].intervals[0].fps === 'number'" >
+        <v-select v-model.number="format.fps" :items="getFps(format.frameSizes)">
+        </v-select>
       </v-col>
       <v-col cols="7" v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
         <v-slider 
@@ -138,6 +136,12 @@ export default {
     },
     getFormats: function(formats) {
         return formats.map(item => item.format);
+    },
+    getGeometries: function(formats) {
+        return formats.sort((a,b) => a.width*a.height - b.width*b.height).map(item => `${item.width}x${item.height}`);
+    },
+    getFps: function(formats) {
+      return formats.filter((fmt) => fmt.width + 'x' + fmt.height == this.geometry)[0].intervals.map(f => f.fps);
     }
   }
 };
