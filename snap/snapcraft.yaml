@@ -24,7 +24,7 @@
       - npm
       stage-packages:
       - libjpeg8
-      - libssl1.1
+      - libssl3
 
   apps:
     v4l2web:
