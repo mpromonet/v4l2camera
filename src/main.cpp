@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	if ((videoformatList.empty()) && (format!=0)) {
+		videoformatList.push_back(V4L2_PIX_FMT_H264);
 		videoformatList.push_back(V4L2_PIX_FMT_MJPEG);
 		videoformatList.push_back(V4L2_PIX_FMT_JPEG);
 		videoformatList.push_back(V4L2_PIX_FMT_YUYV);
@@ -154,7 +155,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture, videoOutput, options, rtspport);
+		V4l2web v4l2web(videoCapture, videoOutput, options, rtspport, verbose);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 

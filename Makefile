@@ -97,7 +97,7 @@ libv4l2wrapper.a:
 CFLAGS += -I v4l2wrapper/inc 
 LIBS+=libv4l2wrapper.a
 
-v4l2web: src/main.cpp src/v4l2web.cpp $(LIBS)
+v4l2web: $(wildcard src/*.cpp) $(LIBS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:

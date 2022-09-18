@@ -24,11 +24,12 @@
           hide-spin-buttons
           :min="c.minimum"
           :max="c.maximum" 
+          :step="c.step"
+          ticks="always"
           @update:modelValue="updateValue(c.id,c.value)"
         >
           <template v-slot:prepend>{{c.minimum}}</template>
-          <template v-slot:append>{{c.maximum}}
-          </template>
+          <template v-slot:append>{{c.maximum}}</template>
         </v-slider>
       </v-col>
       <v-col cols="1" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
@@ -63,7 +64,7 @@ export default {
       );
     },
     getItems: function(menu) {
-      return menu.map(item => ({"title": item.label, "value": item.value}))
+      return menu.map(item => ({"title": item.label, "value": item.value}));
     }
   }
 };

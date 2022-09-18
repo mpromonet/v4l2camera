@@ -25,7 +25,7 @@
 
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport);
+		V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose);
 		virtual ~V4l2web();
 		const void* getContext() { return m_httpServer.getContext(); }
 	
