@@ -12,7 +12,11 @@
   parts:
     ui:
       plugin: npm
-      source: vuejs  
+      source: .  
+      source-type: git
+      build-packages:
+      - make
+      override-build: make webroot
   
     v4l2web:
       plugin: make
