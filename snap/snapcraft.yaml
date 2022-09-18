@@ -12,6 +12,7 @@
   parts:
     ui:
       plugin: npm
+      npm-node-version: 16.17.0
       source: .  
       source-type: git
       build-packages:
