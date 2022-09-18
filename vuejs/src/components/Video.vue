@@ -8,8 +8,9 @@
     </v-container>
     <v-container>
       <v-row align="center" justify="center">
-          <img class="video" v-if="visibility" :src="image" />
-          <video class="video" v-if="visibility && !image" id="player" autoplay muted playsinline ></video>
+          <img v-if="visibility && !message" :src="image" />
+          <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline ></video>
+          <div v-if="message">{{this.message}}</div>
       </v-row>
     </v-container>
   </div>
@@ -26,6 +27,7 @@ export default {
       image: "",
       visibility: true,
       ws: null,
+      message: null,
     };
   },
   created: function () {
@@ -41,15 +43,19 @@ export default {
             for (let i = 0; i < bytes.length; i++) {
               binaryStr += String.fromCharCode(bytes[i]);
             }
+            this.message = null;
             this.image = "data:image/jpeg;base64," + btoa(binaryStr);
             this.ws.jmuxer = null;
         } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
-            this.image = "";
+            this.image = null;
+            this.message = null;
             // H264
             if (!this.ws.jmuxer) {
               this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, flushingTime: 1000});
             }
             this.ws.jmuxer.feed({ video: bytes })
+        } else {
+            this.message = 'format not supported';
         }
     };
   },
