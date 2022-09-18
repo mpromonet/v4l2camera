@@ -130,6 +130,7 @@ int main(int argc, char* argv[])
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
 	}
+	else
 	{		
 		V4l2Output* videoOutput = NULL;
 		if (!out_devname.empty()) {
