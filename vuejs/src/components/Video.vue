@@ -22,7 +22,7 @@ import JMuxer from 'jmuxer';
 import config from '../config.js';
 
 export default {
-  data: function () {
+  data() {
     return {
       image: "",
       visibility: true,
@@ -30,7 +30,7 @@ export default {
       message: null,
     };
   },
-  created: function () {
+  created() {
     console.log("Connecting WebSocket");
     const wsurl = document.location.href.replace("http", "ws") + "/ws";
     this.ws = new WebSocket(wsurl);
@@ -59,7 +59,7 @@ export default {
         }
     };
   },
-  destroyed: function() {
+  destroyed() {
     console.log("Closing WebSocket");
     if (this.ws) {
       this.ws.close();
@@ -67,11 +67,11 @@ export default {
     }
   },
   methods: {
-    start: function() {
+    start() {
       axios.get(config.serviceurl + "/api/start");
       this.visibility = true;
     },
-    stop: function() {
+    stop() {
       axios.get(config.serviceurl + "/api/stop");
       this.visibility = false;
     }

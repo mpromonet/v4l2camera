@@ -58,12 +58,12 @@ export default {
     };
   },
   methods: {
-    updateValue: function(id, value) {
+    updateValue(id, value) {
       axios.post(config.serviceurl + "/api/control", {id, value} ).then(
         (response) => this.controls.filter((d) => d.id == id).forEach((element) => element.value = response.data.value)
       );
     },
-    getItems: function(menu) {
+    getItems(menu) {
       return menu.map(item => ({"title": item.label, "value": item.value}));
     }
   }

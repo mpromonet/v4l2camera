@@ -114,7 +114,7 @@ export default {
     };
   },
   methods: {
-    updateValue: function(format) {
+    updateValue(format) {
       axios.post(config.serviceurl + "/api/format", format ).then(
         (response) => {
           this.format = response.data;
@@ -122,25 +122,25 @@ export default {
         }
 		  );
 	  },
-    updateGeometry: function() {
+    updateGeometry() {
       console.log(this.geometry)
       const sizes = this.geometry.split('x');
       this.format.width = parseInt(sizes[0]);
       this.format.height = parseInt(sizes[1]);
       this.updateValue(this.format);
 	  },
-    updateFormatFields: function() {
+    updateFormatFields() {
         this.geometry = `${this.format.width}x${this.format.height}`;
         this.format.description = this.formats.filter((d) => d.format == this.format.format)[0].description;
         this.format.frameSizes = this.formats.filter((d) => d.format == this.format.format)[0].frameSizes;
     },
-    getFormats: function(formats) {
+    getFormats(formats) {
         return formats.map(item => item.format);
     },
-    getGeometries: function(formats) {
+    getGeometries(formats) {
         return formats.sort((a,b) => a.width*a.height - b.width*b.height).map(item => `${item.width}x${item.height}`);
     },
-    getFps: function(formats) {
+    getFps(formats) {
       return formats.filter((fmt) => fmt.width + 'x' + fmt.height == this.geometry)[0].intervals.map(f => f.fps);
     }
   }
