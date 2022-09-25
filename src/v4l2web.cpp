@@ -116,13 +116,21 @@ V4l2web::~V4l2web() {
 	m_streaming.join();
 }
 
+void V4l2web::createRtspSession()
+{
+	if (m_sms) {
+		m_rtspServer.RemoveSession(m_sms);
+	}
+	m_videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 10, V4L2DeviceSource::NOCAPTURE);
+	if (m_videoReplicator)
+	{
+		m_sms = m_rtspServer.AddUnicastSession("", m_videoReplicator, NULL);			
+	}
+}
+
 void V4l2web::capturing()
 {
-	StreamReplicator* videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 10, V4L2DeviceSource::NOCAPTURE);
-	if (videoReplicator)
-	{
-		m_sms = m_rtspServer.AddUnicastSession("", videoReplicator, NULL);			
-	}
+	this->createRtspSession();
 
 	while (!m_stopCapturing) {
 		if (m_isCapturing && m_videoCapture->isReady())
@@ -149,9 +157,9 @@ void V4l2web::capturing()
 				if (size>0)
 				{
 					m_httpServer.publishBin("/ws",buf, size);
-					if (videoReplicator)
+					if (m_videoReplicator)
 					{
-						V4L2DeviceSource* source = (V4L2DeviceSource*)videoReplicator->inputSource();
+						V4L2DeviceSource* source = (V4L2DeviceSource*)m_videoReplicator->inputSource();
 						char* buffer = new char[size];
 						memcpy(buffer, buf, size);	
 						source->postFrame(buffer, size, ref);
@@ -247,12 +255,19 @@ Json::Value V4l2web::format(const Json::Value & input)
 		int width = input.get("width",m_videoCapture->getWidth()).asUInt();
 		int height = input.get("height",m_videoCapture->getHeight()).asUInt();
 		std::string informatstr = input.get("format","").asString();
-		int informat = V4l2Device::fourcc(informatstr.c_str());
+		unsigned int informat = V4l2Device::fourcc(informatstr.c_str());
 		int fps = input.get("fps",0).asUInt();
 
 		m_videoCapture->stop();
+		unsigned int oldformat = m_videoCapture->getFormat();
 		m_videoCapture->setFormat(informat, width, height);
 		m_videoCapture->setFps(fps);
+
+		// update RTSP session
+		if (oldformat != informat) {
+			this->createRtspSession();
+		}
+
 		m_videoCapture->start();
 		
 		std::string outformatStr = input.get("outformat","").asString();

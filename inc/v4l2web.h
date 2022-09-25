@@ -43,6 +43,7 @@ class V4l2web {
 		Json::Value getRtspInfo();
 		
 		void capturing();
+		void createRtspSession();
 	
 		std::map<std::string,HttpServerRequestHandler::httpFunction>& getHttpFunc();
 		std::map<std::string,HttpServerRequestHandler::wsFunction>&   getWsFunc();
@@ -65,6 +66,7 @@ class V4l2web {
 		bool                                                          m_stopCapturing;
 
 		V4l2RTSPServer                                                m_rtspServer;
+		StreamReplicator*                                             m_videoReplicator;
 		ServerMediaSession*                                           m_sms;
 		std::thread                                                   m_streaming;
 		char                                                          m_stopStreaming;
