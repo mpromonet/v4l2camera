@@ -2,8 +2,8 @@
   <div>
     <v-container>
       <v-row align="center" justify="space-around" >
-          <v-btn v-on:click="start">Start</v-btn>
-          <v-btn v-on:click="stop">Stop</v-btn>
+          <v-btn v-if="!visibility" v-on:click="start">Start</v-btn>
+          <v-btn v-if="visibility" v-on:click="stop">Stop</v-btn>
       </v-row>
     </v-container>
     <v-container>
@@ -11,6 +11,11 @@
           <img v-if="visibility && !message" :src="image" />
           <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline ></video>
           <div v-if="message">{{this.message}}</div>
+      </v-row>
+    </v-container>      
+    <v-container>
+      <v-row align="center" justify="center">
+          {{ this.rtspinfo?.url }}
       </v-row>
     </v-container>
   </div>
@@ -28,7 +33,16 @@ export default {
       visibility: true,
       ws: null,
       message: null,
+      rtspinfo: null
     };
+  },
+  mounted() {
+    axios({ method: "GET", url: config.serviceurl + "/api/rtspinfo" }).then(
+      (response) => this.rtspinfo = response.data
+    );
+    axios({ method: "GET", url: config.serviceurl + "/api/isCapturing" }).then(
+      (response) => this.visibility = response.data
+    );
   },
   created() {
     console.log("Connecting WebSocket");
@@ -37,7 +51,7 @@ export default {
     this.ws.binaryType = 'arraybuffer';
     this.ws.onmessage = (message) => {
         const bytes = new Uint8Array(message.data);
-        if ((bytes[0] === 255) && (bytes[1] === 216)) {
+        if ( (bytes.length > 1) && (bytes[0] === 255) && (bytes[1] === 216)) {
             // JPEG
             let binaryStr = "";
             for (let i = 0; i < bytes.length; i++) {
@@ -46,7 +60,7 @@ export default {
             this.message = null;
             this.image = "data:image/jpeg;base64," + btoa(binaryStr);
             this.ws.jmuxer = null;
-        } else if ((bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
+        } else if ( (bytes.length > 3) && (bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
             this.image = null;
             this.message = null;
             // H264
@@ -68,12 +82,10 @@ export default {
   },
   methods: {
     start() {
-      axios.get(config.serviceurl + "/api/start");
-      this.visibility = true;
+      axios.get(config.serviceurl + "/api/start").then( () => this.visibility = true);
     },
     stop() {
-      axios.get(config.serviceurl + "/api/stop");
-      this.visibility = false;
+      axios.get(config.serviceurl + "/api/stop").then( () => this.visibility = false);
     }
   }
 };
