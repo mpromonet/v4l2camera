@@ -409,7 +409,10 @@ Json::Value V4l2web::getRtspInfo()
 		ServerMediaSubsessionIterator iter(*m_sms);
 		ServerMediaSubsession* subsession;
 		while ((subsession = iter.next()) != NULL) {
-			session[subsession->name()] = subsession->sdpLines(0);
+			const char *sdp = subsession->sdpLines(0);
+			if (sdp) {
+				session[subsession->name()] = subsession->sdpLines(0);
+			}
 		}
 		answer["media"] = session;
 	}
