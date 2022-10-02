@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 		videoformatList.push_back(V4L2_PIX_FMT_H264);
 		videoformatList.push_back(V4L2_PIX_FMT_MJPEG);
 		videoformatList.push_back(V4L2_PIX_FMT_JPEG);
-		videoformatList.push_back(V4L2_PIX_FMT_YUYV);
+		videoformatList.push_back(V4L2_PIX_FMT_NV12);
 		videoformatList.push_back(0);
 	}
 

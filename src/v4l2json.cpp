@@ -21,7 +21,7 @@
 
 #include "json/json.h"
 
-Json::Value getMenuControl(int fd, int id, int type, int min, int max) {
+Json::Value getControlMenu(int fd, int id, int type, int min, int max) {
 	Json::Value menu(Json::ValueType::arrayValue);
 	struct v4l2_querymenu querymenu;
 	memset(&querymenu,0,sizeof(querymenu));
@@ -48,6 +48,17 @@ Json::Value getMenuControl(int fd, int id, int type, int min, int max) {
 	return menu;
 }
 
+Json::Value getControlFlag(int ctrlflags) {
+	Json::Value flags(Json::ValueType::arrayValue);
+	if (ctrlflags & V4L2_CTRL_FLAG_DISABLED  ) flags.append("V4L2_CTRL_FLAG_DISABLED"  );
+	if (ctrlflags & V4L2_CTRL_FLAG_GRABBED   ) flags.append("V4L2_CTRL_FLAG_GRABBED"   );
+	if (ctrlflags & V4L2_CTRL_FLAG_READ_ONLY ) flags.append("V4L2_CTRL_FLAG_READ_ONLY" );
+	if (ctrlflags & V4L2_CTRL_FLAG_UPDATE    ) flags.append("V4L2_CTRL_FLAG_UPDATE"    );
+	if (ctrlflags & V4L2_CTRL_FLAG_SLIDER    ) flags.append("V4L2_CTRL_FLAG_SLIDER"    );
+	if (ctrlflags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
+	return flags;
+}
+
 unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;
@@ -72,15 +83,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 				value["step"         ] = qctrl.step;
 				value["default_value"] = qctrl.default_value;
 				value["value"        ] = control.value;
-
-				Json::Value flags;
-				if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED  ) flags.append("V4L2_CTRL_FLAG_DISABLED"  );
-				if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED   ) flags.append("V4L2_CTRL_FLAG_GRABBED"   );
-				if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY ) flags.append("V4L2_CTRL_FLAG_READ_ONLY" );
-				if (qctrl.flags & V4L2_CTRL_FLAG_UPDATE    ) flags.append("V4L2_CTRL_FLAG_UPDATE"    );
-				if (qctrl.flags & V4L2_CTRL_FLAG_SLIDER    ) flags.append("V4L2_CTRL_FLAG_SLIDER"    );
-				if (qctrl.flags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
-				value["flags"]   = flags;
+				value["flags"        ] = getControlFlag(qctrl.flags);
 				
 				if ( (qctrl.type == V4L2_CTRL_TYPE_MENU) 
 #ifdef V4L2_CTRL_TYPE_INTEGER_MENU 
@@ -88,7 +91,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 #endif
 				   )
 				{
-					value["menu"] = getMenuControl(fd, qctrl.id, qctrl.type, qctrl.minimum, qctrl.maximum);
+					value["menu"] = getControlMenu(fd, qctrl.id, qctrl.type, qctrl.minimum, qctrl.maximum);
 				}
 				json.append(value);
 			}

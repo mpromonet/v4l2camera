@@ -192,7 +192,7 @@ Json::Value V4l2web::capabilities()
 		json["card"]       = (const char*)cap.card;
 		json["bus_info"]   = (const char*)cap.bus_info;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
-		Json::Value capabilities;
+		Json::Value capabilities(Json::ValueType::arrayValue);
 		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE" );
 		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"  );
 		if (cap.device_caps & V4L2_CAP_VIDEO_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OVERLAY" );
@@ -219,7 +219,7 @@ Json::Value V4l2web::capabilities()
 Json::Value V4l2web::formats() 
 {
 	int fd = m_videoCapture->getFd();		
-	Json::Value json;
+	Json::Value formatList(Json::ValueType::arrayValue);
 	for (int i = 0;; i++) 
 	{
 		struct v4l2_fmtdesc     fmtdesc;
@@ -235,9 +235,9 @@ Json::Value V4l2web::formats()
 		format["format"]      = V4l2Device::fourcc(fmtdesc.pixelformat);		
 		format["frameSizes"]  = getFrameSizeList(fd, fmtdesc.pixelformat);
 
-		json.append(format);
+		formatList.append(format);
 	}
-	return json;
+	return formatList;
 }
 
 Json::Value V4l2web::format(const Json::Value & input) 
@@ -312,10 +312,10 @@ Json::Value V4l2web::format(const Json::Value & input)
 	parm.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (0 == ioctl(fd,VIDIOC_G_PARM,&parm))
 	{
-		Json::Value capabilities;
+		Json::Value capabilities(Json::ValueType::arrayValue);
 		if (parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) capabilities.append("V4L2_CAP_TIMEPERFRAME");
 		output["capabilities"]  = capabilities;		
-		Json::Value capturemode;
+		Json::Value capturemode(Json::ValueType::arrayValue);
 		if (parm.parm.capture.capturemode & V4L2_MODE_HIGHQUALITY) capturemode.append("V4L2_MODE_HIGHQUALITY");
 		output["capturemode"]   = capturemode;		
 		output["readbuffers"]   = parm.parm.capture.readbuffers;		
