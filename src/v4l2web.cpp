@@ -88,6 +88,8 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std
 	m_isCapturing(true),
 	m_stopCapturing(false),
 	m_rtspServer(rtspport),
+	m_videoReplicator(NULL),
+	m_sms(NULL),
 	m_stopStreaming(0) {	
 
 		

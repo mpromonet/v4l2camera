@@ -22,7 +22,7 @@
 #include "json/json.h"
 
 Json::Value getMenuControl(int fd, int id, int type, int min, int max) {
-	Json::Value menu;
+	Json::Value menu(Json::ValueType::arrayValue);
 	struct v4l2_querymenu querymenu;
 	memset(&querymenu,0,sizeof(querymenu));
 	querymenu.id = id;
@@ -100,7 +100,7 @@ unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json)
 
 Json::Value getframeIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height) 
 {
-	Json::Value frameIntervals;
+	Json::Value frameIntervals(Json::ValueType::arrayValue);
 	struct v4l2_frmivalenum frmival;
 	frmival.index = 0;
 	frmival.pixel_format = pixelformat;
@@ -128,7 +128,7 @@ Json::Value getframeIntervals(int fd, unsigned int pixelformat, unsigned int wid
 }
 
 Json::Value getFrameSizeList(int fd, int pixelformat) {
-	Json::Value frameSizeList;
+	Json::Value frameSizeList(Json::ValueType::arrayValue);
 	struct v4l2_frmsizeenum frmsize;
 	memset(&frmsize,0,sizeof(frmsize));
 	frmsize.pixel_format = pixelformat;
