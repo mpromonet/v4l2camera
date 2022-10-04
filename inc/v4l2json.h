@@ -12,7 +12,6 @@
 
 #include "json/json.h"
 
-Json::Value getMenuControl(int fd, int id, int type, int min, int max);
 unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json);
 Json::Value getframeIntervals(int fd, unsigned int pixelformat, unsigned int width, unsigned int height);
 Json::Value getFrameSizeList(int fd, int pixelformat);

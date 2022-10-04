@@ -75,6 +75,12 @@ CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
 
+# alsa
+ifneq ($(wildcard /usr/include/alsa/asoundlib.h),)
+CFLAGS += -DHAVE_ALSA
+LDFLAGS += -lasound
+endif
+
 # civetweb
 libhttpjsonserver/Makefile:
 	git submodule update --recursive --init libhttpjsonserver

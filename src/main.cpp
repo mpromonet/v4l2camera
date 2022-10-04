@@ -56,8 +56,14 @@ int main(int argc, char* argv[])
 	std::list<unsigned int> videoformatList;	
 	std::string out_devname;	
 	unsigned int outFormat = V4L2_PIX_FMT_H264;
+
+#ifdef HAVE_ALSA	
+	int audioFreq = 44100;
+	int audioNbChannels = 2;
+	std::list<snd_pcm_format_t> audioFmtList;
+#endif	
 	
-	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:R:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:R:" "A:c:a:")) != -1)
 	{
 		switch (c)
 		{
@@ -77,7 +83,14 @@ int main(int argc, char* argv[])
 			case 'P': port = optarg; break;
 			case 'R': rtspport = atoi(optarg); break;
 			case 'N': nbthreads = optarg; break;
-			case 'p': webroot = optarg; break;			
+			case 'p': webroot = optarg; break;		
+
+#ifdef HAVE_ALSA	
+			case 'A':	audioFreq = atoi(optarg); break;
+			case 'C':	audioNbChannels = atoi(optarg); break;
+			case 'a':	if (V4l2RTSPServer::decodeAudioFormat(optarg) != SND_PCM_FORMAT_UNKNOWN) {audioFmtList.push_back(V4l2RTSPServer::decodeAudioFormat(optarg));} ; break;
+#endif		
+
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [-F fps] [-G <w>x<h>x<f>] [device]" << std::endl;
@@ -96,6 +109,13 @@ int main(int argc, char* argv[])
 				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;
 				std::cout << "\t -w               : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
 
+#ifdef HAVE_ALSA	
+				std::cout << "\t ALSA options"                                                                                               << std::endl;
+				std::cout << "\t -A freq          : ALSA capture frequency and channel (default " << audioFreq << ")"                                << std::endl;
+				std::cout << "\t -C channels      : ALSA capture channels (default " << audioNbChannels << ")"                                       << std::endl;
+				std::cout << "\t -a fmt           : ALSA capture audio format (default S16_BE)"                                                      << std::endl;
+#endif
+		
 				std::cout << "\t device           : V4L2 capture device (default "<< dev_name << ")" << std::endl;
 				exit(0);
 			}
@@ -123,19 +143,33 @@ int main(int argc, char* argv[])
 		videoformatList.push_back(V4L2_PIX_FMT_NV12);
 		videoformatList.push_back(0);
 	}
-
+#ifdef HAVE_ALSA	
+	// default audio format tries
+	if (audioFmtList.empty()) {
+		audioFmtList.push_back(SND_PCM_FORMAT_S16_LE);
+		audioFmtList.push_back(SND_PCM_FORMAT_S16_BE);
+	}
+#endif	
+	std::unique_ptr<DeviceInterface> audioCapture;
 	V4L2DeviceParameters param(dev_name, videoformatList, width, height, fps, ioTypeIn, verbose);
-	V4l2Capture* videoCapture =  V4l2Capture::create(param);
-	if (videoCapture == NULL)
+	std::unique_ptr<V4l2Capture> videoCapture(V4l2Capture::create(param));
+	if (!videoCapture)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
 	}
 	else
-	{		
-		V4l2Output* videoOutput = NULL;
+	{	
+#ifdef HAVE_ALSA	
+		std::string audioDevice = V4l2RTSPServer::getV4l2Alsa(dev_name);
+		ALSACaptureParameters param(audioDevice.c_str(), audioFmtList, audioFreq, audioNbChannels, verbose);
+		audioCapture.reset(ALSACapture::createNew(param));
+#endif	
+
+		// output	
+		std::unique_ptr<V4l2Output> videoOutput;
 		if (!out_devname.empty()) {
 			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, ioTypeOut, verbose);
-			videoOutput = V4l2Output::create(outparam);
+			videoOutput.reset(V4l2Output::create(outparam));
 		}
 
 		// http options
@@ -156,7 +190,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture, videoOutput, options, rtspport, verbose);
+		V4l2web v4l2web(videoCapture.get(), audioCapture.get(), videoOutput.get(), options, rtspport, verbose);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
@@ -169,8 +203,6 @@ int main(int argc, char* argv[])
 				sleep(1); 
 			}
 		}
-		delete videoOutput;
-		delete videoCapture;
 	}
 	
 	return 0;

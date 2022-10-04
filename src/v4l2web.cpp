@@ -79,15 +79,17 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 	return m_wsfunc;
 }
 	
-V4l2web::V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose): 
+V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose): 
 	m_askToInterupt(false),
 	m_videoCapture(videoCapture),
+	m_audioCapture(audioCapture),
 	m_videoOutput(videoOutput),
 	m_encoder(NULL),
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options),
 	m_isCapturing(true),
 	m_stopCapturing(false),
 	m_rtspServer(rtspport),
+	m_audioReplicator(NULL),
 	m_videoReplicator(NULL),
 	m_sms(NULL),
 	m_stopStreaming(0) {	
@@ -123,10 +125,13 @@ void V4l2web::createRtspSession()
 	if (m_sms) {
 		m_rtspServer.RemoveSession(m_sms);
 	}
+	if (m_audioCapture) {
+		m_audioReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), 0, m_audioCapture, 5);
+	}
 	m_videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), new VideoCaptureAccess(m_videoCapture), 10, V4L2DeviceSource::NOCAPTURE);
 	if (m_videoReplicator)
 	{
-		m_sms = m_rtspServer.AddUnicastSession("", m_videoReplicator, NULL);			
+		m_sms = m_rtspServer.AddUnicastSession("", m_videoReplicator, m_audioReplicator);			
 	}
 }
 

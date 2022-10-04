@@ -25,7 +25,7 @@
 
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose);
+		V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose);
 		virtual ~V4l2web();
 		const void* getContext() { return m_httpServer.getContext(); }
 	
@@ -54,6 +54,7 @@ class V4l2web {
 		std::atomic<bool>                                             m_askToInterupt;
 
 		V4l2Capture*                                                  m_videoCapture;
+		DeviceInterface*                                              m_audioCapture;
 		V4l2Output*                                                   m_videoOutput;
 		Codec*                                                        m_encoder;
 
@@ -67,6 +68,7 @@ class V4l2web {
 
 		V4l2RTSPServer                                                m_rtspServer;
 		StreamReplicator*                                             m_videoReplicator;
+		StreamReplicator*                                             m_audioReplicator;
 		ServerMediaSession*                                           m_sms;
 		std::thread                                                   m_streaming;
 		char                                                          m_stopStreaming;
