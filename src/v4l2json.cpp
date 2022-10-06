@@ -21,7 +21,7 @@
 
 #include "json/json.h"
 
-Json::Value getControlMenu(int fd, int id, int type, int min, int max) {
+Json::Value getControlMenu(int fd, int id, int type, unsigned int min, unsigned int max) {
 	Json::Value menu(Json::ValueType::arrayValue);
 	struct v4l2_querymenu querymenu;
 	memset(&querymenu,0,sizeof(querymenu));

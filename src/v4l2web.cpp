@@ -89,8 +89,8 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_isCapturing(true),
 	m_stopCapturing(false),
 	m_rtspServer(rtspport),
-	m_audioReplicator(NULL),
 	m_videoReplicator(NULL),
+	m_audioReplicator(NULL),
 	m_sms(NULL),
 	m_stopStreaming(0) {	
 
@@ -198,16 +198,19 @@ Json::Value V4l2web::capabilities()
 		json["bus_info"]   = (const char*)cap.bus_info;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
 		Json::Value capabilities(Json::ValueType::arrayValue);
-		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE) capabilities.append("V4L2_CAP_VIDEO_CAPTURE" );
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"  );
-		if (cap.device_caps & V4L2_CAP_VIDEO_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OVERLAY" );
+		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE       ) capabilities.append("V4L2_CAP_VIDEO_CAPTURE"        );
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT        ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"         );
+		if (cap.device_caps & V4L2_CAP_VIDEO_OVERLAY       ) capabilities.append("V4L2_CAP_VIDEO_OVERLAY"        );
+		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OUTPUT_OVERLAY" );
+		if (cap.device_caps & V4L2_CAP_AUDIO               ) capabilities.append("V4L2_CAP_AUDIO"                );
 		
-		if (cap.device_caps & V4L2_CAP_VIDEO_M2M    ) capabilities.append("V4L2_CAP_VIDEO_M2M"     );
-		if (cap.device_caps & V4L2_CAP_META_CAPTURE ) capabilities.append("V4L2_CAP_META_CAPTURE"  );
+		if (cap.device_caps & V4L2_CAP_EXT_PIX_FORMAT      ) capabilities.append("V4L2_CAP_EXT_PIX_FORMAT"       );
+		if (cap.device_caps & V4L2_CAP_VIDEO_M2M           ) capabilities.append("V4L2_CAP_VIDEO_M2M"            );
+		if (cap.device_caps & V4L2_CAP_META_CAPTURE        ) capabilities.append("V4L2_CAP_META_CAPTURE"         );
 		
-		if (cap.device_caps & V4L2_CAP_READWRITE    ) capabilities.append("V4L2_CAP_READWRITE"     );
-		if (cap.device_caps & V4L2_CAP_ASYNCIO      ) capabilities.append("V4L2_CAP_ASYNCIO"       );
-		if (cap.device_caps & V4L2_CAP_STREAMING    ) capabilities.append("V4L2_CAP_STREAMING"     );
+		if (cap.device_caps & V4L2_CAP_READWRITE           ) capabilities.append("V4L2_CAP_READWRITE"            );
+		if (cap.device_caps & V4L2_CAP_ASYNCIO             ) capabilities.append("V4L2_CAP_ASYNCIO"              );
+		if (cap.device_caps & V4L2_CAP_STREAMING           ) capabilities.append("V4L2_CAP_STREAMING"            );
 			
 		json["capabilities"]   = capabilities;
 #endif		
@@ -244,6 +247,43 @@ Json::Value V4l2web::formats()
 	}
 	return formatList;
 }
+
+std::string getColorspace(int colorspace) {
+	std::string str;
+	switch (colorspace) {
+		case V4L2_COLORSPACE_DEFAULT:       str = "V4L2_COLORSPACE_DEFAULT"      ; break;
+		case V4L2_COLORSPACE_SMPTE170M:     str = "V4L2_COLORSPACE_SMPTE170M"    ; break;
+		case V4L2_COLORSPACE_REC709:        str = "V4L2_COLORSPACE_REC709"       ; break;
+		case V4L2_COLORSPACE_SRGB:          str = "V4L2_COLORSPACE_SRGB"         ; break;
+		case V4L2_COLORSPACE_ADOBERGB:      str = "V4L2_COLORSPACE_ADOBERGB"     ; break;
+		case V4L2_COLORSPACE_BT2020:        str = "V4L2_COLORSPACE_BT2020"       ; break;
+		case V4L2_COLORSPACE_DCI_P3:        str = "V4L2_COLORSPACE_DCI_P3"       ; break;
+		case V4L2_COLORSPACE_SMPTE240M:     str = "V4L2_COLORSPACE_SMPTE240M"    ; break;
+		case V4L2_COLORSPACE_470_SYSTEM_M:  str = "V4L2_COLORSPACE_470_SYSTEM_M" ; break;
+		case V4L2_COLORSPACE_470_SYSTEM_BG: str = "V4L2_COLORSPACE_470_SYSTEM_BG"; break;
+		case V4L2_COLORSPACE_JPEG:          str = "V4L2_COLORSPACE_JPEG"         ; break;
+		case V4L2_COLORSPACE_RAW:           str = "V4L2_COLORSPACE_RAW"          ; break;
+	}
+	return str;
+}
+
+std::string getField(int field) {
+        std::string str;
+        switch (field) {
+                case V4L2_FIELD_ANY:            str = "V4L2_FIELD_ANY"           ; break;
+                case V4L2_FIELD_NONE:           str = "V4L2_FIELD_NONE"          ; break;
+                case V4L2_FIELD_TOP:            str = "V4L2_FIELD_TOP"           ; break;
+                case V4L2_FIELD_BOTTOM:         str = "V4L2_FIELD_BOTTOM"        ; break;
+                case V4L2_FIELD_INTERLACED:     str = "V4L2_FIELD_INTERLACED"    ; break;
+                case V4L2_FIELD_SEQ_TB:         str = "V4L2_FIELD_SEQ_TB"        ; break;
+                case V4L2_FIELD_SEQ_BT:         str = "V4L2_FIELD_SEQ_BT"        ; break;
+                case V4L2_FIELD_ALTERNATE:      str = "V4L2_FIELD_ALTERNATE"     ; break;
+                case V4L2_FIELD_INTERLACED_TB:  str = "V4L2_FIELD_INTERLACED_TB" ; break;
+                case V4L2_FIELD_INTERLACED_BT:  str = "V4L2_FIELD_INTERLACED_BT" ; break;
+        }
+        return str;
+}
+
 
 Json::Value V4l2web::format(const Json::Value & input) 
 {
@@ -306,10 +346,13 @@ Json::Value V4l2web::format(const Json::Value & input)
 	format.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (0 == ioctl(fd,VIDIOC_G_FMT,&format))
 	{
-		output["width"]     = format.fmt.pix.width;
-		output["height"]    = format.fmt.pix.height;
-		output["sizeimage"] = format.fmt.pix.sizeimage;
-		output["format"]    = V4l2Device::fourcc(format.fmt.pix.pixelformat);			
+		output["width"]        = format.fmt.pix.width;
+		output["height"]       = format.fmt.pix.height;
+		output["sizeimage"]    = format.fmt.pix.sizeimage;
+		output["bytesperline"] = format.fmt.pix.bytesperline;
+		output["colorspace"]   = getColorspace(format.fmt.pix.colorspace);
+		output["field"]        = getField(format.fmt.pix.field);
+		output["format"]       = V4l2Device::fourcc(format.fmt.pix.pixelformat);			
 		
 	}
 	struct v4l2_streamparm parm;
