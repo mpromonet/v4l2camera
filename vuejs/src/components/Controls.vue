@@ -26,6 +26,7 @@
           :max="c.maximum" 
           :step="c.step"
           ticks="always"
+          :disabled="disabled(c.flags)"
           @update:modelValue="updateValue(c.id,c.value)"
         >
           <template v-slot:prepend>{{c.minimum}}</template>
@@ -65,6 +66,9 @@ export default {
     },
     getItems(menu) {
       return menu.map(item => ({"title": item.label, "value": item.value}));
+    },
+    disabled(flags) {
+      return (flags.find( (f) => f === "V4L2_CTRL_FLAG_INACTIVE") !== undefined);
     }
   }
 };

@@ -50,12 +50,15 @@ Json::Value getControlMenu(int fd, int id, int type, int min, int max) {
 
 Json::Value getControlFlag(int ctrlflags) {
 	Json::Value flags(Json::ValueType::arrayValue);
-	if (ctrlflags & V4L2_CTRL_FLAG_DISABLED  ) flags.append("V4L2_CTRL_FLAG_DISABLED"  );
-	if (ctrlflags & V4L2_CTRL_FLAG_GRABBED   ) flags.append("V4L2_CTRL_FLAG_GRABBED"   );
-	if (ctrlflags & V4L2_CTRL_FLAG_READ_ONLY ) flags.append("V4L2_CTRL_FLAG_READ_ONLY" );
-	if (ctrlflags & V4L2_CTRL_FLAG_UPDATE    ) flags.append("V4L2_CTRL_FLAG_UPDATE"    );
-	if (ctrlflags & V4L2_CTRL_FLAG_SLIDER    ) flags.append("V4L2_CTRL_FLAG_SLIDER"    );
-	if (ctrlflags & V4L2_CTRL_FLAG_WRITE_ONLY) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY");
+	if (ctrlflags & V4L2_CTRL_FLAG_GRABBED         ) flags.append("V4L2_CTRL_FLAG_GRABBED"         );
+	if (ctrlflags & V4L2_CTRL_FLAG_READ_ONLY       ) flags.append("V4L2_CTRL_FLAG_READ_ONLY"       );
+	if (ctrlflags & V4L2_CTRL_FLAG_UPDATE          ) flags.append("V4L2_CTRL_FLAG_UPDATE"          );
+	if (ctrlflags & V4L2_CTRL_FLAG_INACTIVE        ) flags.append("V4L2_CTRL_FLAG_INACTIVE"        );
+	if (ctrlflags & V4L2_CTRL_FLAG_SLIDER          ) flags.append("V4L2_CTRL_FLAG_SLIDER"          );
+	if (ctrlflags & V4L2_CTRL_FLAG_WRITE_ONLY      ) flags.append("V4L2_CTRL_FLAG_WRITE_ONLY"      );
+	if (ctrlflags & V4L2_CTRL_FLAG_VOLATILE        ) flags.append("V4L2_CTRL_FLAG_VOLATILE"        );
+	if (ctrlflags & V4L2_CTRL_FLAG_HAS_PAYLOAD     ) flags.append("V4L2_CTRL_FLAG_HAS_PAYLOAD"     );
+	if (ctrlflags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE) flags.append("V4L2_CTRL_FLAG_EXECUTE_ON_WRITE");
 	return flags;
 }
 
