@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <v-app>
     <h1>{{ msg }}</h1>
     <v-divider></v-divider>
     <Video/>
@@ -7,7 +7,7 @@
     <Format/>
     <v-divider></v-divider>
     <Controls/>
-  </div>
+  </v-app>
 </template>
 
 <script>
