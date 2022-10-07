@@ -12,13 +12,9 @@
   parts:
     ui:
       plugin: npm
-      npm-node-version: 16.17.0
+      npm-node-version: 16.17.1
       npm-include-node: true
-      source: vuejs  
-      override-build: |
-        npm version
-        npm i
-        npm run build
+      source: vuejs
   
     v4l2web:
       plugin: make
