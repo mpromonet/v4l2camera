@@ -16,28 +16,28 @@
       npm-include-node: true
       source: .  
       source-type: git
-      build-packages:
-      - make
-      - npm
       override-build: |
         npm version
         make webroot
+      build-packages:
+        - make
+        - npm
   
     v4l2web:
       plugin: make
       source: .
       source-type: git
       build-packages:
-      - g++
-      - make
-      - cmake
-      - pkg-config
-      - libjpeg-dev
-      - libssl-dev
-      - npm
+        - g++
+        - make
+        - cmake
+        - pkg-config
+        - libjpeg-dev
+        - libssl-dev
+        - npm
       stage-packages:
-      - libjpeg8
-      - libssl3
+        - libjpeg8
+        - libssl3
 
   apps:
     v4l2web:
