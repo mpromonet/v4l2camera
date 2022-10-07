@@ -15,7 +15,6 @@
       npm-node-version: 16.17.0
       npm-include-node: true
       source: vuejs  
-      source-type: git
       override-build: |
         npm version
         npm i
@@ -24,7 +23,6 @@
     v4l2web:
       plugin: make
       source: .
-      source-type: git
       build-packages:
         - g++
         - make

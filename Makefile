@@ -93,15 +93,13 @@ CFLAGS += -I libhttpjsonserver/inc  -I libhttpjsonserver/civetweb/include -I lib
 LIBS+=libhttpjsonserver.a -lssl -lcrypto
 
 # libv4l2cpp
-libv4l2wrapper.a: 
-	git submodule init v4l2wrapper
-	git submodule update v4l2wrapper
-	make -C v4l2wrapper
-	mv v4l2wrapper/libv4l2wrapper.a .
-	make -C v4l2wrapper clean
+liblibv4l2cpp.a: 
+	git submodule update --init libv4l2cpp
+	cd libv4l2cpp && cmake . && make libv4l2cpp
+	mv libv4l2cpp/$@ .
 	
-CFLAGS += -I v4l2wrapper/inc 
-LIBS+=libv4l2wrapper.a
+CFLAGS += -I libv4l2cpp/inc 
+LIBS+=liblibv4l2cpp.a
 
 v4l2web: $(wildcard src/*.cpp) $(LIBS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
