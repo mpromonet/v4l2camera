@@ -18,8 +18,6 @@
   
     v4l2web:
       plugin: make
-      make-parameters:
-        - v4l2web
       source: .
       build-packages:
         - g++
@@ -28,10 +26,11 @@
         - pkg-config
         - libjpeg-dev
         - libssl-dev
-        - npm
       stage-packages:
         - libjpeg8
         - libssl3
+      environment:
+        PATH: $SNAPCRAFT_PART_INSTALL/../ui/bin:$PATH       
 
   apps:
     v4l2web:
