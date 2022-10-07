@@ -18,6 +18,8 @@
   
     v4l2web:
       plugin: make
+      make-parameters:
+        - v4l2web
       source: .
       build-packages:
         - g++
