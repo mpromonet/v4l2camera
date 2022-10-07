@@ -36,4 +36,4 @@
     v4l2web:
       command: bin/v4l2web -P $SNAP/share/v4l2web/webroot
       daemon: simple   
-      plugs: [network-bind]
+      plugs: [network-bind, media-control]
