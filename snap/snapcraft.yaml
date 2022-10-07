@@ -14,14 +14,12 @@
       plugin: npm
       npm-node-version: 16.17.0
       npm-include-node: true
-      source: .  
+      source: vuejs  
       source-type: git
       override-build: |
         npm version
-        make webroot
-      build-packages:
-        - make
-        - npm
+        npm i
+        npm run build
   
     v4l2web:
       plugin: make
