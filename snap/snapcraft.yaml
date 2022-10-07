@@ -29,7 +29,7 @@
       stage-packages:
         - libjpeg8
         - libssl3
-      environment:
+      build-environment:
         PATH: $SNAPCRAFT_PART_INSTALL/../ui/bin:$PATH       
 
   apps:
