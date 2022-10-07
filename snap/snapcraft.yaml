@@ -30,7 +30,7 @@
         - libjpeg8
         - libssl3
       build-environment:
-        PATH: $SNAPCRAFT_PART_INSTALL/../ui/bin:$PATH       
+        - PATH: $SNAPCRAFT_PART_INSTALL/../ui/bin:$PATH       
 
   apps:
     v4l2web:
