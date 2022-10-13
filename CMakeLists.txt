@@ -23,7 +23,6 @@ add_subdirectory(libhttpjsonserver EXCLUDE_FROM_ALL)
 target_link_libraries (${PROJECT_NAME} httpjsonserver)
 
 # v4l2tools
-add_subdirectory(v4l2tools EXCLUDE_FROM_ALL)
 include_directories("v4l2tools/include")
 
 # install
