@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture.get(), audioCapture.get(), videoOutput.get(), options, rtspport, verbose);
+		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, verbose);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 

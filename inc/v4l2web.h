@@ -54,7 +54,8 @@ class V4l2web {
 		std::atomic<bool>                                             m_askToInterupt;
 
 		V4l2Capture*                                                  m_videoCapture;
-		DeviceInterface*                                              m_audioCapture;
+		DeviceInterface*                                              m_videoInterface;
+		DeviceInterface*                                              m_audioInterface;
 		V4l2Output*                                                   m_videoOutput;
 		Codec*                                                        m_encoder;
 
