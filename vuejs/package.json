@@ -1,5 +1,5 @@
 {
-  "name": "v4l2camera",
+  "name": "v4l2camera-ui",
   "version": "0.0.0",
   "scripts": {
     "serve": "vite --host=0.0.0.0 preview",
