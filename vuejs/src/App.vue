@@ -25,7 +25,7 @@ export default {
     Video
   },
   mounted() {
-    axios({ method: "GET", url: config.serviceurl + "/api/capabilities" }).then(
+    axios.get(config.serviceurl + "/api/capabilities").then(
       (response) => this.msg = response.data.card
     );
   },

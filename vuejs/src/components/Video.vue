@@ -37,10 +37,10 @@ export default {
     };
   },
   mounted() {
-    axios({ method: "GET", url: config.serviceurl + "/api/rtspinfo" }).then(
+    axios.get(config.serviceurl + "/api/rtspinfo").then(
       (response) => this.rtspinfo = response.data
     );
-    axios({ method: "GET", url: config.serviceurl + "/api/isCapturing" }).then(
+    axios.get(config.serviceurl + "/api/isCapturing").then(
       (response) => this.visibility = response.data
     );
   },

@@ -93,11 +93,11 @@ import config from '../config.js';
 
 export default {
   mounted() {
-    axios({ method: "GET", url: config.serviceurl + "/api/formats" }).then(
+    axios.get(config.serviceurl + "/api/formats").then(
       (response) => {
         this.formats = response.data;
 
-        axios({ method: "GET", url: config.serviceurl + "/api/format" }).then(
+        axios.get(config.serviceurl + "/api/format").then(
           (response) => {
             this.format = response.data;
             this.updateFormatFields();
@@ -123,11 +123,11 @@ export default {
 		  );
 	  },
     updateGeometry() {
-      console.log(this.geometry)
-      const sizes = this.geometry.split('x');
-      this.format.width = parseInt(sizes[0]);
-      this.format.height = parseInt(sizes[1]);
-      this.updateValue(this.format);
+        console.log(this.geometry)
+        const sizes = this.geometry.split('x');
+        this.format.width = parseInt(sizes[0]);
+        this.format.height = parseInt(sizes[1]);
+        this.updateValue(this.format);
 	  },
     updateFormatFields() {
         this.geometry = `${this.format.width}x${this.format.height}`;
@@ -141,7 +141,7 @@ export default {
         return formats.sort((a,b) => a.width*a.height - b.width*b.height).map(item => `${item.width}x${item.height}`);
     },
     getFps(formats) {
-      return formats.filter((fmt) => fmt.width + 'x' + fmt.height == this.geometry)[0].intervals.map(f => f.fps);
+        return formats.filter((fmt) => fmt.width + 'x' + fmt.height == this.geometry)[0].intervals.map(f => f.fps);
     }
   }
 };
