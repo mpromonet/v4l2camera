@@ -26,6 +26,7 @@
               :max="format.frameSizes[0].width.max"
               :step="format.frameSizes[0].width.step" 
               color="blue"
+              thumb-label="always"
               @update:modelValue="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].width.min}}</template>
@@ -37,6 +38,7 @@
               :min="format.frameSizes[0].height.min"
               :max="format.frameSizes[0].height.max"
               color="blue"
+              thumb-label="always"
               :step="format.frameSizes[0].height.step" @change="alert($event)"
               @update:modelValue="updateValue(format)"
             >
@@ -68,7 +70,7 @@
             :min="format.frameSizes[0].intervals[0].fps.min"
             :max="format.frameSizes[0].intervals[0].fps.max"
             color="blue"
-            thumb-label="true"
+            thumb-label="always"
             :step="format.frameSizes[0].intervals[0].fps.step" 
             @update:modelValue="updateValue(format)"
           >

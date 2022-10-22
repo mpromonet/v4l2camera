@@ -26,6 +26,7 @@
           :max="c.maximum" 
           :step="c.step"
           ticks="always"
+          thumb-label="always"
           :disabled="disabled(c.flags)"
           @update:modelValue="updateValue(c.id,c.value)"
         >
