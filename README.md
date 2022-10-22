@@ -14,7 +14,7 @@ The civetweb HTTP server give access to the Video4Linux interface, web interface
  
 Build
 ------- 
-	make
+	cmake . && make
 
 Usage
 ------- 
@@ -51,4 +51,4 @@ The container entry point is the v4l2web application, then you can :
 
 * run the container specifying some paramters :
 
-        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2camera -W800 -H600 
+        docker run --device=/dev/video0 -p 8080:8080 -it mpromonet/v4l2camera -G 800x600x25 
