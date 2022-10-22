@@ -4,6 +4,7 @@ v4l2web
 */node_modules/**
 webroot
 live
+live555-latest.tar.gz
 CMakeFiles/
 *.cmake
 CMakeCache.txt
