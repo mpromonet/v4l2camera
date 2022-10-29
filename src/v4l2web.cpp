@@ -157,17 +157,28 @@ void V4l2web::capturing()
 				timeval ref;
 				gettimeofday(&ref, NULL);	
 				int bufferSize = m_videoCapture->getBufferSize();
-				char buf[bufferSize];
+				char* buf = new char[bufferSize];
 				ssize_t size = m_videoCapture->read(buf, bufferSize);
 				LOG(DEBUG) << "read size:" << size << " buffersize:" << bufferSize;
 				
 				// post to subscribers
 				if (size>0)
 				{
-					m_httpServer.publishBin("/ws",buf, size);
+					// publish to websocket
+					std::string frame;
+					V4L2DeviceSource* source = (V4L2DeviceSource*)m_videoReplicator->inputSource();
+					if (source) {
+						std::list<std::string> initFrames = source->getInitFrames();
+						for (auto f : initFrames) {
+							frame.append(f);
+						}
+					}
+					frame.append(buf, size);
+					m_httpServer.publishBin("/ws", frame.c_str(), frame.size());
+
+					// publish to RTSP 
 					if (m_videoReplicator)
 					{
-						V4L2DeviceSource* source = (V4L2DeviceSource*)m_videoReplicator->inputSource();
 						char* buffer = new char[size];
 						memcpy(buffer, buf, size);	
 						source->postFrame(buffer, size, ref);
@@ -179,6 +190,7 @@ void V4l2web::capturing()
 				if (m_encoder && m_videoOutput) {
 					m_encoder->convertAndWrite(buf, size, m_videoOutput);
 				}
+				delete [] buf;
 			}
 		} else {
 			sleep(1); 
