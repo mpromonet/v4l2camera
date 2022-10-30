@@ -7,12 +7,12 @@
       <v-row>
         <v-expansion-panels>
           <v-expansion-panel>
-              <v-expansion-panel-header>Format</v-expansion-panel-header>
-              <v-expansion-panel-content><Format/></v-expansion-panel-content>
+              <v-expansion-panel-title>Format</v-expansion-panel-title>
+              <v-expansion-panel-text><Format/></v-expansion-panel-text>
           </v-expansion-panel>
           <v-expansion-panel>
-              <v-expansion-panel-header>Controls</v-expansion-panel-header>
-              <v-expansion-panel-content><Controls/></v-expansion-panel-content>
+              <v-expansion-panel-title>Controls</v-expansion-panel-title>
+              <v-expansion-panel-text><Controls/></v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>  
       </v-row>
