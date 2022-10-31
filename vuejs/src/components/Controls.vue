@@ -2,13 +2,17 @@
   <v-container>
     <v-row v-for="c in controls" :key="c.name">
       <v-col>{{ c.name }}</v-col>
-      <v-col cols="8" v-if="c.menu">
+      <v-col cols="7" v-if="c.menu">
           <v-select :items="getItems(c.menu)"
                     v-model.number="c.value"
                     @update:modelValue="updateValue(c.id,c.value)">
           </v-select>
       </v-col>        
-      <v-col cols="8" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
+      <v-col cols="1" v-if="c.menu">
+          <v-btn @click="updateValue(c.id,c.default_value)">{{getLabel(c.menu,c.default_value)}}</v-btn>
+      </v-col> 
+
+      <v-col cols="4" offset="3" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
         <v-switch
           v-model.number="c.value"
           color="blue"
@@ -17,7 +21,11 @@
           @update:modelValue="updateValue(c.id,c.value)">
         </v-switch>
       </v-col>        
-      <v-col cols="7" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+      <v-col cols="1" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
+          <v-btn @click="updateValue(c.id,c.default_value)">{{c.default_value ? "On" : "Off"}}</v-btn>
+      </v-col> 
+
+      <v-col cols="6" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
         <v-slider
           v-model.number="c.value" 
           color="blue"
@@ -40,6 +48,9 @@
             @update:modelValue="updateValue(c.id,c.value)">
           </v-text-field>
       </v-col>
+      <v-col cols="1" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+          <v-btn @click="updateValue(c.id,c.default_value)">{{c.default_value}}</v-btn>
+      </v-col>      
     </v-row>
   </v-container>
 </template>
@@ -70,6 +81,9 @@ export default {
     },
     disabled(flags) {
       return (flags.find( (f) => f === "V4L2_CTRL_FLAG_INACTIVE") !== undefined);
+    },
+    getLabel(menu,value) {
+      return menu.find(item => item.value === value).label;
     }
   }
 };
