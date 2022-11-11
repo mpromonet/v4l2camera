@@ -10,7 +10,7 @@
     "axios": "^1.0.0",
     "jmuxer": "^2.0.5",
     "vue": "^3.2.29",
-    "vuetify": "^3.0.0-beta.11"
+    "vuetify": "^3.0.0"
   },
   "devDependencies": {
     "@mdi/font": "^7.0.96",

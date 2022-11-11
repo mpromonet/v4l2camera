@@ -5,12 +5,12 @@
     <Video/>
     <v-container>
       <v-row>
-        <v-expansion-panels>
+        <v-expansion-panels v-model="panel">
           <v-expansion-panel>
               <v-expansion-panel-title>Format</v-expansion-panel-title>
               <v-expansion-panel-text><Format/></v-expansion-panel-text>
           </v-expansion-panel>
-          <v-expansion-panel>
+          <v-expansion-panel expand>
               <v-expansion-panel-title>Controls</v-expansion-panel-title>
               <v-expansion-panel-text><Controls/></v-expansion-panel-text>
           </v-expansion-panel>
@@ -52,7 +52,8 @@ export default {
   },
   data() {
     return {
-      msg: "..."
+      msg: "...",
+      panel: [1]
     };
   }
 }
