@@ -384,7 +384,16 @@ Json::Value V4l2web::format(const Json::Value & input)
 		if (parm.parm.capture.timeperframe.numerator != 0) fps = 1.0*parm.parm.capture.timeperframe.denominator/parm.parm.capture.timeperframe.numerator;
 		output["fps"]           = fps; 
 	}
-	
+
+	//audio
+#ifdef HAVE_ALSA	
+	if (m_audioInterface) {
+		output["audioformat"]        = V4l2RTSPServer::getAudioFormatName(m_audioInterface->getAudioFormat());
+		output["samplerate"]         = m_audioInterface->getSampleRate();
+		output["channels"]           = m_audioInterface->getChannels();
+	}
+#endif	
+
 	if (m_videoOutput) {
 		output["outformat"]    = V4l2Device::fourcc(m_videoOutput->getFormat());		
 	}

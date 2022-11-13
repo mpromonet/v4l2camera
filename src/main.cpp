@@ -41,7 +41,7 @@ void sighandler(int)
 int main(int argc, char* argv[]) 
 {	
 	int verbose=0;
-	const char *dev_name = "/dev/video0";	
+	const char *dev_name = "/dev/video0,/dev/video0";	
 	int width = 640;
 	int height = 480;	
 	int fps = 10;	
@@ -70,9 +70,6 @@ int main(int argc, char* argv[])
 			case 'v': verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 
 			case 'f': format = V4l2Device::fourcc(optarg); if (format) {videoformatList.push_back(format);};  break;
-			case 'W': width = atoi(optarg); break;
-			case 'H': height = atoi(optarg); break;
-			case 'F': fps = atoi(optarg); break;
 			case 'G': sscanf(optarg,"%dx%dx%d", &width, &height, &fps); break;
 			
 			case 'O': outFormat = V4l2Device::fourcc(optarg); break;
@@ -101,9 +98,6 @@ int main(int argc, char* argv[])
 				std::cout << "\t -R port          : RTSP server port (default "<< rtspport << ")" << std::endl;
 
 				std::cout << "\t -f format        : V4L2 capture using format" << std::endl;
-				std::cout << "\t -W width         : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height        : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps           : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
 
 				std::cout << "\t -r               : V4L2 capture using memory mapped buffers (default use read interface)" << std::endl;
@@ -149,18 +143,22 @@ int main(int argc, char* argv[])
 		audioFmtList.push_back(SND_PCM_FORMAT_S16_LE);
 		audioFmtList.push_back(SND_PCM_FORMAT_S16_BE);
 	}
-#endif	
 	std::unique_ptr<DeviceInterface> audioCapture;
-	V4L2DeviceParameters param(dev_name, videoformatList, width, height, fps, ioTypeIn, verbose);
+#endif	
+	std::istringstream is(dev_name);
+	std::string videoDev, audioDev;
+	getline(is, videoDev, ',');						
+	getline(is, audioDev);	
+	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn, verbose);
 	std::unique_ptr<V4l2Capture> videoCapture(V4l2Capture::create(param));
 	if (!videoCapture)
 	{	
-		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << dev_name; 
+		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << audioDev; 
 	}
 	else
 	{	
 #ifdef HAVE_ALSA	
-		std::string audioDevice = V4l2RTSPServer::getV4l2Alsa(dev_name);
+		std::string audioDevice = V4l2RTSPServer::getV4l2Alsa(audioDev);
 		ALSACaptureParameters param(audioDevice.c_str(), audioFmtList, audioFreq, audioNbChannels, verbose);
 		audioCapture.reset(ALSACapture::createNew(param));
 #endif	
