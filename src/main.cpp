@@ -143,8 +143,8 @@ int main(int argc, char* argv[])
 		audioFmtList.push_back(SND_PCM_FORMAT_S16_LE);
 		audioFmtList.push_back(SND_PCM_FORMAT_S16_BE);
 	}
-	std::unique_ptr<DeviceInterface> audioCapture;
 #endif	
+	std::unique_ptr<DeviceInterface> audioCapture;
 	std::istringstream is(dev_name);
 	std::string videoDev, audioDev;
 	getline(is, videoDev, ',');						

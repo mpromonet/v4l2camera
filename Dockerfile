@@ -19,7 +19,7 @@ COPY --from=builder /usr/bin/ /usr/bin/
 COPY --from=builder /usr/share/v4l2web/ /usr/share/v4l2web/
 
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates libjpeg-dev libssl-dev && rm -rf /var/lib/apt/lists/
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates libjpeg-dev libssl-dev libasound2-dev && rm -rf /var/lib/apt/lists/
 
 ENTRYPOINT [ "/usr/bin/v4l2web" ]
 CMD [ "-p", "/usr/share/v4l2web/webroot" ]
