@@ -86,6 +86,19 @@
       </v-col>
     </v-row>
      
+
+    <v-row v-if="format.audio">
+      <v-col>Audio Format</v-col>
+      <v-col cols="8">{{format.audio.format}}</v-col>
+    </v-row>    
+    <v-row v-if="format.audio">
+      <v-col>Audio Sample Rate</v-col>
+      <v-col cols="8">{{format.audio.samplerate}}</v-col>
+    </v-row>    
+    <v-row v-if="format.audio">
+      <v-col>Audio Channels</v-col>
+      <v-col cols="8">{{format.audio.channels}}</v-col>
+    </v-row>    
   </v-container>
 </template>
 

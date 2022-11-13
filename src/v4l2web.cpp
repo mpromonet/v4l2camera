@@ -388,14 +388,20 @@ Json::Value V4l2web::format(const Json::Value & input)
 	//audio
 #ifdef HAVE_ALSA	
 	if (m_audioInterface) {
-		output["audioformat"]        = V4l2RTSPServer::getAudioFormatName(m_audioInterface->getAudioFormat());
-		output["samplerate"]         = m_audioInterface->getSampleRate();
-		output["channels"]           = m_audioInterface->getChannels();
+		Json::Value audio;
+		audio["format"]        = V4l2RTSPServer::getAudioFormatName(m_audioInterface->getAudioFormat());
+		audio["samplerate"]    = m_audioInterface->getSampleRate();
+		audio["channels"]      = m_audioInterface->getChannels();
+		output["audio"]        = audio; 
 	}
 #endif	
 
 	if (m_videoOutput) {
-		output["outformat"]    = V4l2Device::fourcc(m_videoOutput->getFormat());		
+		Json::Value out;
+		out["format"]    = V4l2Device::fourcc(m_videoOutput->getFormat());
+		out["width"]     = m_videoOutput->getWidth();		
+		out["height"]    = m_videoOutput->getHeight();		
+		output["out"]    = out; 
 	}
 	
 	return output;
