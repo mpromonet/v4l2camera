@@ -32,34 +32,37 @@
 
 std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFunc() {
 	if (m_httpfunc.empty()) {
-		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->capabilities();
 		};
-		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->formats();
 		};
-		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/audioformats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
+			return this->audioformats();
+		};
+		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
 			return this->format(in);
 		};
-		m_httpfunc["/api/controls"]       = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/controls"]       = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->controls();
 		};
-		m_httpfunc["/api/control"]        = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/control"]        = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
 			return this->control(in);
 		};	
-		m_httpfunc["/api/start"]          = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/start"]          = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->start();
 		};
-		m_httpfunc["/api/stop"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/stop"]           = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->stop();
 		};
-		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->isCapturing();
 		};
-		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->getRtspInfo();
 		};
-		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value { 
+		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			Json::Value answer;
 			for (auto it : this->m_httpfunc) {
 				answer.append(it.first);
@@ -258,6 +261,19 @@ Json::Value V4l2web::formats()
 
 		formatList.append(format);
 	}
+	return formatList;
+}
+
+Json::Value V4l2web::audioformats() 
+{
+	Json::Value formatList(Json::ValueType::arrayValue);;
+#ifdef HAVE_ALSA	
+	if (m_audioInterface) {
+		for (int audiofmt : m_audioInterface->getAudioFormatList()) {
+			formatList.append(V4l2RTSPServer::getAudioFormatName(audiofmt));
+		}
+	}
+#endif	
 	return formatList;
 }
 
