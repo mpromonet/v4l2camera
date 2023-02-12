@@ -32,7 +32,6 @@ class V4l2web {
 	private:	
 		// http api callback
 		Json::Value capabilities(); 
-		Json::Value audioformats();
 		Json::Value formats();
 		Json::Value format(const Json::Value & input);
 		Json::Value controls() ;

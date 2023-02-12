@@ -38,9 +38,6 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->formats();
 		};
-		m_httpfunc["/api/audioformats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->audioformats();
-		};
 		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
 			return this->format(in);
 		};
@@ -243,7 +240,7 @@ Json::Value V4l2web::capabilities()
 Json::Value V4l2web::formats() 
 {
 	int fd = m_videoCapture->getFd();		
-	Json::Value formatList(Json::ValueType::arrayValue);
+	Json::Value videoformatList(Json::ValueType::arrayValue);
 	for (int i = 0;; i++) 
 	{
 		struct v4l2_fmtdesc     fmtdesc;
@@ -259,21 +256,22 @@ Json::Value V4l2web::formats()
 		format["format"]      = V4l2Device::fourcc(fmtdesc.pixelformat);		
 		format["frameSizes"]  = getFrameSizeList(fd, fmtdesc.pixelformat);
 
-		formatList.append(format);
+		videoformatList.append(format);
 	}
-	return formatList;
-}
 
-Json::Value V4l2web::audioformats() 
-{
-	Json::Value formatList(Json::ValueType::arrayValue);;
+	Json::Value audioformatList(Json::ValueType::arrayValue);;
 #ifdef HAVE_ALSA	
 	if (m_audioInterface) {
 		for (int audiofmt : m_audioInterface->getAudioFormatList()) {
-			formatList.append(V4l2RTSPServer::getAudioFormatName(audiofmt));
+			audioformatList.append(V4l2RTSPServer::getAudioFormatName(audiofmt));
 		}
 	}
 #endif	
+
+	Json::Value formatList;
+	formatList["video"] = videoformatList;
+	formatList["audio"] = audioformatList;
+
 	return formatList;
 }
 

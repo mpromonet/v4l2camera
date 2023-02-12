@@ -110,7 +110,7 @@ export default {
   mounted() {
     axios.get(config.serviceurl + "/api/formats").then(
       (response) => {
-        this.formats = response.data;
+        this.formats = response.data.video;
 
         axios.get(config.serviceurl + "/api/format").then(
           (response) => {
