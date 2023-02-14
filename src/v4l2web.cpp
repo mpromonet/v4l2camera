@@ -192,10 +192,32 @@ void V4l2web::capturing()
 				}
 				delete [] buf;
 			}
-		} else {
-			sleep(1); 
-		}
+	} else {
+		sleep(1); 
 	}
+}
+}
+
+Json::Value getCapabilities(int device_caps) 
+{
+	Json::Value capabilities(Json::ValueType::arrayValue);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
+	if (device_caps & V4L2_CAP_VIDEO_CAPTURE       ) capabilities.append("V4L2_CAP_VIDEO_CAPTURE"        );
+	if (device_caps & V4L2_CAP_VIDEO_OUTPUT        ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"         );
+	if (device_caps & V4L2_CAP_VIDEO_OVERLAY       ) capabilities.append("V4L2_CAP_VIDEO_OVERLAY"        );
+	if (device_caps & V4L2_CAP_VIDEO_OUTPUT_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OUTPUT_OVERLAY" );
+	if (device_caps & V4L2_CAP_AUDIO               ) capabilities.append("V4L2_CAP_AUDIO"                );
+	
+	if (device_caps & V4L2_CAP_EXT_PIX_FORMAT      ) capabilities.append("V4L2_CAP_EXT_PIX_FORMAT"       );
+	if (device_caps & V4L2_CAP_VIDEO_M2M           ) capabilities.append("V4L2_CAP_VIDEO_M2M"            );
+	if (device_caps & V4L2_CAP_META_CAPTURE        ) capabilities.append("V4L2_CAP_META_CAPTURE"         );
+	
+	if (device_caps & V4L2_CAP_READWRITE           ) capabilities.append("V4L2_CAP_READWRITE"            );
+	if (device_caps & V4L2_CAP_ASYNCIO             ) capabilities.append("V4L2_CAP_ASYNCIO"              );
+	if (device_caps & V4L2_CAP_STREAMING           ) capabilities.append("V4L2_CAP_STREAMING"            );
+		
+#endif	
+	return capabilities;
 }
 
 Json::Value V4l2web::capabilities() 
@@ -207,26 +229,10 @@ Json::Value V4l2web::capabilities()
 	if (-1 != ioctl(fd,VIDIOC_QUERYCAP,&cap))
 	{
 		json["driver"]     = (const char*)cap.driver;
+		json["version"]    = cap.version;
 		json["card"]       = (const char*)cap.card;
-		json["bus_info"]   = (const char*)cap.bus_info;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
-		Json::Value capabilities(Json::ValueType::arrayValue);
-		if (cap.device_caps & V4L2_CAP_VIDEO_CAPTURE       ) capabilities.append("V4L2_CAP_VIDEO_CAPTURE"        );
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT        ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"         );
-		if (cap.device_caps & V4L2_CAP_VIDEO_OVERLAY       ) capabilities.append("V4L2_CAP_VIDEO_OVERLAY"        );
-		if (cap.device_caps & V4L2_CAP_VIDEO_OUTPUT_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OUTPUT_OVERLAY" );
-		if (cap.device_caps & V4L2_CAP_AUDIO               ) capabilities.append("V4L2_CAP_AUDIO"                );
-		
-		if (cap.device_caps & V4L2_CAP_EXT_PIX_FORMAT      ) capabilities.append("V4L2_CAP_EXT_PIX_FORMAT"       );
-		if (cap.device_caps & V4L2_CAP_VIDEO_M2M           ) capabilities.append("V4L2_CAP_VIDEO_M2M"            );
-		if (cap.device_caps & V4L2_CAP_META_CAPTURE        ) capabilities.append("V4L2_CAP_META_CAPTURE"         );
-		
-		if (cap.device_caps & V4L2_CAP_READWRITE           ) capabilities.append("V4L2_CAP_READWRITE"            );
-		if (cap.device_caps & V4L2_CAP_ASYNCIO             ) capabilities.append("V4L2_CAP_ASYNCIO"              );
-		if (cap.device_caps & V4L2_CAP_STREAMING           ) capabilities.append("V4L2_CAP_STREAMING"            );
-			
-		json["capabilities"]   = capabilities;
-#endif		
+		json["bus_info"]   = (const char*)cap.bus_info;			
+		json["capabilities"]   = getCapabilities(cap.capabilities);	
 	}
 	else
 	{
@@ -295,20 +301,20 @@ std::string getColorspace(int colorspace) {
 }
 
 std::string getField(int field) {
-        std::string str;
-        switch (field) {
-                case V4L2_FIELD_ANY:            str = "V4L2_FIELD_ANY"           ; break;
-                case V4L2_FIELD_NONE:           str = "V4L2_FIELD_NONE"          ; break;
-                case V4L2_FIELD_TOP:            str = "V4L2_FIELD_TOP"           ; break;
-                case V4L2_FIELD_BOTTOM:         str = "V4L2_FIELD_BOTTOM"        ; break;
-                case V4L2_FIELD_INTERLACED:     str = "V4L2_FIELD_INTERLACED"    ; break;
-                case V4L2_FIELD_SEQ_TB:         str = "V4L2_FIELD_SEQ_TB"        ; break;
-                case V4L2_FIELD_SEQ_BT:         str = "V4L2_FIELD_SEQ_BT"        ; break;
-                case V4L2_FIELD_ALTERNATE:      str = "V4L2_FIELD_ALTERNATE"     ; break;
-                case V4L2_FIELD_INTERLACED_TB:  str = "V4L2_FIELD_INTERLACED_TB" ; break;
-                case V4L2_FIELD_INTERLACED_BT:  str = "V4L2_FIELD_INTERLACED_BT" ; break;
-        }
-        return str;
+	std::string str;
+	switch (field) {
+			case V4L2_FIELD_ANY:            str = "V4L2_FIELD_ANY"           ; break;
+			case V4L2_FIELD_NONE:           str = "V4L2_FIELD_NONE"          ; break;
+			case V4L2_FIELD_TOP:            str = "V4L2_FIELD_TOP"           ; break;
+			case V4L2_FIELD_BOTTOM:         str = "V4L2_FIELD_BOTTOM"        ; break;
+			case V4L2_FIELD_INTERLACED:     str = "V4L2_FIELD_INTERLACED"    ; break;
+			case V4L2_FIELD_SEQ_TB:         str = "V4L2_FIELD_SEQ_TB"        ; break;
+			case V4L2_FIELD_SEQ_BT:         str = "V4L2_FIELD_SEQ_BT"        ; break;
+			case V4L2_FIELD_ALTERNATE:      str = "V4L2_FIELD_ALTERNATE"     ; break;
+			case V4L2_FIELD_INTERLACED_TB:  str = "V4L2_FIELD_INTERLACED_TB" ; break;
+			case V4L2_FIELD_INTERLACED_BT:  str = "V4L2_FIELD_INTERLACED_BT" ; break;
+	}
+	return str;
 }
 
 
