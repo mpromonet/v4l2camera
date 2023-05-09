@@ -59,6 +59,9 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->getRtspInfo();
 		};
+		m_httpfunc["/api/version"] = [this](const struct mg_request_info *, const Json::Value &) -> Json::Value {
+			return Json::Value(VERSION);
+		};		
 		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			Json::Value answer;
 			for (auto it : this->m_httpfunc) {
@@ -79,7 +82,7 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 	return m_wsfunc;
 }
 
-int NullLogger(int verbose, const struct mg_connection *, const char *) {
+int NullLogger(const struct mg_connection *, const char *) {
 	return 1;
 }
 
