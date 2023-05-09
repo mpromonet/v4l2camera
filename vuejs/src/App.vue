@@ -21,7 +21,7 @@
     <v-footer>
       <v-container>
         <v-row align="center" justify="center">
-              <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a>
+              <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a><p>{{ version }}</p>
         </v-row>
      </v-container>
     </v-footer>
@@ -49,11 +49,14 @@ export default {
         document.title = this.msg;
       } 
     );
+    axios.get(config.serviceurl + "/api/version").then(
+      (response) => this.version = response.data); 
   },
   data() {
     return {
       msg: "...",
-      panel: [1]
+      panel: [1],
+      version: "",
     };
   }
 }
@@ -65,5 +68,8 @@ export default {
 }
 h1 {
   text-align: center;
+}
+p {
+  margin-left: 0.5em;
 }
 </style>
