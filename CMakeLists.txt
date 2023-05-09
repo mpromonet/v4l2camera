@@ -30,5 +30,9 @@ target_link_libraries (${PROJECT_NAME} httpjsonserver)
 # v4l2tools
 include_directories("v4l2tools/include")
 
+# ui
+add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)
+
 # install
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+install (DIRECTORY webroot DESTINATION data)

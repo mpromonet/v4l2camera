@@ -8,3 +8,4 @@ live555-latest.tar.gz
 CMakeFiles/
 *.cmake
 CMakeCache.txt
+_CPack_Packages/
