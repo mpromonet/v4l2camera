@@ -32,6 +32,7 @@ include_directories("v4l2tools/include")
 
 # ui
 add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui)
 
 # install
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

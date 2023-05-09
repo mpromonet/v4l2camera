@@ -2,6 +2,7 @@ CFLAGS = -W -Wall -std=c++11 -pthread -g -pipe $(CFLAGS_EXTRA)
 RM = rm -rf
 PREFIX=/usr
 DESTDIR?=$(PREFIX)
+VERSION?=$(shell git describe --tags --always --dirty)
 
 C = $(CROSS)gcc
 CXX = $(CROSS)g++
@@ -14,7 +15,7 @@ endif
 
 #
 CFLAGS += -g -fpermissive
-CFLAGS +=  -I inc
+CFLAGS +=  -I inc -DVERSION=\"$(VERSION)\"
 LDFLAGS += -ldl
 
 
