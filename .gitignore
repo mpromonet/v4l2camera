@@ -1,5 +1,6 @@
 *.o
 v4l2web
+v4l2camera
 *.a
 */node_modules/**
 webroot
@@ -9,3 +10,5 @@ CMakeFiles/
 *.cmake
 CMakeCache.txt
 _CPack_Packages/
+*.deb
+install_manifest.txt
