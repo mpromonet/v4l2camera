@@ -1,4 +1,4 @@
-name: C/C++ CI linux cross compilation arm64
+name: C/C++ CI linux cross compilation
 
 on: [push]
 
@@ -22,11 +22,32 @@ jobs:
           crosscompiler: arm-linux-gnueabihf
 
         - buildtype: Debug
+          system: arm
+          crosscompiler: arm-linux-gnueabi
+        - buildtype: Release
+          system: arm
+          crosscompiler: arm-linux-gnueabi
+
+        - buildtype: Debug
           system: mips
           crosscompiler: mips-linux-gnu
         - buildtype: Release
           system: mips
           crosscompiler: mips-linux-gnu
+
+        - buildtype: Debug
+          system: mipsel
+          crosscompiler: mipsel-linux-gnu
+        - buildtype: Release
+          system: mipsel
+          crosscompiler: mipsel-linux-gnu
+
+        - buildtype: Debug
+          system: riscv64
+          crosscompiler: riscv64-linux-gnu
+        - buildtype: Release
+          system: riscv64
+          crosscompiler: riscv64-linux-gnu
 
     runs-on: ubuntu-latest
     
