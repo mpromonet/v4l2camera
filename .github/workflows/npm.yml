@@ -11,8 +11,9 @@ jobs:
               git submodule update --init
               git fetch --prune --unshallow --tags
               
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
+          registry-url: 'https://npm.pkg.github.com'
           always-auth: true
           
       - run: |
@@ -26,7 +27,12 @@ jobs:
       - run: cd vuejs && npm publish --registry https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                        
+              
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+          
       - run: cd vuejs && npm publish --registry https://registry.npmjs.org --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
