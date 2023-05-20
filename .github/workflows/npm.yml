@@ -13,8 +13,7 @@ jobs:
               
       - uses: actions/setup-node@v3
         with:
-          registry-url: 'https://npm.pkg.github.com'
-          scope: mpromonet
+          always-auth: true
           
       - run: |
               cd vuejs
@@ -24,15 +23,10 @@ jobs:
               cat $(npm config get userconfig)              
               npm version $(git describe --tags --always)
           
-      - run: cd vuejs && npm publish
+      - run: cd vuejs && npm publish --registry https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              
-      - uses: actions/setup-node@v3
-        with:
-          registry-url: 'https://registry.npmjs.org'
-          always-auth: true
-          
-      - run: cd vuejs && npm publish --access public
+                        
+      - run: cd vuejs && npm publish --registry https://registry.npmjs.org --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
