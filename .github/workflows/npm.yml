@@ -22,7 +22,9 @@ jobs:
               npm config set git-tag-version=false
               npm version $(git describe --tags --always)
               
-      - run: npm publish --access public -C vuejs
+      - run: |
+              cd vuejs 
+              npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
           
@@ -30,7 +32,9 @@ jobs:
         with:
           registry-url: 'https://npm.pkg.github.com'
           
-      - run: npm publish -C vuejs
+      - run: |
+              cd vuejs 
+              npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
