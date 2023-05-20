@@ -11,7 +11,7 @@ jobs:
               git submodule update --init
               git fetch --prune --unshallow --tags
               
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v2
         with:
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
@@ -28,7 +28,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
           
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v2
         with:
           registry-url: 'https://npm.pkg.github.com'
           scope: ${{ github.repository_owner }}
