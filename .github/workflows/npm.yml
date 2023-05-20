@@ -6,38 +6,22 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
       - run: |
               git submodule update --init
               git fetch --prune --unshallow --tags
-              
       - uses: actions/setup-node@v1
         with:
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
-
+      - run: npm install
       - run: |
               cd vuejs
               npm install
               npm config set git-tag-version=false
               npm config ls -l
-              cat $(npm config get userconfig)              
+              cat $(npm config get userconfig)
               npm version $(git describe --tags --always)
-
-      - run: cd vuejs && npm publish --access public
+              npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          
-      - uses: actions/setup-node@v1
-        with:
-          registry-url: 'https://npm.pkg.github.com'
-          scope: ${{ github.repository_owner }}
-          always-auth: true
-
-      - run: npm init -y --scope ${{ github.repository_owner }}
-
-      - run: cd vuejs && npm publish 
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              
-          
