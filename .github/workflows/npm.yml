@@ -14,7 +14,6 @@ jobs:
         with:
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
-      - run: npm install
       - run: |
               cd vuejs
               npm install
