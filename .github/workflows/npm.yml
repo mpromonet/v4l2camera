@@ -13,28 +13,27 @@ jobs:
               
       - uses: actions/setup-node@v3
         with:
-          registry-url: 'https://registry.npmjs.org'
-          always-auth: true
+          registry-url: 'https://npm.pkg.github.com'
           
       - run: |
               cd vuejs
               npm install
               npm config set git-tag-version=false
               npm version $(git describe --tags --always)
-              
-      - run: |
-              cd vuejs 
-              npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          
-      - uses: actions/setup-node@v3
-        with:
-          registry-url: 'https://npm.pkg.github.com'
           
       - run: |
               cd vuejs 
               npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
           
+      - run: |
+              cd vuejs 
+              npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
