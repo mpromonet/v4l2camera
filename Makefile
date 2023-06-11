@@ -19,7 +19,7 @@ CFLAGS +=  -I inc -DVERSION=\"$(VERSION)\"
 LDFLAGS += -ldl
 
 
-all: v4l2web webroot
+all: v4l2web vuejs/dist
 
 upgrade:
 	git submodule foreach git pull origin master
@@ -106,7 +106,7 @@ v4l2web: $(wildcard src/*.cpp) $(LIBS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
-	-@$(RM) -rf v4l2web webroot .*o *.a
+	-@$(RM) -rf v4l2web vuejs/dist .*o *.a
 
 install: all
 	mkdir -p $(DESTDIR)/bin
