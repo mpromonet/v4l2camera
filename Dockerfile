@@ -3,7 +3,7 @@ FROM node:latest as npm
 WORKDIR /v4l2web	
 COPY . /v4l2web
 
-RUN make webroot
+RUN make vuejs/dist
 
 FROM $IMAGE as builder
 WORKDIR /v4l2web	

@@ -27,7 +27,7 @@ upgrade:
 vuejs/node_modules:
 	npm i -C vuejs
 
-webroot: vuejs/node_modules $(wildcard vuejs/src/* vuejs/src/*/*)
+vuejs/dist: vuejs/node_modules $(wildcard vuejs/src/* vuejs/src/*/*)
 	npm run build -C vuejs
 
 # v4l2tools
@@ -112,5 +112,5 @@ install: all
 	mkdir -p $(DESTDIR)/bin
 	install -D -m 0755 v4l2web $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/share/v4l2web
-	cp -pr vuejs/dist $(DESTDIR)/share/v4l2web/
+	cp -pr vuejs/dist/* $(DESTDIR)/share/v4l2web/
 
