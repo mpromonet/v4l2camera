@@ -112,5 +112,5 @@ install: all
 	mkdir -p $(DESTDIR)/bin
 	install -D -m 0755 v4l2web $(DESTDIR)/bin
 	mkdir -p $(DESTDIR)/share/v4l2web
-	cp -pr webroot $(DESTDIR)/share/v4l2web/
+	cp -pr vuejs/dist $(DESTDIR)/share/v4l2web/
 
