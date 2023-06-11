@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
+option (WITH_COMPRESS "Enable compression" ON)
+
 # set project name from current directory
 get_filename_component(BASENAME ${CMAKE_SOURCE_DIR} NAME)
 project(${BASENAME})
+
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -28,7 +31,10 @@ add_subdirectory(libhttpjsonserver EXCLUDE_FROM_ALL)
 target_link_libraries (${PROJECT_NAME} httpjsonserver)
 
 # v4l2tools
-include_directories("v4l2tools/include")
+if (WITH_COMPRESS)
+	include_directories("v4l2tools/include")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE WITH_COMPRESS=1)
+endif()
 
 # ui
 add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)

@@ -92,7 +92,9 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_videoInterface(new VideoCaptureAccess(m_videoCapture)),
 	m_audioInterface(audioCapture),
 	m_videoOutput(videoOutput),
+#ifdef WITH_COMPRESS
 	m_encoder(NULL),
+#endif
 	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options, verbose ? NULL : NullLogger),
 	m_isCapturing(true),
 	m_stopCapturing(false),
@@ -103,6 +105,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_stopStreaming(0) {	
 
 		
+#ifdef WITH_COMPRESS
 	if (m_videoOutput && m_videoCapture) {
 		std::map<std::string,std::string> opt;
 		m_encoder = CodecFactory::get().Create(m_videoCapture->getFormat(), m_videoOutput->getFormat(), m_videoCapture->getWidth(), m_videoCapture->getHeight(), opt, 0);
@@ -111,6 +114,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(m_videoOutput->getFormat()); 
 		}
 	}
+#endif
 			
 	m_capturing = std::thread([this]() {
 		this->capturing();
@@ -193,10 +197,12 @@ void V4l2web::capturing()
 					}
 				}
 
+#ifdef WITH_COMPRESS
 				// encode
 				if (m_encoder && m_videoOutput) {
 					m_encoder->convertAndWrite(buf, size, m_videoOutput);
 				}
+#endif
 				delete [] buf;
 			}
 	} else {
@@ -357,6 +363,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 
 		m_videoCapture->start();
 		
+#ifdef WITH_COMPRESS
 		std::string outformatStr = input.get("outformat","").asString();
 		if (!outformatStr.empty() && m_videoOutput) {
 			if (m_encoder) {
@@ -378,6 +385,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 				LOG(WARN) << "Cannot create encoder " << outformatStr; 
 			}
 		}
+#endif
 	}
 
 	// query the format

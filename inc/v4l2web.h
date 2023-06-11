@@ -19,9 +19,12 @@
 #include "json/json.h"
 
 #include "HttpServerRequestHandler.h"
-#include "codecfactory.h"
 #include "V4l2RTSPServer.h"
 #include "VideoCaptureAccess.h"
+
+#ifdef WITH_COMPRESS
+#include "codecfactory.h"
+#endif
 
 class V4l2web {
 	public:
@@ -56,7 +59,9 @@ class V4l2web {
 		DeviceInterface*                                              m_videoInterface;
 		DeviceInterface*                                              m_audioInterface;
 		V4l2Output*                                                   m_videoOutput;
+#ifdef WITH_COMPRESS
 		Codec*                                                        m_encoder;
+#endif
 
 		std::map<std::string,HttpServerRequestHandler::httpFunction>  m_httpfunc;
 		std::map<std::string,HttpServerRequestHandler::wsFunction>    m_wsfunc;
