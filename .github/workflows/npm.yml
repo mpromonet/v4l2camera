@@ -19,7 +19,7 @@ jobs:
               npm install
               npm config set git-tag-version=false
               npm version $(git describe --tags --always)
-              npm pack
+              npm run build
               npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
