@@ -18,9 +18,8 @@ jobs:
               cd vuejs
               npm install
               npm config set git-tag-version=false
-              npm config ls -l
-              cat $(npm config get userconfig)
               npm version $(git describe --tags --always)
+              npm pack
               npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
