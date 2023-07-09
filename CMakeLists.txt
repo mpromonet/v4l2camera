@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 
 option (WITH_COMPRESS "Enable compression" ON)
+option (BUILD_UI "Build ui" ON)
 
-# set project name from current directory
-get_filename_component(BASENAME ${CMAKE_SOURCE_DIR} NAME)
-project(${BASENAME})
+project(v4l2camera)
 
 
 set (CMAKE_CXX_STANDARD 11)
@@ -37,12 +36,14 @@ if (WITH_COMPRESS)
 endif()
 
 # ui
-add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui)
+if (BUILD_UI)
+	add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)
+	add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui)
+endif()
 
 # install
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install (DIRECTORY vuejs/dist DESTINATION data)
+install (DIRECTORY vuejs/dist/ DESTINATION share/${PROJECT_NAME})
 
 SET(CPACK_GENERATOR "TGZ")
 SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_BUILD_TYPE})
