@@ -3,20 +3,12 @@
     <h1>{{ msg }}</h1>
     <v-divider></v-divider>
     <Video/>
-    <v-container>
-      <v-row>
-        <v-expansion-panels v-model="panel">
-          <v-expansion-panel>
-              <v-expansion-panel-title>Format</v-expansion-panel-title>
-              <v-expansion-panel-text><Format/></v-expansion-panel-text>
-          </v-expansion-panel>
-          <v-expansion-panel expand>
-              <v-expansion-panel-title>Controls</v-expansion-panel-title>
-              <v-expansion-panel-text><Controls/></v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>  
-      </v-row>
-    </v-container>
+    <v-divider></v-divider>
+    <h3>Formats</h3>
+    <Format/>
+    <v-divider></v-divider>
+    <h3>Controls</h3>
+    <Controls/>
     <v-divider></v-divider>
     <v-footer>
       <v-container>
@@ -67,6 +59,9 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
 }
 h1 {
+  text-align: center;
+}
+h3 {
   text-align: center;
 }
 p {
