@@ -33,7 +33,7 @@ import Video from './components/Video.vue';
 import Format from './components/Format.vue';
 import Controls from './components/Controls.vue';
 import axios from "axios";
-import config from './config.js';
+axios.defaults.baseURL = process.env.VUE_APP_BASE_URL
 
 export default {
   name: 'App',
@@ -43,13 +43,13 @@ export default {
     Video
   },
   mounted() {
-    axios.get(config.serviceurl + "/api/capabilities").then(
+    axios.get("/api/capabilities").then(
       (response) =>  {
         this.msg = response.data.card
         document.title = this.msg;
       } 
     );
-    axios.get(config.serviceurl + "/api/version").then(
+    axios.get("/api/version").then(
       (response) => this.version = response.data); 
   },
   data() {

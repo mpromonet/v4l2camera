@@ -24,7 +24,7 @@
 <script>
 import axios from "axios";
 import JMuxer from 'jmuxer';
-import config from '../config.js';
+axios.defaults.baseURL = import.meta.env.VITE_APP_BASE_URL
 
 export default {
   data() {
@@ -37,10 +37,10 @@ export default {
     };
   },
   mounted() {
-    axios.get(config.serviceurl + "/api/rtspinfo").then(
+    axios.get("/api/rtspinfo").then(
       (response) => this.rtspinfo = response.data
     );
-    axios.get(config.serviceurl + "/api/isCapturing").then(
+    axios.get("/api/isCapturing").then(
       (response) => this.visibility = response.data
     );
   },
@@ -82,10 +82,10 @@ export default {
   },
   methods: {
     start() {
-      axios.get(config.serviceurl + "/api/start").then( () => this.visibility = true);
+      axios.get("/api/start").then( () => this.visibility = true);
     },
     stop() {
-      axios.get(config.serviceurl + "/api/stop").then( () => this.visibility = false);
+      axios.get("/api/stop").then( () => this.visibility = false);
     }
   }
 };

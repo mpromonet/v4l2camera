@@ -57,11 +57,11 @@
 
 <script>
 import axios from "axios";
-import config from '../config.js';
+axios.defaults.baseURL = import.meta.env.VITE_APP_BASE_URL
 
 export default {
   mounted() {
-    axios.get(config.serviceurl + "/api/controls").then(
+    axios.get("/api/controls").then(
       (response) => this.controls = response.data
     );
   },
@@ -72,7 +72,7 @@ export default {
   },
   methods: {
     updateValue(id, value) {
-      axios.post(config.serviceurl + "/api/control", {id, value} ).then(
+      axios.post("/api/control", {id, value} ).then(
         (response) => this.controls.filter((d) => d.id == id).forEach((element) => element.value = response.data.value)
       );
     },

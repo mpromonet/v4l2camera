@@ -1,5 +1,5 @@
+Makefile
 *.o
-v4l2web
 v4l2camera
 *.a
 */node_modules/**

@@ -104,15 +104,15 @@
 
 <script>
 import axios from 'axios';
-import config from '../config.js';
+axios.defaults.baseURL = import.meta.env.VITE_APP_BASE_URL
 
 export default {
   mounted() {
-    axios.get(config.serviceurl + "/api/formats").then(
+    axios.get("/api/formats").then(
       (response) => {
         this.formats = response.data.video;
 
-        axios.get(config.serviceurl + "/api/format").then(
+        axios.get("/api/format").then(
           (response) => {
             this.format = response.data;
             this.updateFormatFields();
@@ -130,7 +130,7 @@ export default {
   },
   methods: {
     updateValue(format) {
-      axios.post(config.serviceurl + "/api/format", format ).then(
+      axios.post("/api/format", format ).then(
         (response) => {
           this.format = response.data;
           this.updateFormatFields();
