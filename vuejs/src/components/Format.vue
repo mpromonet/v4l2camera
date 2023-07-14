@@ -15,11 +15,11 @@
 
     <v-row>
       <v-col>Geometry</v-col>
-      <v-col cols="8" v-if="typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
+      <v-col cols="8" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'number' && typeof format.frameSizes[0].height === 'number'">
         <v-select v-model="geometry" :items="getGeometries(format.frameSizes)" @update:modelValue="updateGeometry()">
         </v-select>
       </v-col>
-      <v-col cols="7" v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+      <v-col cols="7" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
           <v-slider
               v-model.number="format.width"
               :min="format.frameSizes[0].width.min"
@@ -46,7 +46,7 @@
             <template v-slot:append>{{format.frameSizes[0].height.max}}</template>
           </v-slider> 
       </v-col>
-      <v-col cols="1" v-if="typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
           <v-text-field
             v-model.number="format.width"
             @update:modelValue="updateValue(format)">
@@ -60,11 +60,11 @@
     
     <v-row>
       <v-col>Fps</v-col>
-      <v-col cols="8" v-if="typeof format.frameSizes[0].intervals[0].fps === 'number'" >
+      <v-col cols="8" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'number'" >
         <v-select v-model.number="format.fps" :items="getFps(format.frameSizes)">
         </v-select>
       </v-col>
-      <v-col cols="7" v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
+      <v-col cols="7" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'object'">
         <v-slider 
             v-model.number="format.fps"
             :min="format.frameSizes[0].intervals[0].fps.min"
@@ -78,7 +78,7 @@
             <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}</template>
         </v-slider>
       </v-col>
-      <v-col cols="1" v-if="typeof format.frameSizes[0].intervals[0].fps === 'object'">
+      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'object'">
           <v-text-field
             v-model.number="format.fps"
             @update:modelValue="updateValue(format)">
