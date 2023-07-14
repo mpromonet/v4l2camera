@@ -16,10 +16,10 @@ RUN apt-get update \
 FROM $IMAGE
 LABEL maintainer michel.promonet@free.fr
 COPY --from=builder /usr/bin/ /usr/bin/
-COPY --from=builder /usr/share/v4l2web/ /usr/share/v4l2web/
+COPY --from=builder /usr/share/v4l2camera/ /usr/share/v4l2camera/
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates libjpeg-dev libssl-dev libasound2-dev && rm -rf /var/lib/apt/lists/
 
-ENTRYPOINT [ "/usr/bin/v4l2web" ]
-CMD [ "-p", "/usr/share/v4l2web/webroot" ]
+ENTRYPOINT [ "/usr/bin/v4l2camera" ]
+CMD [ "-p", "/usr/share/v4l2camera" ]
