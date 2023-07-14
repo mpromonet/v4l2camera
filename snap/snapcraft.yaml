@@ -34,6 +34,6 @@
 
   apps:
     v4l2web:
-      command: bin/v4l2web -p $SNAP/share/v4l2web/webroot
+      command: bin/v4l2camera -p $SNAP/share/v4l2camera
       daemon: simple   
       plugs: [network-bind, camera, alsa]
