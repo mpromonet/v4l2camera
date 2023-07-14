@@ -33,7 +33,7 @@ import Video from './components/Video.vue';
 import Format from './components/Format.vue';
 import Controls from './components/Controls.vue';
 import axios from "axios";
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL
+axios.defaults.baseURL = import.meta.env.VITE_APP_BASE_URL
 
 export default {
   name: 'App',
