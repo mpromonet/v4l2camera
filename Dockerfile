@@ -8,7 +8,7 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-rec
 FROM $IMAGE as builder
 WORKDIR /v4l2web	
 COPY . .
-COPY --from=npm vuejs/dist vuejs/
+COPY --from=npm /v4l2web/vuejs/dist vuejs/
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake make pkg-config git libjpeg-dev libssl-dev \
