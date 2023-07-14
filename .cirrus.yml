@@ -15,8 +15,8 @@ linuxarm64_docker_builder:
   script: |
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
-    docker run --rm --privileged hypriot/qemu-register
-    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-arm64 --build-arg IMAGE=arm64v8/ubuntu:20.04 . 
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-arm64 --build-arg IMAGE=arm64v8/ubuntu:22.04 . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-arm64
 
 linuxarmv6_docker_builder:
@@ -26,7 +26,7 @@ linuxarmv6_docker_builder:
   script: |
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
-    docker run --rm --privileged hypriot/qemu-register
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-armv6 --build-arg IMAGE=balenalib/raspberry-pi . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-armv6
 linuxarmv7_docker_builder:
@@ -36,7 +36,7 @@ linuxarmv7_docker_builder:
   script: |
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
-    docker run --rm --privileged hypriot/qemu-register
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-armv7 --build-arg IMAGE=balenalib/raspberry-pi2 . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-armv7
 
