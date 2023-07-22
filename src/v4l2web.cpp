@@ -517,6 +517,7 @@ Json::Value V4l2web::getRtspInfo()
 	Json::Value answer;
 	if (m_sms) {
 		answer["url"] = m_rtspServer.getRtspUrl(m_sms);
+		answer["numClients"] = m_rtspServer.numClientSessions();
 
 		char * sdp = m_sms->generateSDPDescription(AF_INET);
 		answer["media"] = sdp;
