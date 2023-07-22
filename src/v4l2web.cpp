@@ -518,16 +518,9 @@ Json::Value V4l2web::getRtspInfo()
 	if (m_sms) {
 		answer["url"] = m_rtspServer.getRtspUrl(m_sms);
 
-		Json::Value session;
-		ServerMediaSubsessionIterator iter(*m_sms);
-		ServerMediaSubsession* subsession;
-		while ((subsession = iter.next()) != NULL) {
-			const char *sdp = subsession->sdpLines(0);
-			if (sdp) {
-				session[subsession->name()] = subsession->sdpLines(0);
-			}
-		}
-		answer["media"] = session;
+		char * sdp = m_sms->generateSDPDescription(AF_INET);
+		answer["media"] = sdp;
+		delete [] sdp;
 	}
 	return answer;	
 }
