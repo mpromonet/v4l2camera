@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	const char *dev_name = "/dev/video0,/dev/video0";	
 	int width = 640;
 	int height = 480;	
-	int fps = 10;	
+	int fps = 25;	
 	int c = 0;
 	const char * port = "8080";
 	int rtspport = 8554;
