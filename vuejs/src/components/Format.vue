@@ -46,7 +46,7 @@
             <template v-slot:append>{{format.frameSizes[0].height.max}}</template>
           </v-slider> 
       </v-col>
-      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object'">
+      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object' || !format.frameSizes || !format.frameSizes.length">
           <v-text-field
             v-model.number="format.width"
             @update:modelValue="updateValue(format)">
@@ -78,7 +78,7 @@
             <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}</template>
         </v-slider>
       </v-col>
-      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'object'">
+      <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'object' || !format.frameSizes || !format.frameSizes.length">
           <v-text-field
             v-model.number="format.fps"
             @update:modelValue="updateValue(format)">

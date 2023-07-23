@@ -33,7 +33,6 @@
           :min="c.minimum"
           :max="c.maximum" 
           :step="c.step"
-          ticks="always"
           thumb-label="always"
           :disabled="disabled(c.flags)"
           @update:modelValue="updateValue(c.id,c.value)"
@@ -60,9 +59,7 @@ import axios from "axios";
 
 export default {
   mounted() {
-    axios.get("/api/controls").then(
-      (response) => this.controls = response.data
-    );
+    this.updateAll();
   },
   data() {
     return {
@@ -70,10 +67,15 @@ export default {
     };
   },
   methods: {
+    updateAll() {
+      axios.get("/api/controls").then(
+        (response) => this.controls = response.data
+      );
+    },
     updateValue(id, value) {
       axios.post("/api/control", {id, value} ).then(
         (response) => this.controls.filter((d) => d.id == id).forEach((element) => element.value = response.data.value)
-      );
+      ).finally(() => this.updateAll());
     },
     getItems(menu) {
       return menu.map(item => ({"title": item.label, "value": item.value}));
