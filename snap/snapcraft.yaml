@@ -21,7 +21,6 @@
       source: .
       build-packages:
         - g++
-        - make
         - pkg-config
         - libjpeg-dev
         - libssl-dev
@@ -31,7 +30,6 @@
       build-environment:
         - PATH: $SNAPCRAFT_PART_INSTALL/../../ui/install/bin:$PATH       
       cmake-parameters:
-        - -DBUILD_UI=OFF
         - -DWITH_COMPRESS=OFF
 
   apps:
