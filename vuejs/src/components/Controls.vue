@@ -35,7 +35,7 @@
           :step="c.step"
           thumb-label="always"
           :disabled="disabled(c.flags)"
-          @update:modelValue="updateValue(c.id,c.value)"
+          @end="updateValue(c.id,c.value)"
         >
           <template v-slot:prepend>{{c.minimum}}</template>
           <template v-slot:append>{{c.maximum}}</template>

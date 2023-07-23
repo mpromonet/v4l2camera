@@ -25,9 +25,10 @@
               :min="format.frameSizes[0].width.min"
               :max="format.frameSizes[0].width.max"
               :step="format.frameSizes[0].width.step" 
+              label="Width"
               color="blue"
               thumb-label="always"
-              @update:modelValue="updateValue(format)"
+              @end="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].width.min}}</template>
             <template v-slot:append>{{format.frameSizes[0].width.max}}</template>
@@ -37,10 +38,11 @@
               v-model.number="format.height"
               :min="format.frameSizes[0].height.min"
               :max="format.frameSizes[0].height.max"
+              label="Height"
               color="blue"
               thumb-label="always"
               :step="format.frameSizes[0].height.step" @change="alert($event)"
-              @update:modelValue="updateValue(format)"
+              @end="updateValue(format)"
             >
             <template v-slot:prepend>{{format.frameSizes[0].height.min}}</template>
             <template v-slot:append>{{format.frameSizes[0].height.max}}</template>
@@ -48,10 +50,12 @@
       </v-col>
       <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].width === 'object' && typeof format.frameSizes[0].height === 'object' || !format.frameSizes || !format.frameSizes.length">
           <v-text-field
+            label="Width"
             v-model.number="format.width"
             @update:modelValue="updateValue(format)">
           </v-text-field>
           <v-text-field
+            label="Height"
             v-model.number="format.height"
             @update:modelValue="updateValue(format)">
           </v-text-field>
@@ -69,10 +73,11 @@
             v-model.number="format.fps"
             :min="format.frameSizes[0].intervals[0].fps.min"
             :max="format.frameSizes[0].intervals[0].fps.max"
+            label="Fps"
             color="blue"
             thumb-label="always"
             :step="format.frameSizes[0].intervals[0].fps.step" 
-            @update:modelValue="updateValue(format)"
+            @end="updateValue(format)"
           >
             <template v-slot:prepend>{{format.frameSizes[0].intervals[0].fps.min}}</template>
             <template v-slot:append>{{format.frameSizes[0].intervals[0].fps.max}}</template>
@@ -80,6 +85,7 @@
       </v-col>
       <v-col cols="1" v-if="format.frameSizes && format.frameSizes[0] && typeof format.frameSizes[0].intervals[0].fps === 'object' || !format.frameSizes || !format.frameSizes.length">
           <v-text-field
+            label="Fps"
             v-model.number="format.fps"
             @update:modelValue="updateValue(format)">
           </v-text-field>
