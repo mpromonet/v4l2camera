@@ -25,7 +25,7 @@ Usage
          -p path          : server root path (default webroot)
          -R port          : RTSP server port (default 8554)
          -f format        : V4L2 capture using format
-         -G <w>x<h>[x<f>] : V4L2 capture format (default 640x480x10)
+         -G <w>x<h>[x<f>] : V4L2 capture geometry (default 640x480x25)
          -r               : V4L2 capture using memory mapped buffers (default use read interface)
          -w               : V4L2 capture using write interface (default use memory mapped buffers)
          device           : V4L2 capture device (default /dev/video0)
