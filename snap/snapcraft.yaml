@@ -22,10 +22,8 @@
       build-packages:
         - g++
         - pkg-config
-        - libjpeg-dev
         - libssl-dev
       stage-packages:
-        - libjpeg8
         - libssl3
       build-environment:
         - PATH: $SNAPCRAFT_PART_INSTALL/../../ui/install/bin:$PATH       
