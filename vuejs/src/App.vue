@@ -47,7 +47,6 @@ export default {
   data() {
     return {
       msg: "...",
-      panel: [1],
       version: "",
     };
   }

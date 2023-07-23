@@ -42,10 +42,10 @@ class V4l2web {
 		Json::Value start();
 		Json::Value stop();
 		Json::Value isCapturing();
-		Json::Value getRtspInfo();
+		Json::Value rtspInfo(const Json::Value & input);
 		
 		void capturing();
-		void createRtspSession();
+		void createRtspSession(const std::string & rtspuri);
 	
 		std::map<std::string,HttpServerRequestHandler::httpFunction>& getHttpFunc();
 		std::map<std::string,HttpServerRequestHandler::wsFunction>&   getWsFunc();
@@ -78,6 +78,7 @@ class V4l2web {
 		std::thread                                                   m_streaming;
 		char                                                          m_stopStreaming;
 		std::string                                                   m_snapshot;
+		std::string                                                   m_rtspuri;
 };
 
 

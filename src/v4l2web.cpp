@@ -56,8 +56,8 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
 			return this->isCapturing();
 		};
-		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->getRtspInfo();
+		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
+			return this->rtspInfo(in);
 		};
 		m_httpfunc["/api/version"] = [this](const struct mg_request_info *, const Json::Value &) -> Json::Value {
 			return Json::Value(VERSION);
@@ -102,7 +102,8 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_videoReplicator(NULL),
 	m_audioReplicator(NULL),
 	m_sms(NULL),
-	m_stopStreaming(0) {	
+	m_stopStreaming(0),
+	m_rtspuri("") {	
 
 		
 #ifdef WITH_COMPRESS
@@ -132,7 +133,7 @@ V4l2web::~V4l2web() {
 	m_streaming.join();
 }
 
-void V4l2web::createRtspSession()
+void V4l2web::createRtspSession(const std::string & rtspuri)
 {
 	if (m_sms) {
 		m_rtspServer.RemoveSession(m_sms);
@@ -143,13 +144,14 @@ void V4l2web::createRtspSession()
 	m_videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), m_videoInterface, 10, V4L2DeviceSource::NOCAPTURE);
 	if (m_videoReplicator)
 	{
-		m_sms = m_rtspServer.AddUnicastSession("", m_videoReplicator, m_audioReplicator);			
+		m_sms = m_rtspServer.AddUnicastSession(rtspuri, m_videoReplicator, m_audioReplicator);			
+		m_rtspuri = rtspuri;
 	}
 }
 
 void V4l2web::capturing()
 {
-	this->createRtspSession();
+	this->createRtspSession(m_rtspuri);
 
 	while (!m_stopCapturing) {
 		if (m_isCapturing && m_videoCapture->isReady())
@@ -358,7 +360,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 
 		// update RTSP session
 		if (oldformat != informat) {
-			this->createRtspSession();
+			this->createRtspSession(m_rtspuri);
 		}
 
 		m_videoCapture->start();
@@ -512,10 +514,30 @@ Json::Value V4l2web::isCapturing()
 	return answer;	
 }
 
-Json::Value V4l2web::getRtspInfo() 
+Json::Value V4l2web::rtspInfo(const Json::Value & input) 
 {
 	Json::Value answer;
+	// set format POST
+	if (input.isNull() == false)
+	{		
+		// ask to interrupt capture loop & wait 
+		m_askToInterupt = true;
+		const std::lock_guard<std::mutex> lock(m_deviceMutex);
+		m_askToInterupt = false;
+		m_actionPending.notify_all();
+
+		std::string rtspuri = input.get("rtspuri","").asString();
+
+		// update RTSP session
+		if (rtspuri != m_rtspuri) {
+			m_videoCapture->stop();
+			this->createRtspSession(rtspuri);
+			m_videoCapture->start();
+		}
+	}
+
 	if (m_sms) {
+		answer["rtspuri"] = m_rtspuri;
 		answer["url"] = m_rtspServer.getRtspUrl(m_sms);
 		answer["numClients"] = m_rtspServer.numClientSessions();
 
