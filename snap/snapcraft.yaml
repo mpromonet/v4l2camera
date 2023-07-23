@@ -17,12 +17,11 @@
       source: vuejs
   
     v4l2web:
-      plugin: make
+      plugin: cmake
       source: .
       build-packages:
         - g++
         - make
-        - cmake
         - pkg-config
         - libjpeg-dev
         - libssl-dev

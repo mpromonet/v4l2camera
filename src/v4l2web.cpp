@@ -296,43 +296,6 @@ Json::Value V4l2web::formats()
 	return formatList;
 }
 
-std::string getColorspace(int colorspace) {
-	std::string str;
-	switch (colorspace) {
-		case V4L2_COLORSPACE_DEFAULT:       str = "V4L2_COLORSPACE_DEFAULT"      ; break;
-		case V4L2_COLORSPACE_SMPTE170M:     str = "V4L2_COLORSPACE_SMPTE170M"    ; break;
-		case V4L2_COLORSPACE_REC709:        str = "V4L2_COLORSPACE_REC709"       ; break;
-		case V4L2_COLORSPACE_SRGB:          str = "V4L2_COLORSPACE_SRGB"         ; break;
-		case V4L2_COLORSPACE_ADOBERGB:      str = "V4L2_COLORSPACE_ADOBERGB"     ; break;
-		case V4L2_COLORSPACE_BT2020:        str = "V4L2_COLORSPACE_BT2020"       ; break;
-		case V4L2_COLORSPACE_DCI_P3:        str = "V4L2_COLORSPACE_DCI_P3"       ; break;
-		case V4L2_COLORSPACE_SMPTE240M:     str = "V4L2_COLORSPACE_SMPTE240M"    ; break;
-		case V4L2_COLORSPACE_470_SYSTEM_M:  str = "V4L2_COLORSPACE_470_SYSTEM_M" ; break;
-		case V4L2_COLORSPACE_470_SYSTEM_BG: str = "V4L2_COLORSPACE_470_SYSTEM_BG"; break;
-		case V4L2_COLORSPACE_JPEG:          str = "V4L2_COLORSPACE_JPEG"         ; break;
-		case V4L2_COLORSPACE_RAW:           str = "V4L2_COLORSPACE_RAW"          ; break;
-	}
-	return str;
-}
-
-std::string getField(int field) {
-	std::string str;
-	switch (field) {
-			case V4L2_FIELD_ANY:            str = "V4L2_FIELD_ANY"           ; break;
-			case V4L2_FIELD_NONE:           str = "V4L2_FIELD_NONE"          ; break;
-			case V4L2_FIELD_TOP:            str = "V4L2_FIELD_TOP"           ; break;
-			case V4L2_FIELD_BOTTOM:         str = "V4L2_FIELD_BOTTOM"        ; break;
-			case V4L2_FIELD_INTERLACED:     str = "V4L2_FIELD_INTERLACED"    ; break;
-			case V4L2_FIELD_SEQ_TB:         str = "V4L2_FIELD_SEQ_TB"        ; break;
-			case V4L2_FIELD_SEQ_BT:         str = "V4L2_FIELD_SEQ_BT"        ; break;
-			case V4L2_FIELD_ALTERNATE:      str = "V4L2_FIELD_ALTERNATE"     ; break;
-			case V4L2_FIELD_INTERLACED_TB:  str = "V4L2_FIELD_INTERLACED_TB" ; break;
-			case V4L2_FIELD_INTERLACED_BT:  str = "V4L2_FIELD_INTERLACED_BT" ; break;
-	}
-	return str;
-}
-
-
 Json::Value V4l2web::format(const Json::Value & input) 
 {
 	int fd = m_videoCapture->getFd();		
@@ -536,11 +499,11 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 		}
 	}
 
-	if (m_sms) {
-		answer["rtspuri"] = m_rtspuri;
-		answer["url"] = m_rtspServer.getRtspUrl(m_sms);
-		answer["numClients"] = m_rtspServer.numClientSessions();
+	answer["rtspuri"] = m_rtspuri;
+	answer["url"] = m_rtspServer.getRtspUrl(m_sms);
+	answer["numClients"] = m_rtspServer.numClientSessions();
 
+	if (m_sms) {
 		char * sdp = m_sms->generateSDPDescription(AF_INET);
 		answer["media"] = sdp;
 		delete [] sdp;
