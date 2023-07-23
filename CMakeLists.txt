@@ -37,7 +37,7 @@ endif()
 
 # ui
 if (BUILD_UI)
-	add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C vuejs && npm run build -C vuejs)
+	add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C ${CMAKE_CURRENT_SOURCE_DIR}/vuejs && npm run build -C ${CMAKE_CURRENT_SOURCE_DIR}/vuejs)
 	add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui)
 endif()
 
