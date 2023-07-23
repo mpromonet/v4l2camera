@@ -16,7 +16,7 @@
       npm-include-node: true
       source: vuejs
   
-    v4l2web:
+    v4l2camera:
       plugin: cmake
       source: .
       build-packages:
