@@ -1,9 +1,9 @@
 
   name: v4l2camera
   version: git
-  summary: Web interface to V4L2
+  summary: Web interface to V4L2 
   description: |
-    This is a Web interface to V4L2, the http server use civetweb. 
+    This is a Web interface to v4L2rtspserver, the http server use civetweb, the RTSP server live555. 
 
   grade: stable 
   confinement: strict
@@ -23,8 +23,10 @@
         - g++
         - pkg-config
         - libssl-dev
+        - libasound2-dev
       stage-packages:
         - libssl3
+        - libasound2        
       build-environment:
         - PATH: $SNAPCRAFT_PART_INSTALL/../../ui/install/bin:$PATH       
       cmake-parameters:
