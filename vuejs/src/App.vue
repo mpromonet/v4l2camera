@@ -1,23 +1,24 @@
 <template>
-  <v-app>
-    <h1>{{ msg }}</h1>
-    <v-divider></v-divider>
-    <Video/>
-    <v-divider></v-divider>
-    <h3>Formats</h3>
-    <Format/>
-    <v-divider></v-divider>
-    <h3>Controls</h3>
-    <Controls/>
-    <v-divider></v-divider>
-    <v-footer>
-      <v-container>
-        <v-row align="center" justify="center">
-              <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a><p>{{ version }}</p>
-        </v-row>
-     </v-container>
-    </v-footer>
-  </v-app>
+    <v-app>
+      <h1>{{ msg }}</h1>
+      <v-divider></v-divider>
+      <v-content id="content">
+        <Video/>
+        <v-divider></v-divider>
+        <h3>Formats</h3>
+        <Format/>
+        <h3>Controls</h3>
+        <Controls/>
+      </v-content>
+      <v-divider></v-divider>
+      <v-footer>
+        <v-container>
+          <v-row align="center" justify="center">
+                <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a><p>{{ version }}</p>
+          </v-row>
+       </v-container>
+      </v-footer>
+    </v-app>
 </template>
 
 <script>
@@ -54,8 +55,12 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+html {
+  overflow-y: hidden;
+}
+#content {
+  height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 h1 {
   text-align: center;
