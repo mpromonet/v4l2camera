@@ -7,10 +7,10 @@
       </v-row>
     </v-container>
     <v-container>
-      <v-row align="center" justify="center">
-          <img v-if="visibility && image && !message" :src="image" />
-          <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline ></video>
-          <div v-if="message">{{this.message}}</div>
+      <v-row align="center" justify="center" style="height: 33vh;">
+          <img v-if="visibility && image && !message" :src="image" class="h-100"/>
+          <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline class="h-100"></video>
+          <div v-if="message" class="h-100">{{this.message}}</div>
       </v-row>
     </v-container>      
     <v-container>
