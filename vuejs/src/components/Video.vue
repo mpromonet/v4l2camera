@@ -69,7 +69,7 @@ export default {
             if (!this.ws.jmuxer) {
               const videoElement = document.getElementById('player');
               videoElement.src = "";
-              this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, debug: true, flushingTime: 1000});
+              this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true});
             }
             this.ws.jmuxer.feed({ video: bytes })
         } else {
