@@ -8,7 +8,7 @@
     </v-container>
     <v-container>
       <v-row align="center" justify="center">
-          <img v-if="visibility && !message" :src="image" />
+          <img v-if="visibility && image && !message" :src="image" />
           <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline ></video>
           <div v-if="message">{{this.message}}</div>
       </v-row>
@@ -23,7 +23,7 @@
 
 <script>
 import axios from "axios";
-import JMuxer from 'jmuxer';
+import JMuxer from "jmuxer";
 
 export default {
   data() {
@@ -58,13 +58,18 @@ export default {
             }
             this.message = null;
             this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+            if (this.ws.jmuxer) {
+              this.ws.jmuxer.destroy();
+            }
             this.ws.jmuxer = null;
         } else if ( (bytes.length > 3) && (bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
             this.image = null;
             this.message = null;
             // H264
             if (!this.ws.jmuxer) {
-              this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, flushingTime: 1000});
+              const videoElement = document.getElementById('player');
+              videoElement.src = "";
+              this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true, debug: true, flushingTime: 1000});
             }
             this.ws.jmuxer.feed({ video: bytes })
         } else {
