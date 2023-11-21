@@ -9,7 +9,7 @@
     <v-container>
       <v-row align="center" justify="center" style="height: 33vh;">
           <img v-if="visibility && image && !message" :src="image" class="h-100"/>
-          <video v-if="visibility && !image && !message" id="player" autoplay muted playsinline class="h-100"></video>
+          <video v-show="visibility && !image && !message" id="player" autoplay muted playsinline class="h-100"></video>
           <div v-if="message" class="h-100">{{this.message}}</div>
       </v-row>
     </v-container>      
@@ -67,8 +67,6 @@ export default {
             this.message = null;
             // H264
             if (!this.ws.jmuxer) {
-              const videoElement = document.getElementById('player');
-              videoElement.src = "";
               this.ws.jmuxer = new JMuxer({node: 'player', mode: 'video', readFpsFromTrack: true});
             }
             this.ws.jmuxer.feed({ video: bytes })
