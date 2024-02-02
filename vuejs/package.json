@@ -8,13 +8,11 @@
   },
   "dependencies": {
     "axios": "^1.2.0",
-    "jmuxer": "^2.0.5",
     "vue": "^3.2.29",
     "vuetify": "^3.0.3"
   },
   "devDependencies": {
     "@mdi/font": "^7.0.96",
-    "@types/jmuxer": "^2.0.3",
     "@vitejs/plugin-vue": "^5.0.3",
     "vite": "^5.0.12",
     "vite-plugin-vuetify": "^2.0.1",
