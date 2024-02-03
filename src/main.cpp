@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 			case 'w': ioTypeOut = IOTYPE_READWRITE; break;				
 
 			case 'P': port = optarg; break;
+			case 'c': sslCertificate = optarg; break;
 			case 'R': rtspport = atoi(optarg); break;
 			case 'N': nbthreads = optarg; break;
 			case 'p': webroot = optarg; break;		
