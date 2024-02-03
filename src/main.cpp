@@ -47,6 +47,7 @@ int main(int argc, char* argv[])
 	int fps = 25;	
 	int c = 0;
 	const char * port = "8080";
+	std::string sslCertificate;
 	int rtspport = 8554;
 	V4l2IoType ioTypeIn = IOTYPE_MMAP;
 	V4l2IoType ioTypeOut = IOTYPE_MMAP;
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 	std::list<snd_pcm_format_t> audioFmtList;
 #endif	
 	
-	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:p:N:R:" "A:c:a:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:c:p:N:R:" "A:c:a:")) != -1)
 	{
 		switch (c)
 		{
@@ -90,11 +91,12 @@ int main(int argc, char* argv[])
 
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-P port] [-W width] [-H height] [-F fps] [-G <w>x<h>x<f>] [device]" << std::endl;
+				std::cout << argv[0] << " [-v[v]] [-P httpport] [-c sslkeycert] [-R rtspport] [-W width] [-H height] [-F fps] [-G <w>x<h>x<f>] [device]" << std::endl;
 				std::cout << "\t -v               : verbose " << std::endl;
 				std::cout << "\t -v v             : very verbose " << std::endl;
 				std::cout << "\t -P port          : server port (default "<< port << ")" << std::endl;
 				std::cout << "\t -p path          : server root path (default "<< webroot << ")" << std::endl;
+				std::cout << "\t -c sslkeycert    : path to private key and certificate for HTTPS" << std::endl;
 				std::cout << "\t -R port          : RTSP server port (default "<< rtspport << ")" << std::endl;
 
 				std::cout << "\t -f format        : V4L2 capture using format" << std::endl;
@@ -182,6 +184,10 @@ int main(int argc, char* argv[])
 		options.push_back("*");		
 		options.push_back("listening_ports");
 		options.push_back(port);
+		if (!sslCertificate.empty()) {
+			options.push_back("ssl_certificate");
+			options.push_back(sslCertificate);
+		}		
 		if (!nbthreads.empty()) {
 			options.push_back("num_threads");
 			options.push_back(nbthreads);

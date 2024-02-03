@@ -19,9 +19,10 @@ Build
 
 Usage
 ------- 
-	./v4l2web [-v[v]] [-P port] [-f format] [-G width x height [x fps]] [device]
+	./v4l2web [-v[v]] [-P httpport] [-c sslkeycert] [-R rtspport] [-f format] [-G width x height [x fps]] [device]
          -v               : verbose 
          -v v             : very verbose 
+         -c sslkeycert    : path to private key and certificate for HTTPS 
          -P port          : server port (default 8080)
          -p path          : server root path (default webroot)
          -R port          : RTSP server port (default 8554)
