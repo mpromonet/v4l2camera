@@ -82,8 +82,12 @@ export default {
 
             const naluType = bytes[4] & 0x1F;
 
-            if (this.ws.decoder.state !== "configured") {
-                const config = {codec: "avc1.42C01E",  avc: "annexb"};
+            if (this.ws.decoder.state !== "configured" && naluType === 7) {
+                let codec = 'avc1.';
+                for (let i = 0; i < 3; i++) {
+                    codec += ('00' + bytes[5+i].toString(16)).slice(-2);
+                }
+                const config = {codec};
                 const support = await VideoDecoder.isConfigSupported(config);
                 if (support.supported) {
                   this.ws.decoder.configure(config);
