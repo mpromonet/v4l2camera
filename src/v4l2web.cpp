@@ -150,7 +150,7 @@ void V4l2web::createRtspSession(const std::string & rtspuri)
 }
 
 void V4l2web::capturing()
-{
+{	
 	this->createRtspSession(m_rtspuri);
 
 	while (!m_stopCapturing) {
@@ -190,6 +190,14 @@ void V4l2web::capturing()
 
 						frame.append(buf, size);
 						m_httpServer.publishBin("/ws", frame.c_str(), frame.size());
+
+						Json::Value format;
+						format["width"] = m_videoCapture->getWidth();
+						format["height"] = m_videoCapture->getHeight();	
+						format["format"] = V4l2Device::fourcc(m_videoCapture->getFormat());
+						std::string answer(Json::writeString(m_jsonWriterBuilder,format));						
+						m_httpServer.publishTxt("/ws", frame.c_str(), frame.size());
+
 
 						// publish to RTSP 
 						char* buffer = new char[size];

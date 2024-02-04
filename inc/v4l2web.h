@@ -79,6 +79,7 @@ class V4l2web {
 		char                                                          m_stopStreaming;
 		std::string                                                   m_snapshot;
 		std::string                                                   m_rtspuri;
+		Json::StreamWriterBuilder                                     m_jsonWriterBuilder;
 };
 
 

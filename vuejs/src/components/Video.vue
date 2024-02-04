@@ -32,7 +32,8 @@ export default {
       ws: null,
       message: null,
       rtspinfo: null,
-      videoCanvas: null
+      videoCanvas: null,
+      format: null
     };
   },
   mounted() {
@@ -51,58 +52,80 @@ export default {
     this.ws = new WebSocket(wsurl);
     this.ws.binaryType = 'arraybuffer';
     this.ws.onmessage = async (message) => {
-        const bytes = new Uint8Array(message.data);
-        if ( (bytes.length > 1) && (bytes[0] === 255) && (bytes[1] === 216)) {
-            // JPEG
-            let binaryStr = "";
-            for (let i = 0; i < bytes.length; i++) {
-              binaryStr += String.fromCharCode(bytes[i]);
-            }
-            this.message = null;
-            this.image = "data:image/jpeg;base64," + btoa(binaryStr);
-            if (this.ws.decoder) {
-              this.ws.decoder.close();
-            }
-            this.ws.decoder = null;
-        } else if ( (bytes.length > 3) && (bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
-            this.image = null;
-            this.message = null;
-            // H264
-            if (!this.ws.decoder) {
-              this.ws.decoder = new VideoDecoder({
-                output: (frame) => {
-                  this.videoCanvas.canvas.width = frame.displayWidth;
-                  this.videoCanvas.canvas.height = frame.displayHeight;
-                  this.videoCanvas.drawImage(frame, 0, 0);
-                  frame.close();
-                },
-                error: (e) => console.log(e.message),
-              });
-            }
+        if (typeof message.data === 'string') {
+          this.format = JSON.parse(message.data);
 
-            const naluType = bytes[4] & 0x1F;
-
-            if (this.ws.decoder.state !== "configured" && naluType === 7) {
-                let codec = 'avc1.';
-                for (let i = 0; i < 3; i++) {
-                    codec += ('00' + bytes[5+i].toString(16)).slice(-2);
-                }
-                const config = {codec};
-                const support = await VideoDecoder.isConfigSupported(config);
-                if (support.supported) {
-                  this.ws.decoder.configure(config);
-                }
-            } 
-            if (this.ws.decoder.state === "configured") {
-                const chunk = new EncodedVideoChunk({
-                    timestamp: new Date().getTime(),
-                    type: (naluType === 7) ? "key" : "delta",
-                    data: bytes,
+        } else if (message.data instanceof ArrayBuffer) {
+          const bytes = new Uint8Array(message.data);
+          if ( (bytes.length > 1) && (bytes[0] === 255) && (bytes[1] === 216)) {
+              // JPEG
+              let binaryStr = "";
+              for (let i = 0; i < bytes.length; i++) {
+                binaryStr += String.fromCharCode(bytes[i]);
+              }
+              this.message = null;
+              this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+              if (this.ws.decoder) {
+                this.ws.decoder.close();
+              }
+              this.ws.decoder = null;
+          } else if ( (bytes.length > 3) && (bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
+              this.image = null;
+              this.message = null;
+              // H264
+              if (!this.ws.decoder) {
+                this.ws.decoder = new VideoDecoder({
+                  output: (frame) => {
+                    this.videoCanvas.canvas.width = frame.displayWidth;
+                    this.videoCanvas.canvas.height = frame.displayHeight;
+                    this.videoCanvas.drawImage(frame, 0, 0);
+                    frame.close();
+                  },
+                  error: (e) => console.log(e.message),
                 });
-                this.ws.decoder.decode(chunk);
-            }
-        } else {
-            this.message = 'format not supported';
+              }
+
+              const naluType = bytes[4] & 0x1F;
+
+              if (this.ws.decoder.state !== "configured" && naluType === 7) {
+                  let codec = 'avc1.';
+                  for (let i = 0; i < 3; i++) {
+                      codec += ('00' + bytes[5+i].toString(16)).slice(-2);
+                  }
+                  const config = {codec};
+                  const support = await VideoDecoder.isConfigSupported(config);
+                  if (support.supported) {
+                    this.ws.decoder.configure(config);
+                  }
+              } 
+              if (this.ws.decoder.state === "configured") {
+                  const chunk = new EncodedVideoChunk({
+                      timestamp: new Date().getTime(),
+                      type: (naluType === 7) ? "key" : "delta",
+                      data: bytes,
+                  });
+                  this.ws.decoder.decode(chunk);
+              }
+          } else if (this.format) {
+              try {
+                const frame = new VideoFrame(bytes, {
+                    format: this.format.format,
+                    timestamp: performance.now(),
+                    codedWidth: this.format.width,
+                    codedHeight: this.format.height,
+                });            
+                this.videoCanvas.canvas.width = frame.displayWidth;
+                this.videoCanvas.canvas.height = frame.displayHeight;
+                this.videoCanvas.drawImage(frame, 0, 0);
+                frame.close();            
+              } catch (e) {
+                this.message = 'format not supported';  
+              }
+
+          } else {
+            this.message = 'format not supported';  
+          }
+
         }
     };
   },
