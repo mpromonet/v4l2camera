@@ -197,7 +197,7 @@ void V4l2web::capturing()
 						format["height"] = m_videoCapture->getHeight();	
 						format["format"] = V4l2Device::fourcc(m_videoCapture->getFormat());
 						std::string answer(Json::writeString(m_jsonWriterBuilder,format));						
-						m_httpServer.publishTxt("/ws", frame.c_str(), frame.size());
+						m_httpServer.publishTxt("/ws", answer.c_str(), answer.size());
 
 
 						// publish to RTSP 
