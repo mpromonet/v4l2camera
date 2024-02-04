@@ -40,6 +40,7 @@ export default {
     const video = document.getElementById("video");
     video.srcObject = videoCanvas.captureStream();
     video.play();
+    this.videoCanvas.clearRect(0,0,videoCanvas.width,videoCanvas.height);
     axios.get("/api/rtspinfo").then(
       (response) => this.rtspinfo = response.data
     );
