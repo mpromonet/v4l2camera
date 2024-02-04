@@ -8,7 +8,7 @@
     </v-container>
     <v-container>
       <v-row align="center" justify="center" style="height: 33vh;">
-          <canvas v-show="visibility && !message" id="player" class="h-100"></canvas>
+          <video v-show="visibility && !message" id="video" muted class="h-100"></video>
           <div v-if="message" class="h-100">{{this.message}}</div>
       </v-row>
     </v-container>      
@@ -35,8 +35,11 @@ export default {
     };
   },
   mounted() {
-    const video = document.getElementById("player");
-    this.videoCanvas = video.getContext("2d");    
+    const videoCanvas = document.createElement("canvas");
+    this.videoCanvas = videoCanvas.getContext("2d");
+    const video = document.getElementById("video");
+    video.srcObject = videoCanvas.captureStream();
+    video.play();
     axios.get("/api/rtspinfo").then(
       (response) => this.rtspinfo = response.data
     );
