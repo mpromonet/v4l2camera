@@ -48,11 +48,9 @@ export default {
     );
   },
   created() {
-    console.log("Connecting WebSocket");
-    const wsurl = "ws://pi2.local:8080/ws";
-    this.ws = new WebSocket(wsurl);
-    this.ws.binaryType = 'arraybuffer';
-    this.ws.onmessage = this.onMessage;
+    let wsurl = new URL("./ws", location.href);
+    wsurl.protocol = wsurl.protocol.replace("http","ws");
+    this.connectWebSocket(wsurl.href);
   },
   destroyed() {
     console.log("Closing WebSocket");
@@ -149,6 +147,16 @@ export default {
             this.message = 'format not supported';  
           }
         }      
+    },
+    connectWebSocket(wsurl) {
+        console.log(`Connecting WebSocket to ${wsurl}`);
+        this.ws = new WebSocket(wsurl);
+        this.ws.binaryType = 'arraybuffer';
+        this.ws.onmessage = this.onMessage;
+        this.ws.onclose = () => {
+          console.log(`WebSocket closed, reconnecting to ${wsurl}...`);
+          setTimeout(() => this.connectWebSocket(wsurl), 1000);
+        };
     }
   }
 };
