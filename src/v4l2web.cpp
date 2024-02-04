@@ -178,7 +178,6 @@ void V4l2web::capturing()
 				// post to subscribers
 				if ( (size>0) && m_videoReplicator)
 				{
-					// publish to websocket
 					std::string frame;
 					V4L2DeviceSource* source = (V4L2DeviceSource*)m_videoReplicator->inputSource();
 					if (source) {
@@ -189,9 +188,11 @@ void V4l2web::capturing()
 							}
 						}
 
+						// publish frame to websocket
 						frame.append(buf, size);
 						m_httpServer.publishBin("/ws", frame.c_str(), frame.size());
 
+						// publish foramt to websocket
 						Json::Value format;
 						format["width"] = m_videoCapture->getWidth();
 						format["height"] = m_videoCapture->getHeight();	
