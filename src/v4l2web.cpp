@@ -103,8 +103,9 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_audioReplicator(NULL),
 	m_sms(NULL),
 	m_stopStreaming(0),
-	m_rtspuri("") {	
+	m_rtspuri("") {
 
+		m_jsonWriterBuilder.settings_["emitUTF8"] = true;
 		
 #ifdef WITH_COMPRESS
 	if (m_videoOutput && m_videoCapture) {
