@@ -1,6 +1,3 @@
-[submodule "v4l2wrapper"]
-	path = libv4l2cpp
-	url = https://github.com/mpromonet/v4l2wrapper
 [submodule "libhttpjsonserver"]
 	path = libhttpjsonserver
 	url = https://github.com/mpromonet/libhttpjsonserver
