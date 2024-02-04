@@ -8,8 +8,8 @@
     </v-container>
     <v-container>
       <v-row align="center" justify="center" style="height: 33vh;">
-          <video v-show="visibility && !message" id="video" muted class="h-100"></video>
-          <div v-if="message" class="h-100">{{this.message}}</div>
+          <video v-show="visibility && !message" id="video" muted class="h-100" preload="none"></video>
+          <div v-if="message">{{this.message}}</div>
       </v-row>
     </v-container>      
     <v-container>
@@ -49,10 +49,26 @@ export default {
   },
   created() {
     console.log("Connecting WebSocket");
-    const wsurl = document.location.href.replace("http", "ws") + "/ws";
+    const wsurl = "ws://pi2.local:8080/ws";
     this.ws = new WebSocket(wsurl);
     this.ws.binaryType = 'arraybuffer';
-    this.ws.onmessage = async (message) => {
+    this.ws.onmessage = this.onMessage;
+  },
+  destroyed() {
+    console.log("Closing WebSocket");
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  },
+  methods: {
+    start() {
+      axios.get("/api/start").then( () => this.visibility = true);
+    },
+    stop() {
+      axios.get("/api/stop").then( () => this.visibility = false);
+    },
+    async onMessage(message) {
         if (typeof message.data === 'string') {
           this.format = JSON.parse(message.data);
 
@@ -100,7 +116,7 @@ export default {
                   if (support.supported) {
                     this.ws.decoder.configure(config);
                   } else {
-                    this.message = 'format not supported';                    
+                    this.message = `${codec} is not supported`;                    
                   }
               } 
               if (this.ws.decoder.state === "configured") {
@@ -126,29 +142,13 @@ export default {
                 frame.close();            
                 this.message = null;
               } catch (e) {
-                this.message = 'format not supported';  
+                this.message = `${this.format.format} is not supported`;  
               }
 
           } else {
             this.message = 'format not supported';  
           }
-
-        }
-    };
-  },
-  destroyed() {
-    console.log("Closing WebSocket");
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-  },
-  methods: {
-    start() {
-      axios.get("/api/start").then( () => this.visibility = true);
-    },
-    stop() {
-      axios.get("/api/stop").then( () => this.visibility = false);
+        }      
     }
   }
 };
