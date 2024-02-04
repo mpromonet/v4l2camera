@@ -8,8 +8,7 @@
     </v-container>
     <v-container>
       <v-row align="center" justify="center" style="height: 33vh;">
-          <img v-if="visibility && image && !message" :src="image" class="h-100"/>
-          <canvas v-show="visibility && !image && !message" id="player" class="h-100"></canvas>
+          <canvas v-show="visibility && !message" id="player" class="h-100"></canvas>
           <div v-if="message" class="h-100">{{this.message}}</div>
       </v-row>
     </v-container>      
@@ -27,7 +26,6 @@ import axios from "axios";
 export default {
   data() {
     return {
-      image: "",
       visibility: true,
       ws: null,
       message: null,
@@ -64,14 +62,17 @@ export default {
                 binaryStr += String.fromCharCode(bytes[i]);
               }
               this.message = null;
-              this.image = "data:image/jpeg;base64," + btoa(binaryStr);
+              const img = new Image();
+              img.src = "data:image/jpeg;base64," + btoa(binaryStr);
+              await new Promise(r => img.onload=r);
+              this.videoCanvas.canvas.width = img.width;
+              this.videoCanvas.canvas.height = img.height;
+              this.videoCanvas.drawImage(img, 0, 0);
               if (this.ws.decoder) {
                 this.ws.decoder.close();
               }
               this.ws.decoder = null;
           } else if ( (bytes.length > 3) && (bytes[0] === 0) && (bytes[1] === 0) && (bytes[2] === 0) && (bytes[3] === 1)) {
-              this.image = null;
-              this.message = null;
               // H264
               if (!this.ws.decoder) {
                 this.ws.decoder = new VideoDecoder({
@@ -86,7 +87,6 @@ export default {
               }
 
               const naluType = bytes[4] & 0x1F;
-
               if (this.ws.decoder.state !== "configured" && naluType === 7) {
                   let codec = 'avc1.';
                   for (let i = 0; i < 3; i++) {
@@ -96,12 +96,15 @@ export default {
                   const support = await VideoDecoder.isConfigSupported(config);
                   if (support.supported) {
                     this.ws.decoder.configure(config);
+                  } else {
+                    this.message = 'format not supported';                    
                   }
               } 
               if (this.ws.decoder.state === "configured") {
+                  this.message = null;
                   const chunk = new EncodedVideoChunk({
                       timestamp: new Date().getTime(),
-                      type: (naluType === 7) ? "key" : "delta",
+                      type: (naluType === 7) || (naluType === 5) ? "key" : "delta",
                       data: bytes,
                   });
                   this.ws.decoder.decode(chunk);
@@ -118,6 +121,7 @@ export default {
                 this.videoCanvas.canvas.height = frame.displayHeight;
                 this.videoCanvas.drawImage(frame, 0, 0);
                 frame.close();            
+                this.message = null;
               } catch (e) {
                 this.message = 'format not supported';  
               }
