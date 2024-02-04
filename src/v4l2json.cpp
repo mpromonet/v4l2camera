@@ -62,6 +62,29 @@ Json::Value getControlFlag(int ctrlflags) {
 	return flags;
 }
 
+
+Json::Value getCapabilities(int device_caps) 
+{
+	Json::Value capabilities(Json::ValueType::arrayValue);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)		
+	if (device_caps & V4L2_CAP_VIDEO_CAPTURE       ) capabilities.append("V4L2_CAP_VIDEO_CAPTURE"        );
+	if (device_caps & V4L2_CAP_VIDEO_OUTPUT        ) capabilities.append("V4L2_CAP_VIDEO_OUTPUT"         );
+	if (device_caps & V4L2_CAP_VIDEO_OVERLAY       ) capabilities.append("V4L2_CAP_VIDEO_OVERLAY"        );
+	if (device_caps & V4L2_CAP_VIDEO_OUTPUT_OVERLAY) capabilities.append("V4L2_CAP_VIDEO_OUTPUT_OVERLAY" );
+	if (device_caps & V4L2_CAP_AUDIO               ) capabilities.append("V4L2_CAP_AUDIO"                );
+	
+	if (device_caps & V4L2_CAP_EXT_PIX_FORMAT      ) capabilities.append("V4L2_CAP_EXT_PIX_FORMAT"       );
+	if (device_caps & V4L2_CAP_VIDEO_M2M           ) capabilities.append("V4L2_CAP_VIDEO_M2M"            );
+	if (device_caps & V4L2_CAP_META_CAPTURE        ) capabilities.append("V4L2_CAP_META_CAPTURE"         );
+	
+	if (device_caps & V4L2_CAP_READWRITE           ) capabilities.append("V4L2_CAP_READWRITE"            );
+	if (device_caps & V4L2_CAP_ASYNCIO             ) capabilities.append("V4L2_CAP_ASYNCIO"              );
+	if (device_caps & V4L2_CAP_STREAMING           ) capabilities.append("V4L2_CAP_STREAMING"            );
+		
+#endif	
+	return capabilities;
+}
+
 unsigned int add_ctrl(int fd, unsigned int i, Json::Value & json) 
 {
 	unsigned int ret=0;

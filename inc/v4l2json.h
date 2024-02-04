@@ -17,3 +17,4 @@ Json::Value getframeIntervals(int fd, unsigned int pixelformat, unsigned int wid
 Json::Value getFrameSizeList(int fd, int pixelformat);
 std::string getColorspace(int colorspace);
 std::string getField(int field);
+Json::Value getCapabilities(int device_caps);
