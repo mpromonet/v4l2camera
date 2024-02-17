@@ -16,6 +16,17 @@
       <v-row align="center" justify="center">
           {{ this.rtspinfo?.url }}
       </v-row>
+    </v-container>      
+    <v-divider></v-divider>
+    <v-container>
+      <h3>RTSP</h3>
+      <v-row>
+        <v-col>Uri</v-col>
+        <v-col cols="8">
+          <v-text-field v-model="rtspinfo.rtspuri" @update:modelValue="updateRtspInfo()">
+          </v-text-field>
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -29,7 +40,7 @@ export default {
       visibility: true,
       ws: null,
       message: null,
-      rtspinfo: null,
+      rtspinfo: {rtspuri: ''},
       videoCanvas: null,
       format: {format: "", width: 0, height: 0},
       frameResolved: null
@@ -167,6 +178,10 @@ export default {
       } else {
         return Promise.reject(`Unknown format`);  
       }
+    },
+    async updateRtspInfo() {
+        const response = await axios.post("/api/rtspinfo", this.rtspinfo);
+        this.rtspinfo = response.data;      
     }
   }
 };
