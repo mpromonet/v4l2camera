@@ -2,14 +2,14 @@
     <v-app>
       <h1>{{ msg }}</h1>
       <v-divider></v-divider>
-      <v-content id="content">
+      <v-main id="content">
         <Video/>
         <v-divider></v-divider>
         <h3>Formats</h3>
         <Format/>
         <h3>Controls</h3>
         <Controls/>
-      </v-content>
+      </v-main>
       <v-divider></v-divider>
       <v-footer>
         <v-container>
