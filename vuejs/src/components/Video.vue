@@ -31,7 +31,7 @@ export default {
       message: null,
       rtspinfo: null,
       videoCanvas: null,
-      format: null,
+      format: {format: "", width: 0, height: 0},
       frameResolved: null
     };
   },
@@ -85,7 +85,7 @@ export default {
           this.displayFrame(frame);
           this.message = null;
         } catch (e) {
-          this.message = `${this.format.format} is not supported`;  
+          this.message = e;  
         }
       }      
     },
@@ -121,7 +121,7 @@ export default {
           if (support.supported) {
             this.ws.decoder.configure(config);
           } else {
-            this.message = `${codec} is not supported`;                    
+            return Promise.reject(`${codec} is not supported`);
           }
       } 
       if (this.ws.decoder.state === "configured") {
@@ -133,7 +133,7 @@ export default {
           this.ws.decoder.decode(chunk);
           return await new Promise(r => this.frameResolved = r);
       } else {
-        return Promise.reject();
+        return Promise.reject(`H264 decoder not configured`);
       }
     },
     async onJPEGFrame(bytes) {
@@ -165,7 +165,7 @@ export default {
         return this.onDefaultFrame(bytes);
 
       } else {
-        return Promise.reject();  
+        return Promise.reject(`Unknown format`);  
       }
     }
   }
