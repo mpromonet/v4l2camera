@@ -61,7 +61,7 @@ export default {
     );
   },
   created() {
-    let wsurl = new URL("./ws", location.href);
+    let wsurl = new URL("./ws", import.meta.env.VITE_APP_BASE_URL || location.href);
     wsurl.protocol = wsurl.protocol.replace("http","ws");
     this.connectWebSocket(wsurl.href);
   },
