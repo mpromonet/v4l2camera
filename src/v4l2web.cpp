@@ -134,7 +134,7 @@ V4l2web::~V4l2web() {
 	m_streaming.join();
 }
 
-void V4l2web::createRtspSession(const std::string & rtspuri)
+void V4l2web::createRtspSession(const std::string & rtspuri, const std::string & multicasturi)
 {
 	if (m_sms) {
 		m_rtspServer.RemoveSession(m_sms);
@@ -145,7 +145,15 @@ void V4l2web::createRtspSession(const std::string & rtspuri)
 	m_videoReplicator = DeviceSourceFactory::createStreamReplicator(m_rtspServer.env(), m_videoCapture->getFormat(), m_videoInterface, 10, V4L2DeviceSource::NOCAPTURE);
 	if (m_videoReplicator)
 	{
-		m_sms = m_rtspServer.AddUnicastSession(rtspuri, m_videoReplicator, m_audioReplicator);			
+		if (multicasturi.empty())
+		{
+			m_sms = m_rtspServer.AddUnicastSession(rtspuri, m_videoReplicator, m_audioReplicator);
+			m_multicasturi.clear();
+		}
+		else
+		{
+			m_sms = m_rtspServer.AddMulticastSession(rtspuri, multicasturi, m_multicasturi, m_videoReplicator, m_audioReplicator);			
+		}
 		m_rtspuri = rtspuri;
 	}
 }
@@ -478,16 +486,18 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 		m_actionPending.notify_all();
 
 		std::string rtspuri = input.get("rtspuri","").asString();
+		std::string multicasturi = input.get("multicasturi","").asString();
 
 		// update RTSP session
-		if (rtspuri != m_rtspuri) {
+		if (rtspuri != m_rtspuri || m_multicasturi != multicasturi) {
 			m_videoCapture->stop();
-			this->createRtspSession(rtspuri);
+			this->createRtspSession(rtspuri, multicasturi);
 			m_videoCapture->start();
 		}
 	}
 
 	answer["rtspuri"] = m_rtspuri;
+	answer["multicasturi"] = m_multicasturi;
 	answer["url"] = m_rtspServer.getRtspUrl(m_sms);
 	answer["numClients"] = m_rtspServer.numClientSessions();
 

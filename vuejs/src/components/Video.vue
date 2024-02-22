@@ -14,7 +14,7 @@
     </v-container>      
     <v-container>
       <v-row align="center" justify="center">
-          {{ this.rtspinfo?.url }}
+          {{ this.rtspinfo.url }}
       </v-row>
     </v-container>      
     <v-divider></v-divider>
@@ -24,6 +24,13 @@
         <v-col>Uri</v-col>
         <v-col cols="8">
           <v-text-field v-model="rtspinfo.rtspuri" @update:modelValue="updateRtspInfo()">
+          </v-text-field>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>Uri</v-col>
+        <v-col cols="8">
+          <v-text-field v-model="rtspinfo.multicasturi" @update:modelValue="updateRtspInfo()">
           </v-text-field>
         </v-col>
       </v-row>
@@ -40,7 +47,7 @@ export default {
       visibility: true,
       ws: null,
       message: null,
-      rtspinfo: {rtspuri: ''},
+      rtspinfo: {rtspuri: '', multicasturi: '', url: ''},
       videoCanvas: null,
       format: {format: "", width: 0, height: 0},
       frameResolved: null
