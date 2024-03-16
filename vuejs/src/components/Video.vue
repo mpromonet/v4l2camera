@@ -21,14 +21,14 @@
     <v-container>
       <h3>RTSP</h3>
       <v-row>
-        <v-col>Uri</v-col>
+        <v-col>RTSP Uri</v-col>
         <v-col cols="8">
           <v-text-field v-model="rtspinfo.rtspuri" @update:modelValue="updateRtspInfo()">
           </v-text-field>
         </v-col>
       </v-row>
       <v-row>
-        <v-col>Uri</v-col>
+        <v-col>Multicast Uri</v-col>
         <v-col cols="8">
           <v-text-field v-model="rtspinfo.multicasturi" @update:modelValue="updateRtspInfo()">
           </v-text-field>
@@ -145,7 +145,7 @@ export default {
       if (this.ws.decoder.state === "configured") {
           const chunk = new EncodedVideoChunk({
               timestamp: performance.now(),
-              type: (naluType === 7) || (naluType === 5) ? "key" : "delta",
+              type: "key",
               data: bytes,
           });
           this.ws.decoder.decode(chunk);
@@ -154,15 +154,10 @@ export default {
         return Promise.reject(`H264 decoder not configured`);
       }
     },
-    async onJPEGFrame(bytes) {
-      let binaryStr = "";
-      for (let i = 0; i < bytes.length; i++) {
-        binaryStr += String.fromCharCode(bytes[i]);
-      }
-      const img = new Image();
-      img.src = "data:image/jpeg;base64," + btoa(binaryStr);
-      await new Promise(r => img.onload=r);
-      return new VideoFrame(img, {timestamp: performance.now()});
+    async onJPEGFrame(data) {
+      const decoder = new ImageDecoder({data, type: 'image/jpeg'});
+      const image = await decoder.decode();
+      return new VideoFrame(image.image, {timestamp: performance.now()});      
     },
     onDefaultFrame(bytes) {
       return new VideoFrame(bytes, {
