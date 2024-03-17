@@ -8,6 +8,8 @@
   grade: stable 
   confinement: strict
   base: core22
+  license: The Unlicense
+  contact: michel.promonet@free.fr
 
   parts:
     ui:
