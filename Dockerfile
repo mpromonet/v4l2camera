@@ -11,7 +11,7 @@ COPY . .
 COPY --from=npm /v4l2web/vuejs/dist ./vuejs/dist
 
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake make pkg-config git libjpeg-dev libssl-dev \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake patch make pkg-config git libjpeg-dev libssl-dev \
     && cmake -DBUILD_UI=OFF . && make install && apt-get clean && rm -rf /var/lib/apt/lists/
 
 FROM $IMAGE
