@@ -1,4 +1,4 @@
-ARG IMAGE=ubuntu:22.04
+ARG IMAGE=ubuntu:24.04
 FROM node:latest as npm
 WORKDIR /v4l2web	
 COPY . .
