@@ -95,7 +95,15 @@
 
     <v-row v-if="format.audio">
       <v-col>Audio Format</v-col>
-      <v-col cols="8">{{format.audio.format}}</v-col>
+      <v-col cols="8">
+        <v-select
+          v-model="format.audio.format"
+          :items="audioFormats"
+          :hint="format.description"
+          persistent-hint
+          @update:modelValue="updateValue(format)" >
+        </v-select>
+      </v-col>        
     </v-row>    
     <v-row v-if="format.audio">
       <v-col>Audio Sample Rate</v-col>
@@ -116,6 +124,7 @@ export default {
     axios.get("/api/formats").then(
       (response) => {
         this.formats = response.data.video;
+        this.audioFormats = response.data.audio;
 
         axios.get("/api/format").then(
           (response) => {
@@ -130,6 +139,7 @@ export default {
     return {
       formats: [],
       format: "",
+      audioFormats: [],
       geometry: ""
     };
   },
