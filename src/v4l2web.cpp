@@ -280,7 +280,7 @@ Json::Value V4l2web::formats()
 #ifdef HAVE_ALSA	
 	if (m_audioInterface) {
 		for (int audiofmt : m_audioInterface->getAudioFormatList()) {
-			audioformatList.append(V4l2RTSPServer::getAudioFormatName(audiofmt));
+			audioformatList.append(V4l2RTSPServer::getAudioFormatName((snd_pcm_format_t)audiofmt));
 		}
 	}
 #endif	
@@ -385,7 +385,7 @@ Json::Value V4l2web::format(const Json::Value & input)
 #ifdef HAVE_ALSA	
 	if (m_audioInterface) {
 		Json::Value audio;
-		audio["format"]        = V4l2RTSPServer::getAudioFormatName(m_audioInterface->getAudioFormat());
+		audio["format"]        = V4l2RTSPServer::getAudioFormatName((snd_pcm_format_t)m_audioInterface->getAudioFormat());
 		audio["samplerate"]    = m_audioInterface->getSampleRate();
 		audio["channels"]      = m_audioInterface->getChannels();
 		output["audio"]        = audio; 
