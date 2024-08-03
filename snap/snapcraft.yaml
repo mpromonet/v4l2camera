@@ -7,15 +7,13 @@
 
   grade: stable 
   confinement: strict
-  base: core22
+  base: core24
   license: Unlicense
   contact: michel.promonet@free.fr
 
   parts:
     ui:
       plugin: npm
-      npm-node-version: 16.17.1
-      npm-include-node: true
       source: vuejs
   
     v4l2camera:
