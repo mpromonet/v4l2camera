@@ -22,10 +22,8 @@
         - libasound2-dev
         - npm
       stage-packages:
-        - libssl3
+        - libssl-dev
         - libasound2        
-      build-environment:
-        - PATH: $SNAPCRAFT_PART_INSTALL/../../ui/install/bin:$PATH       
       cmake-parameters:
         - -DWITH_COMPRESS=OFF
 
