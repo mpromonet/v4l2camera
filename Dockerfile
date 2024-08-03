@@ -5,7 +5,7 @@ COPY . .
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends cmake && cmake . && make v4l2camera-ui
 
-FROM $IMAGE as builder
+FROM $IMAGE AS builder
 WORKDIR /v4l2web	
 COPY . .
 COPY --from=npm /v4l2web/vuejs/dist ./vuejs/dist
