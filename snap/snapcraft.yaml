@@ -14,6 +14,8 @@
   parts:
     ui:
       plugin: npm
+      npm-node-version: 20.16.0
+      npm-include-node: true
       source: vuejs
   
     v4l2camera:
