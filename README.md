@@ -17,7 +17,13 @@ The civetweb HTTP server give access to the Video4Linux interface, web interface
  
 Build
 ------- 
-	cmake . && make
+Dependencies:
+ * npm
+
+Build Instructions:
+```
+cmake . && make
+```
 
 Usage
 ------- 
