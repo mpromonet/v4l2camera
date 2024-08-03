@@ -11,13 +11,7 @@
   license: Unlicense
   contact: michel.promonet@free.fr
 
-  parts:
-    ui:
-      plugin: npm
-      npm-node-version: 20.16.0
-      npm-include-node: true
-      source: vuejs
-  
+  parts:  
     v4l2camera:
       plugin: cmake
       source: .
@@ -26,6 +20,7 @@
         - pkg-config
         - libssl-dev
         - libasound2-dev
+        - npm
       stage-packages:
         - libssl3
         - libasound2        
