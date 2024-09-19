@@ -500,6 +500,12 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 	answer["multicasturi"] = m_multicasturi;
 	answer["url"] = m_rtspServer.getRtspUrl(m_sms);
 	answer["numClients"] = m_rtspServer.numClientSessions();
+	std::list<std::string> users = m_rtspServer.getUsers();
+	Json::Value userlist(Json::ValueType::arrayValue);
+	for (auto u : users) {
+		userlist.append(u);
+	}
+	answer["users"] = userlist;
 
 	if (m_sms) {
 		char * sdp = m_sms->generateSDPDescription(AF_INET);
