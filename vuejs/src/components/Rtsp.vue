@@ -83,6 +83,7 @@ export default {
       },
       set(value) {
         this.isDebouncingRtspUri = true;
+        this.rtspinfo.rtspuri = value;
         this.debouncedSetRtspUri(value);
       }
     }    
@@ -100,7 +101,6 @@ export default {
       }
     },
     debouncedSetRtspUri: debounce(function (value) {
-      this.rtspinfo.rtspuri = value;
       this.updateRtspInfo();
     }, 1000)      
   }
