@@ -5,6 +5,8 @@
       <v-main id="content">
         <Video/>
         <v-divider></v-divider>
+        <h3>RTSP</h3>
+        <Rtsp/>
         <h3>Formats</h3>
         <Format/>
         <h3>Controls</h3>
@@ -23,6 +25,7 @@
 
 <script>
 import Video from './components/Video.vue';
+import Rtsp from './components/Rtsp.vue';
 import Format from './components/Format.vue';
 import Controls from './components/Controls.vue';
 import axios from "axios";
@@ -33,7 +36,8 @@ export default {
   components: {
     Format,
     Controls,
-    Video
+    Video,
+    Rtsp
   },
   mounted() {
     axios.get("/api/capabilities").then(
