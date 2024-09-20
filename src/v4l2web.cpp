@@ -488,24 +488,22 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 
 		std::string rtspuri = input.get("rtspuri","").asString();
 		std::string multicasturi = input.get("multicasturi","").asString();
-
-		// update RTSP session
-		if (rtspuri != m_rtspuri || m_multicasturi != multicasturi) {
-			m_videoCapture->stop();
-			this->createRtspSession(rtspuri, multicasturi);
-			m_videoCapture->start();
-		}
-
-		// update RTSP server parameters
 		bool issrtp = input.get("issrtp",m_rtspServer.isSRTP()).asBool();
 		bool issrtpencrypted = input.get("issrtpencrypted",m_rtspServer.isSRTPEncrypted()).asBool();
 		bool issrtsps = input.get("issrtsps",m_rtspServer.isRTSPS()).asBool();
-		if (issrtp) {
-			m_rtspServer.setTLS(m_rtspSslKeyCert, issrtsps, issrtpencrypted);
-		} else {
-			m_rtspServer.setTLS("");
-		}
 
+		if (rtspuri != m_rtspuri || m_multicasturi != multicasturi || issrtp != m_rtspServer.isSRTP() || issrtpencrypted != m_rtspServer.isSRTPEncrypted() || issrtsps != m_rtspServer.isRTSPS()) {
+			m_videoCapture->stop();
+			// update RTSP server parameters
+			if (issrtp) {
+				m_rtspServer.setTLS(m_rtspSslKeyCert, issrtsps, issrtpencrypted);
+			} else {
+				m_rtspServer.setTLS("");
+			}
+			// update RTSP session
+			this->createRtspSession(rtspuri, multicasturi);
+			m_videoCapture->start();
+		}
 	}
 
 	answer["rtspuri"] = m_rtspuri;
