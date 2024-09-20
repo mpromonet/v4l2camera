@@ -34,6 +34,33 @@
           </v-text-field>
         </v-col>
       </v-row>
+      <v-row>
+        <v-col>SRTP</v-col>
+        <v-col cols="8">
+          <v-switch
+            v-model.number="rtspinfo.issrtp" @update:modelValue="updateRtspInfo()"
+            color="blue">
+          </v-switch>      
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>SRTP encrypted</v-col>
+        <v-col cols="8">
+          <v-switch
+            v-model.number="rtspinfo.issrtpencrypted" @update:modelValue="updateRtspInfo()"
+            color="blue">
+          </v-switch>      
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>RTSPS</v-col>
+        <v-col cols="8">
+          <v-switch
+            v-model.number="rtspinfo.issrtsps" @update:modelValue="updateRtspInfo()"
+            color="blue">
+          </v-switch>      
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -47,7 +74,7 @@ export default {
       visibility: true,
       ws: null,
       message: null,
-      rtspinfo: {rtspuri: '', multicasturi: '', url: ''},
+      rtspinfo: {rtspuri: '', multicasturi: '', url: '', issrtp: false, issrtpencrypted: false, issrtsps: false},
       videoCanvas: null,
       format: {format: "", width: 0, height: 0},
       frameResolved: null

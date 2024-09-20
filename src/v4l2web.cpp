@@ -497,10 +497,11 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 		}
 
 		// update RTSP server parameters
-		bool issrtp = input.get("issrtp","").asBool();
-		bool issrtsps = input.get("issrtsps","").asBool();
+		bool issrtp = input.get("issrtp",m_rtspServer.isSRTP()).asBool();
+		bool issrtpencrypted = input.get("issrtpencrypted",m_rtspServer.isSRTPEncrypted()).asBool();
+		bool issrtsps = input.get("issrtsps",m_rtspServer.isRTSPS()).asBool();
 		if (issrtp) {
-			m_rtspServer.setTLS(m_rtspSslKeyCert, issrtsps);
+			m_rtspServer.setTLS(m_rtspSslKeyCert, issrtsps, issrtpencrypted);
 		} else {
 			m_rtspServer.setTLS("");
 		}

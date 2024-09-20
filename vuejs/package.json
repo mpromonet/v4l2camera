@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vite --host=0.0.0.0 preview",
     "build": "vite build --emptyOutDir",
-    "dev": "vite --host=0.0.0.0"
+    "start": "vite --host=0.0.0.0"
   },
   "dependencies": {
     "axios": "^1.2.0",
