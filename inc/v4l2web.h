@@ -28,7 +28,7 @@
 
 class V4l2web {
 	public:
-		V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose);
+		V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, const std::string & rtspSslKeyCert, int verbose);
 		virtual ~V4l2web();
 		const void* getContext() { return m_httpServer.getContext(); }
 	
@@ -81,6 +81,7 @@ class V4l2web {
 		std::string                                                   m_rtspuri;
 		std::string                                                   m_multicasturi;
 		Json::StreamWriterBuilder                                     m_jsonWriterBuilder;
+		std::string                                                   m_rtspSslKeyCert;
 };
 
 

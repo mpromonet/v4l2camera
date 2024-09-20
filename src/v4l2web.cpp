@@ -86,7 +86,7 @@ int NullLogger(const struct mg_connection *, const char *) {
 	return 1;
 }
 
-V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, int verbose): 
+V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, const std::string & rtspSslKeyCert, int verbose): 
 	m_askToInterupt(false),
 	m_videoCapture(videoCapture),
 	m_videoInterface(new VideoCaptureAccess(m_videoCapture)),
@@ -103,7 +103,8 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 	m_audioReplicator(NULL),
 	m_sms(NULL),
 	m_stopStreaming(0),
-	m_rtspuri("") {
+	m_rtspuri(""),
+	m_rtspSslKeyCert(rtspSslKeyCert) {
 
 		m_jsonWriterBuilder.settings_["emitUTF8"] = true;
 		
@@ -494,12 +495,26 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 			this->createRtspSession(rtspuri, multicasturi);
 			m_videoCapture->start();
 		}
+
+		// update RTSP server parameters
+		bool issrtp = input.get("issrtp","").asBool();
+		bool issrtsps = input.get("issrtsps","").asBool();
+		if (issrtp) {
+			m_rtspServer.setTLS(m_rtspSslKeyCert, issrtsps);
+		} else {
+			m_rtspServer.setTLS("");
+		}
+
 	}
 
 	answer["rtspuri"] = m_rtspuri;
 	answer["multicasturi"] = m_multicasturi;
 	answer["url"] = m_rtspServer.getRtspUrl(m_sms);
 	answer["numClients"] = m_rtspServer.numClientSessions();
+	answer["issrtp"] = m_rtspServer.isSRTP();
+	answer["issrtpencrypted"] = m_rtspServer.isSRTPEncrypted();
+	answer["issrtsps"] = m_rtspServer.isRTSPS();
+	
 	std::list<std::string> users = m_rtspServer.getUsers();
 	Json::Value userlist(Json::ValueType::arrayValue);
 	for (auto u : users) {

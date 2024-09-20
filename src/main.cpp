@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
 	int fps = 25;	
 	int c = 0;
 	const char * port = "8080";
-	std::string sslCertificate;
+	std::string httpSslCertificate;
+	std::string rtspSslKeyCert;	
 	int rtspport = 8554;
 	V4l2IoType ioTypeIn = IOTYPE_MMAP;
 	V4l2IoType ioTypeOut = IOTYPE_MMAP;
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
 			case 'w': ioTypeOut = IOTYPE_READWRITE; break;				
 
 			case 'P': port = optarg; break;
-			case 'c': sslCertificate = optarg; break;
+			case 'c': httpSslCertificate = optarg; break;
 			case 'R': rtspport = atoi(optarg); break;
 			case 'N': nbthreads = optarg; break;
 			case 'p': webroot = optarg; break;		
@@ -88,7 +89,11 @@ int main(int argc, char* argv[])
 			case 'A':	audioFreq = atoi(optarg); break;
 			case 'C':	audioNbChannels = atoi(optarg); break;
 			case 'a':	if (V4l2RTSPServer::decodeAudioFormat(optarg) != SND_PCM_FORMAT_UNKNOWN) {audioFmtList.push_back(V4l2RTSPServer::decodeAudioFormat(optarg));} ; break;
-#endif		
+#endif	
+
+#ifndef NO_OPENSSL
+			case 'x':	rtspSslKeyCert              = optarg; break;
+#endif	
 
 			case 'h':
 			{
@@ -99,6 +104,9 @@ int main(int argc, char* argv[])
 				std::cout << "\t -p path          : server root path (default "<< webroot << ")" << std::endl;
 				std::cout << "\t -c sslkeycert    : path to private key and certificate for HTTPS" << std::endl;
 				std::cout << "\t -R port          : RTSP server port (default "<< rtspport << ")" << std::endl;
+#ifndef NO_OPENSSL
+				std::cout << "\t -x <sslkeycert>  : key & certificate for SRTP/RTSPS"                                                                                      << std::endl;
+#endif							
 
 				std::cout << "\t -f format        : V4L2 capture using format" << std::endl;
 				std::cout << "\t -G <w>x<h>[x<f>] : V4L2 capture format (default "<< width << "x" << height << "x" << fps << ")"  << std::endl;
@@ -185,9 +193,9 @@ int main(int argc, char* argv[])
 		options.push_back("*");		
 		options.push_back("listening_ports");
 		options.push_back(port);
-		if (!sslCertificate.empty()) {
+		if (!httpSslCertificate.empty()) {
 			options.push_back("ssl_certificate");
-			options.push_back(sslCertificate);
+			options.push_back(httpSslCertificate);
 		}		
 		if (!nbthreads.empty()) {
 			options.push_back("num_threads");
@@ -195,7 +203,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, verbose);
+		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, rtspSslKeyCert, verbose);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 
