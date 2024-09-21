@@ -41,6 +41,16 @@ if (BUILD_UI)
 	add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui)
 endif()
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-static-libgcc" CXX_SUPPORTS_STATIC_LIBGCC)
+if (CXX_SUPPORTS_STATIC_LIBGCC) 
+  target_link_libraries (${CMAKE_PROJECT_NAME} -static-libgcc)
+endif()    
+CHECK_CXX_COMPILER_FLAG("-static-libstdc++" CXX_SUPPORTS_STATIC_LIBSTDCPP)
+if (CXX_SUPPORTS_STATIC_LIBSTDCPP) 
+  target_link_libraries (${CMAKE_PROJECT_NAME} -static-libstdc++)
+endif()
+
 # install
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install (DIRECTORY vuejs/dist/ DESTINATION share/${PROJECT_NAME})
