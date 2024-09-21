@@ -59,6 +59,16 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
 			return this->rtspInfo(in);
 		};
+		m_httpfunc["/api/log"] = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value {
+			std::string loglevel;
+			if (req_info->query_string) {
+				CivetServer::getParam(req_info->query_string, "level", loglevel);
+			}			
+			if (!loglevel.empty()) {
+				setLogLevel(atoi(loglevel.c_str()));
+			}
+			return getLogLevel();
+		};		
 		m_httpfunc["/api/version"] = [this](const struct mg_request_info *, const Json::Value &) -> Json::Value {
 			return Json::Value(VERSION);
 		};		
