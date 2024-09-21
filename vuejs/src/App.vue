@@ -5,12 +5,12 @@
       <v-main id="content">
         <Video/>
         <v-divider></v-divider>
-        <h3>RTSP</h3>
-        <Rtsp/>
-        <h3>Formats</h3>
-        <Format/>
-        <h3>Controls</h3>
-        <Controls/>
+        <h3 @click="isRtspVisible = !isRtspVisible">RTSP</h3>
+        <Rtsp v-if="isRtspVisible"/>
+        <h3 @click="isFormatVisible = !isFormatVisible">Formats</h3>
+        <Format v-if="isFormatVisible"/>
+        <h3 @click="isControlsVisible = !isControlsVisible">Controls</h3>
+        <Controls v-if="isControlsVisible"/>
       </v-main>
       <v-divider></v-divider>
       <v-footer>
@@ -53,6 +53,9 @@ export default {
     return {
       msg: "...",
       version: "",
+      isRtspVisible: true,
+      isFormatVisible: true,
+      isControlsVisible: true
     };
   }
 }
