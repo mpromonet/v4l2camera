@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
 option (WITH_COMPRESS "Enable compression" ON)
 option (BUILD_UI "Build ui" ON)

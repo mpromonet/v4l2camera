@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 	std::string videoDev, audioDev;
 	getline(is, videoDev, ',');						
 	getline(is, audioDev);	
-	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn, verbose);
+	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn);
 	std::unique_ptr<V4l2Capture> videoCapture(V4l2Capture::create(param));
 	if (!videoCapture)
 	{	
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 	{	
 #ifdef HAVE_ALSA	
 		std::string audioDevice = V4l2RTSPServer::getV4l2Alsa(audioDev);
-		ALSACaptureParameters param(audioDevice.c_str(), audioFmtList, audioFreq, audioNbChannels, verbose);
+		ALSACaptureParameters param(audioDevice.c_str(), audioFmtList, audioFreq, audioNbChannels);
 		audioCapture.reset(ALSACapture::createNew(param));
 #endif	
 
