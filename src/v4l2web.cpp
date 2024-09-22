@@ -92,11 +92,12 @@ std::map<std::string,HttpServerRequestHandler::wsFunction>& V4l2web::getWsFunc()
 	return m_wsfunc;
 }
 
-int NullLogger(const struct mg_connection *, const char *) {
+int V4l2webLogger(const struct mg_connection *, const char *message) {
+	LOG(INFO) << message;
 	return 1;
 }
 
-V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, const std::string & rtspSslKeyCert, int verbose): 
+V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2Output*  videoOutput, const std::vector<std::string> & options, int rtspport, const std::string & rtspSslKeyCert): 
 	m_askToInterupt(false),
 	m_videoCapture(videoCapture),
 	m_videoInterface(new VideoCaptureAccess(m_videoCapture)),
@@ -105,7 +106,7 @@ V4l2web::V4l2web(V4l2Capture*  videoCapture, DeviceInterface* audioCapture, V4l2
 #ifdef WITH_COMPRESS
 	m_encoder(NULL),
 #endif
-	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options, verbose ? NULL : NullLogger),
+	m_httpServer(this->getHttpFunc(), this->getWsFunc(), options, V4l2webLogger),
 	m_isCapturing(true),
 	m_stopCapturing(false),
 	m_rtspServer(rtspport),

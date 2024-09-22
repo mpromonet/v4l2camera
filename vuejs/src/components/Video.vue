@@ -7,8 +7,8 @@
       </v-row>
     </v-container>
     <v-container>
-      <v-row align="center" justify="center" style="height: 33vh;">
-          <video v-show="visibility && !message" id="video" muted class="h-100" preload="none"></video>
+      <v-row align="center" justify="center" style="height: 30vh;">
+          <video v-show="visibility && !message" id="video" controls muted class="h-100" preload="none"></video>
           <div v-if="message">{{this.message}}</div>
       </v-row>
     </v-container>      

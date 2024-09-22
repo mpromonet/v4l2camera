@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 		// output	
 		std::unique_ptr<V4l2Output> videoOutput;
 		if (!out_devname.empty()) {
-			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, ioTypeOut, verbose);
+			V4L2DeviceParameters outparam(out_devname.c_str(), outFormat, width, height, fps, ioTypeOut);
 			videoOutput.reset(V4l2Output::create(outparam));
 		}
 
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
 		}		
 		
 		// api server
-		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, rtspSslKeyCert, verbose);
+		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, rtspSslKeyCert);
 		if (v4l2web.getContext() == NULL)
 		{
 			LOG(WARN) << "Cannot listen on port:" << port; 

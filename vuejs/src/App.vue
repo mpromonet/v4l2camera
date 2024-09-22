@@ -1,19 +1,22 @@
 <template>
     <v-app>
-      <h1>{{ msg }}</h1>
-      <v-divider></v-divider>
-      <v-main id="content">
+      <v-container>
+        <h2>{{ msg }}</h2>
         <Video/>
-        <v-divider></v-divider>
+      <v-divider></v-divider>
+      </v-container>
+      <v-main id="content">
         <h3 @click="isRtspVisible = !isRtspVisible">RTSP</h3>
         <Rtsp v-if="isRtspVisible"/>
+        <v-divider></v-divider>
         <h3 @click="isFormatVisible = !isFormatVisible">Formats</h3>
         <Format v-if="isFormatVisible"/>
+        <v-divider></v-divider>
         <h3 @click="isControlsVisible = !isControlsVisible">Controls</h3>
         <Controls v-if="isControlsVisible"/>
       </v-main>
       <v-divider></v-divider>
-      <v-footer>
+      <v-footer >
         <v-container>
           <v-row align="center" justify="center">
                 <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a><p>{{ version }}</p>
@@ -66,10 +69,10 @@ html {
   overflow-y: hidden;
 }
 #content {
-  height: calc(100vh - 100px);
+  height: calc(60vh - 5em);
   overflow-y: auto;
 }
-h1 {
+h2 {
   text-align: center;
 }
 h3 {
