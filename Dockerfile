@@ -5,7 +5,9 @@ WORKDIR /v4l2web
 COPY . .
 
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake patch make pkg-config git libjpeg-dev libssl-dev npm \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates g++ autoconf automake libtool xz-utils cmake patch make pkg-config git libjpeg-dev libssl-dev curl npm \
+    && npm install n -g \
+    && n latest && hash -r \
     && cmake . && make install && apt-get clean && rm -rf /var/lib/apt/lists/
 
 FROM $IMAGE
