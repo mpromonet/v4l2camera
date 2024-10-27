@@ -8,9 +8,7 @@
     "start": "vite --host=0.0.0.0"
   },
   "overrides": {
-    "vite": {
       "rollup": "npm:@rollup/wasm-node"
-    }
   },
   "dependencies": {
     "axios": "^1.2.0",
