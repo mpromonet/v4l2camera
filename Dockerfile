@@ -1,5 +1,5 @@
 ARG IMAGE=debian:trixie
-FROM --platform linux/amd64 node:latest as npm
+FROM --platform=linux/amd64 node:latest as npm
 WORKDIR /v4l2web	
 COPY . .
 
