@@ -7,9 +7,9 @@
     "build": "vite build --emptyOutDir",
     "start": "vite --host=0.0.0.0"
   },
-  "npm": {
-    "overrides": {
-      "rollup": "@rollup/wasm-node"
+  "overrides": {
+    "vite": {
+      "rollup": "npm:@rollup/wasm-node"
     }
   },
   "dependencies": {
