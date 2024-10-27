@@ -7,8 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - run: git fetch --prune --unshallow --tags
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
@@ -35,4 +34,4 @@ jobs:
         context: .
         push: true
         tags: ${{ steps.meta.outputs.tags }} 
-        platforms: linux/amd64,linux/arm64,linux/arm/v7
+        platforms: linux/amd64,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x,linux/386,linux/arm/v7,linux/arm/v6

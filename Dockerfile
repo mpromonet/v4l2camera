@@ -1,4 +1,4 @@
-ARG IMAGE=ubuntu:24.04
+ARG IMAGE=debian:trixie
 FROM node:latest as npm
 WORKDIR /v4l2web	
 COPY . .
