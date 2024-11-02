@@ -15,7 +15,6 @@
     arm64:
     armhf:
     ppc64el:
-    s390x:
   
   parts:  
     v4l2camera:
