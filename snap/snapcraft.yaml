@@ -11,11 +11,11 @@
   license: Unlicense
   contact: michel.promonet@free.fr
   platforms:
-  - build-on: amd64
-  - build-on: arm64
-  - build-on: armhf
-  - build-on: ppc64el
-  - build-on: s390x
+    amd64:
+    arm64:
+    armhf:
+    ppc64el:
+    s390x:
   
   parts:  
     v4l2camera:
