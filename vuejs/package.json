@@ -7,9 +7,6 @@
     "build": "vite build --emptyOutDir",
     "start": "vite --host=0.0.0.0"
   },
-  "overrides": {
-      "rollup": "npm:@rollup/wasm-node"
-  },
   "dependencies": {
     "axios": "^1.2.0",
     "lodash": "^4.17.21",
