@@ -10,7 +10,7 @@
   base: core24
   license: Unlicense
   contact: michel.promonet@free.fr
-  architectures:
+  platforms:
   - build-on: amd64
   - build-on: arm64
   - build-on: armhf
