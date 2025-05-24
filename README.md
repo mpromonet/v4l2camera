@@ -5,7 +5,7 @@
 [![Release](https://img.shields.io/github/release/mpromonet/v4l2camera.svg)](https://github.com/mpromonet/v4l2camera/releases/latest)
 [![Download](https://img.shields.io/github/downloads/mpromonet/v4l2camera/total.svg)](https://github.com/mpromonet/v4l2camera/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2camera.svg)](https://hub.docker.com/r/mpromonet/v4l2camera)
-[![Openwrt](https://img.shields.io/badge/OpenWRT-00B5E2?logo=OpenWrt)](https://pkgs.staging.openwrt.org/packages?name=v4l2camera)
+[![OpenWrt 24.10 x86_64 package](https://repology.org/badge/version-for-repo/openwrt_24_10_x86_64/v4l2camera.svg)](https://repology.org/project/v4l2camera/versions)
 
 
 v4l2camera
