@@ -32,34 +32,34 @@
 
 std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFunc() {
 	if (m_httpfunc.empty()) {
-		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->capabilities();
+		m_httpfunc["/api/capabilities"]   = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> { 
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->capabilities());
 		};
-		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->formats();
+		m_httpfunc["/api/formats"]        = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> { 
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->formats());
 		};
-		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
-			return this->format(in);
+		m_httpfunc["/api/format"]         = [this](const struct mg_request_info *, const Json::Value & in) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->format(in));
 		};
-		m_httpfunc["/api/controls"]       = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->controls();
+		m_httpfunc["/api/controls"]       = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->controls());
 		};
-		m_httpfunc["/api/control"]        = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
-			return this->control(in);
+		m_httpfunc["/api/control"]        = [this](const struct mg_request_info *, const Json::Value & in) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->control(in));
 		};	
-		m_httpfunc["/api/start"]          = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->start();
+		m_httpfunc["/api/start"]          = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->start());
 		};
-		m_httpfunc["/api/stop"]           = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->stop();
+		m_httpfunc["/api/stop"]           = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->stop());
 		};
-		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
-			return this->isCapturing();
+		m_httpfunc["/api/isCapturing"]    = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->isCapturing());
 		};
-		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & in) -> Json::Value { 
-			return this->rtspInfo(in);
+		m_httpfunc["/api/rtspinfo"]       = [this](const struct mg_request_info *, const Json::Value & in) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},this->rtspInfo(in));
 		};
-		m_httpfunc["/api/log"] = [this](const struct mg_request_info *req_info, const Json::Value & in) -> Json::Value {
+		m_httpfunc["/api/log"] = [this](const struct mg_request_info *req_info, const Json::Value & in) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
 			std::string loglevel;
 			if (req_info->query_string) {
 				CivetServer::getParam(req_info->query_string, "level", loglevel);
@@ -67,17 +67,20 @@ std::map<std::string,HttpServerRequestHandler::httpFunction>& V4l2web::getHttpFu
 			if (!loglevel.empty()) {
 				setLogLevel(atoi(loglevel.c_str()));
 			}
-			return getLogLevel();
-		};		
-		m_httpfunc["/api/version"] = [this](const struct mg_request_info *, const Json::Value &) -> Json::Value {
-			return Json::Value(VERSION);
-		};		
-		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *, const Json::Value & ) -> Json::Value { 
+			return std::make_tuple(200,std::map<std::string,std::string>{},getLogLevel());
+		};
+		m_httpfunc["/api/version"] = [this](const struct mg_request_info *, const Json::Value &) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return std::make_tuple(200,std::map<std::string,std::string>{},Json::Value(VERSION));
+		};
+		m_httpfunc["/api/snapshot"]       = [this](const struct mg_request_info *, const Json::Value & in) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
+			return this->snapshot();
+		};
+		m_httpfunc["/api/help"]           = [this](const struct mg_request_info *, const Json::Value & ) -> std::tuple<int, std::map<std::string,std::string>,Json::Value> {
 			Json::Value answer;
 			for (auto it : this->m_httpfunc) {
 				answer.append(it.first);
 			}
-			return answer;
+			return std::make_tuple(200,std::map<std::string,std::string>{},answer);
 		};	
 	}
 	return m_httpfunc;
@@ -225,7 +228,6 @@ void V4l2web::capturing()
 						char* buffer = new char[size];
 						memcpy(buffer, buf, size);	
 						source->postFrame(buffer, size, ref);
-						m_snapshot.assign(buffer, size);
 					}
 				}
 
@@ -540,3 +542,15 @@ Json::Value V4l2web::rtspInfo(const Json::Value & input)
 	return answer;	
 }
 
+std::tuple<int, std::map<std::string,std::string>,Json::Value> V4l2web::snapshot() 
+{
+	std::string frame;
+	if (m_videoReplicator)
+	{
+		V4L2DeviceSource* source = (V4L2DeviceSource*)m_videoReplicator->inputSource();
+		if (source) {
+			frame.assign(source->getLastFrame());
+		}
+	}
+	return std::make_tuple(200,std::map<std::string,std::string>{{"Content-Type", "image/jpeg"}},frame);
+}
