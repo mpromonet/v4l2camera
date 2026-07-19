@@ -1,5 +1,4 @@
 [![CircleCI](https://circleci.com/gh/mpromonet/v4l2camera.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2camera)
-[![CirusCI](https://api.cirrus-ci.com/github/mpromonet/v4l2camera.svg?branch=master)](https://cirrus-ci.com/github/mpromonet/v4l2camera)
 [![Snap Status](https://snapcraft.io/v4l2camera/badge.svg)](https://snapcraft.io/v4l2camera)
 
 [![Release](https://img.shields.io/github/release/mpromonet/v4l2camera.svg)](https://github.com/mpromonet/v4l2camera/releases/latest)
