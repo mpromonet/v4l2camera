@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 	std::string videoDev, audioDev;
 	getline(is, videoDev, ',');						
 	getline(is, audioDev);	
-	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn, overlay);
+	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn, O_RDWR | O_NONBLOCK, overlay);
 	std::unique_ptr<V4l2Capture> videoCapture(V4l2Capture::create(param));
 	if (!videoCapture)
 	{	
