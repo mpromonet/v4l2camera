@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 	int rtspport = 8554;
 	V4l2IoType ioTypeIn = IOTYPE_MMAP;
 	V4l2IoType ioTypeOut = IOTYPE_MMAP;
+	bool overlay = false;
 	std::string webroot = "vuejs/dist";
 	std::string nbthreads;
 	unsigned int format = ~0;
@@ -77,7 +78,8 @@ int main(int argc, char* argv[])
 			case 'O': outFormat = V4l2Device::fourcc(optarg); break;
 
 			case 'r': ioTypeIn = IOTYPE_READWRITE; break;
-			case 'w': ioTypeOut = IOTYPE_READWRITE; break;				
+			case 'w': ioTypeOut = IOTYPE_READWRITE; break;	
+			case 'T': overlay = true; break;			
 
 			case 'P': port = optarg; break;
 			case 'c': httpSslCertificate = optarg; break;
@@ -160,7 +162,7 @@ int main(int argc, char* argv[])
 	std::string videoDev, audioDev;
 	getline(is, videoDev, ',');						
 	getline(is, audioDev);	
-	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn);
+	V4L2DeviceParameters param(videoDev.c_str(), videoformatList, width, height, fps, ioTypeIn, overlay);
 	std::unique_ptr<V4l2Capture> videoCapture(V4l2Capture::create(param));
 	if (!videoCapture)
 	{	
