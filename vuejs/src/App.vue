@@ -2,10 +2,20 @@
   <v-app>
     <!-- App Bar -->
     <v-app-bar elevation="0" color="surface" border="b">
-      <v-app-bar-title class="font-weight-bold text-center" style="font-size:1rem;">
-        <v-icon class="mr-2" color="primary" size="small">mdi-camera</v-icon>
-        {{ msg }}
-      </v-app-bar-title>
+      <template v-slot:prepend>
+        <v-icon class="ml-2 mr-1" color="primary" size="small">mdi-camera</v-icon>
+        <span class="font-weight-bold" style="font-size:1rem;">{{ msg }}</span>
+      </template>
+      <v-app-bar-title />
+      <template v-slot:append>
+        <v-btn
+          :icon="showParams ? 'mdi-cog' : 'mdi-cog-outline'"
+          variant="text"
+          size="small"
+          :color="showParams ? 'primary' : 'grey'"
+          @click="showParams = !showParams"
+        />
+      </template>
     </v-app-bar>
 
     <v-main>
@@ -13,12 +23,12 @@
         <v-row>
 
           <!-- Camera view -->
-          <v-col cols="12" lg="8">
+          <v-col cols="12" :lg="showParams ? 6 : 12">
             <Video />
           </v-col>
 
           <!-- Parameters panel -->
-          <v-col cols="12" lg="4">
+          <v-col v-if="showParams" cols="12" lg="6">
             <div class="params-panel">
               <v-expansion-panels variant="accordion" multiple v-model="openPanels">
 
@@ -110,6 +120,7 @@ export default {
     return {
       msg: "v4l2camera",
       version: "",
+      showParams: true,
       openPanels: ["rtsp", "formats", "controls"],
     };
   }
