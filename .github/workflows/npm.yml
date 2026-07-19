@@ -25,5 +25,5 @@ jobs:
               npm config set git-tag-version=false
               npm version $(git describe --tags --always)
               npm run build
-              npm publish --access public
+              npm publish --provenance --access public
 
