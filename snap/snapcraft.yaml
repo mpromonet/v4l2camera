@@ -7,7 +7,7 @@
 
   grade: stable 
   confinement: strict
-  base: core24
+  base: core26
   license: Unlicense
   contact: michel.promonet@free.fr
   platforms:
