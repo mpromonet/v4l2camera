@@ -1,29 +1,87 @@
 <template>
-    <v-app>
-      <v-container>
-        <h2>{{ msg }}</h2>
-        <Video/>
-      <v-divider></v-divider>
+  <v-app>
+    <!-- App Bar -->
+    <v-app-bar elevation="0" color="surface" border="b">
+      <v-app-bar-title class="font-weight-bold text-center" style="font-size:1rem;">
+        <v-icon class="mr-2" color="primary" size="small">mdi-camera</v-icon>
+        {{ msg }}
+      </v-app-bar-title>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid class="pa-4" style="max-width:1400px;">
+        <v-row>
+
+          <!-- Camera view -->
+          <v-col cols="12" lg="8">
+            <Video />
+          </v-col>
+
+          <!-- Parameters panel -->
+          <v-col cols="12" lg="4">
+            <div class="params-panel">
+              <v-expansion-panels variant="accordion" multiple v-model="openPanels">
+
+                <v-expansion-panel value="rtsp" bg-color="surface" elevation="2" rounded="lg" class="mb-2">
+                  <v-expansion-panel-title class="text-body-2 font-weight-medium">
+                    <v-icon class="mr-2" size="small" color="primary">mdi-access-point-network</v-icon>
+                    RTSP
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <Rtsp />
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+
+                <v-expansion-panel value="formats" bg-color="surface" elevation="2" rounded="lg" class="mb-2">
+                  <v-expansion-panel-title class="text-body-2 font-weight-medium">
+                    <v-icon class="mr-2" size="small" color="primary">mdi-film</v-icon>
+                    Formats
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <Format />
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+
+                <v-expansion-panel value="controls" bg-color="surface" elevation="2" rounded="lg">
+                  <v-expansion-panel-title class="text-body-2 font-weight-medium">
+                    <v-icon class="mr-2" size="small" color="primary">mdi-tune</v-icon>
+                    Controls
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <Controls />
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+
+              </v-expansion-panels>
+            </div>
+          </v-col>
+
+        </v-row>
       </v-container>
-      <v-main id="content">
-        <h3 @click="isRtspVisible = !isRtspVisible">RTSP</h3>
-        <Rtsp v-if="isRtspVisible"/>
-        <v-divider></v-divider>
-        <h3 @click="isFormatVisible = !isFormatVisible">Formats</h3>
-        <Format v-if="isFormatVisible"/>
-        <v-divider></v-divider>
-        <h3 @click="isControlsVisible = !isControlsVisible">Controls</h3>
-        <Controls v-if="isControlsVisible"/>
-      </v-main>
-      <v-divider></v-divider>
-      <v-footer >
-        <v-container>
-          <v-row align="center" justify="center">
-                <v-icon>mdi-github</v-icon><a href="https://github.com/mpromonet/v4l2camera">v4l2camera</a><p>{{ version }}</p>
-          </v-row>
-       </v-container>
-      </v-footer>
-    </v-app>
+    </v-main>
+
+    <!-- Footer -->
+    <v-footer app color="surface" border="t" height="36" class="px-4">
+      <v-spacer />
+      <v-btn
+        variant="text"
+        size="x-small"
+        density="compact"
+        href="https://github.com/mpromonet/v4l2camera"
+        target="_blank"
+        prepend-icon="mdi-github"
+      >v4l2camera</v-btn>
+      <v-chip
+        v-if="version"
+        color="primary"
+        variant="tonal"
+        size="x-small"
+        class="ml-3 font-weight-medium"
+        prepend-icon="mdi-tag-outline"
+      >{{ version }}</v-chip>
+      <v-spacer />
+    </v-footer>
+  </v-app>
 </template>
 
 <script>
@@ -36,49 +94,41 @@ axios.defaults.baseURL = import.meta.env.VITE_APP_BASE_URL
 
 export default {
   name: 'App',
-  components: {
-    Format,
-    Controls,
-    Video,
-    Rtsp
-  },
+  components: { Format, Controls, Video, Rtsp },
   mounted() {
     axios.get("/api/capabilities").then(
-      (response) =>  {
-        this.msg = response.data.card
+      (response) => {
+        this.msg = response.data.card;
         document.title = this.msg;
-      } 
+      }
     );
     axios.get("/api/version").then(
-      (response) => this.version = response.data); 
+      (response) => this.version = response.data.replace(/-g[0-9a-f]+[^/]*/i, '')
+    );
   },
   data() {
     return {
-      msg: "...",
+      msg: "v4l2camera",
       version: "",
-      isRtspVisible: true,
-      isFormatVisible: true,
-      isControlsVisible: true
+      openPanels: ["rtsp", "formats", "controls"],
     };
   }
 }
 </script>
 
 <style>
-html {
-  overflow-y: hidden;
-}
-#content {
-  height: calc(60vh - 5em);
+html, body {
   overflow-y: auto;
+  background-color: #0F1923;
 }
-h2 {
-  text-align: center;
-}
-h3 {
-  text-align: center;
-}
-p {
-  margin-left: 0.5em;
+
+/* On large screens the params column sticks under the app bar */
+@media (min-width: 1280px) {
+  .params-panel {
+    position: sticky;
+    top: 64px;          /* height of v-app-bar */
+    max-height: calc(100vh - 64px - 36px);  /* minus app-bar and footer */
+    overflow-y: auto;
+  }
 }
 </style>

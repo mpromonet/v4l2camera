@@ -1,55 +1,111 @@
 <template>
-  <v-container>
-    <v-row v-for="c in controls" :key="c.name">
-      <v-col>{{ c.name }}</v-col>
-      <v-col cols="7" v-if="c.menu">
-          <v-select :items="getItems(c.menu)"
-                    v-model.number="c.value"
-                    @update:modelValue="updateValue(c.id,c.value)">
-          </v-select>
-      </v-col>        
-      <v-col cols="1" v-if="c.menu">
-          <v-btn @click="updateValue(c.id,c.default_value)">{{getLabel(c.menu,c.default_value)}}</v-btn>
-      </v-col> 
+  <v-container class="pa-2">
+    <!-- Reset All -->
+    <v-row justify="end" class="mb-2">
+      <v-col cols="auto">
+        <v-btn
+          color="warning"
+          variant="tonal"
+          size="small"
+          density="compact"
+          prepend-icon="mdi-restore"
+          :loading="resetting"
+          @click="resetAll"
+        >Reset All</v-btn>
+      </v-col>
+    </v-row>
 
-      <v-col cols="4" offset="3" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
+    <v-row
+      v-for="c in controls"
+      :key="c.name"
+      align="center"
+      dense
+      class="mb-1"
+    >
+      <!-- Label -->
+      <v-col cols="3" class="text-body-2 text-medium-emphasis">{{ c.name }}</v-col>
+
+      <!-- Menu (select) -->
+      <v-col cols="7" v-if="c.menu">
+        <v-select
+          density="compact"
+          variant="outlined"
+          hide-details
+          :items="getItems(c.menu)"
+          v-model.number="c.value"
+          @update:modelValue="updateValue(c.id, c.value)"
+        />
+      </v-col>
+      <v-col cols="2" v-if="c.menu" class="d-flex justify-center">
+        <v-btn
+          icon="mdi-restore"
+          variant="text"
+          size="small"
+          density="compact"
+          color="primary"
+          @click="updateValue(c.id, c.default_value)"
+        />
+      </v-col>
+
+      <!-- Boolean (switch) -->
+      <v-col cols="5" v-if="!c.menu && c.minimum === 0 && c.maximum === 1" class="d-flex align-center">
         <v-switch
           v-model.number="c.value"
-          color="blue"
-          :true-value="1" 
+          color="primary"
+          :true-value="1"
           :false-value="0"
-          @update:modelValue="updateValue(c.id,c.value)">
-        </v-switch>
-      </v-col>        
-      <v-col cols="1" v-if="!c.menu && c.minimum == 0 && c.maximum == 1">
-          <v-btn @click="updateValue(c.id,c.default_value)">{{c.default_value ? "On" : "Off"}}</v-btn>
-      </v-col> 
+          density="compact"
+          hide-details
+          @update:modelValue="updateValue(c.id, c.value)"
+        />
+      </v-col>
+      <v-col cols="2" v-if="!c.menu && c.minimum === 0 && c.maximum === 1" class="d-flex justify-center">
+        <v-btn
+          icon="mdi-restore"
+          variant="text"
+          size="small"
+          density="compact"
+          color="primary"
+          @click="updateValue(c.id, c.default_value)"
+        />
+      </v-col>
 
-      <v-col cols="6" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
+      <!-- Slider + text field -->
+      <v-col cols="5" v-if="!c.menu && !(c.minimum === 0 && c.maximum === 1)">
         <v-slider
-          v-model.number="c.value" 
-          color="blue"
-          hide-spin-buttons
+          v-model.number="c.value"
+          color="primary"
+          track-color="secondary"
+          hide-details
           :min="c.minimum"
-          :max="c.maximum" 
+          :max="c.maximum"
           :step="c.step"
-          thumb-label="always"
+          density="compact"
+          thumb-label
           :disabled="disabled(c.flags)"
-          @end="updateValue(c.id,c.value)"
-        >
-          <template v-slot:prepend>{{c.minimum}}</template>
-          <template v-slot:append>{{c.maximum}}</template>
-        </v-slider>
+          @end="updateValue(c.id, c.value)"
+        />
       </v-col>
-      <v-col cols="1" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
-          <v-text-field
-            v-model.number="c.value"
-            @update:modelValue="updateValue(c.id,c.value)">
-          </v-text-field>
+      <v-col cols="2" v-if="!c.menu && !(c.minimum === 0 && c.maximum === 1)">
+        <v-text-field
+          v-model.number="c.value"
+          variant="outlined"
+          density="compact"
+          hide-details
+          @update:modelValue="updateValue(c.id, c.value)"
+        />
       </v-col>
-      <v-col cols="1" v-if="!c.menu && !(c.minimum == 0 && c.maximum == 1)">
-          <v-btn @click="updateValue(c.id,c.default_value)">{{c.default_value}}</v-btn>
-      </v-col>      
+      <v-col cols="1" v-if="!c.menu && !(c.minimum === 0 && c.maximum === 1)" class="d-flex justify-center">
+        <v-btn
+          icon="mdi-restore"
+          variant="text"
+          size="small"
+          density="compact"
+          color="primary"
+          @click="updateValue(c.id, c.default_value)"
+        />
+      </v-col>
+
     </v-row>
   </v-container>
 </template>
@@ -64,6 +120,7 @@ export default {
   data() {
     return {
       controls: [],
+      resetting: false,
     };
   },
   methods: {
@@ -73,19 +130,24 @@ export default {
       );
     },
     updateValue(id, value) {
-      axios.post("/api/control", {id, value} ).then(
-        (response) => this.controls.filter((d) => d.id == id).forEach((element) => element.value = response.data.value)
+      axios.post("/api/control", {id, value}).then(
+        (response) => this.controls.filter((d) => d.id === id).forEach((el) => el.value = response.data.value)
       ).finally(() => this.updateAll());
     },
     getItems(menu) {
       return menu.map(item => ({"title": item.label, "value": item.value}));
     },
-    disabled(flags) {
-      return (flags.find( (f) => f === "V4L2_CTRL_FLAG_INACTIVE") !== undefined);
+    async resetAll() {
+      this.resetting = true;
+      await Promise.all(
+        this.controls.map((c) => axios.post("/api/control", {id: c.id, value: c.default_value}))
+      );
+      await this.updateAll();
+      this.resetting = false;
     },
-    getLabel(menu,value) {
-      return menu.find(item => item.value === value).label;
-    }
+    disabled(flags) {
+      return (flags.find((f) => f === "V4L2_CTRL_FLAG_INACTIVE") !== undefined);
+    },
   }
 };
 </script>
