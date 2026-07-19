@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	std::list<snd_pcm_format_t> audioFmtList;
 #endif	
 	
-	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "rw" "P:c:p:N:R:x:" "A:c:a:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "Trw" "P:c:p:N:R:x:" "A:c:a:")) != -1)
 	{
 		switch (c)
 		{
