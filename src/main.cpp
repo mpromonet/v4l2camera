@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	std::list<snd_pcm_format_t> audioFmtList;
 #endif	
 	
-	while ((c = getopt (argc, argv, "hv::" "f::W:H:F:G:" "O:" "Trw" "P:c:p:N:R:x:" "A:c:a:")) != -1)
+	while ((c = getopt (argc, argv, "?Vhv::" "f::W:H:F:G:" "O:" "Trw" "P:c:p:N:R:x:" "A:c:a:")) != -1)
 	{
 		switch (c)
 		{
@@ -96,6 +96,12 @@ int main(int argc, char* argv[])
 #ifndef NO_OPENSSL
 			case 'x':	rtspSslKeyCert              = optarg; break;
 #endif	
+
+			case '?':
+			case 'V':
+				std::cout << argv[0] << " " << VERSION << std::endl;
+				exit(0);
+			break;
 
 			case 'h':
 			{

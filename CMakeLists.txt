@@ -9,17 +9,19 @@ project(v4l2camera)
 set (CMAKE_CXX_STANDARD 11)
 
 find_package(Git)
-if(GIT_FOUND)
+if(DEFINED VERSION)
+elseif (GIT_FOUND)
     EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive)
     EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} describe --tags --always --dirty OUTPUT_VARIABLE PROJECTVERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set (VERSION "${PROJECTVERSION}/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+    set (VERSION "${PROJECTVERSION}")
 endif()
+message("VERSION: ${VERSION}")
 
 # define executable to build
 include_directories("inc")
 aux_source_directory(src V4L2CAMERA_SRC_FILES)
 add_executable(${PROJECT_NAME} ${V4L2CAMERA_SRC_FILES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE VERSION=\"${VERSION}\")
+target_compile_definitions(${PROJECT_NAME} PRIVATE VERSION=\"${VERSION}/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}\")
 
 # libv4l2rtspserver
 add_subdirectory(v4l2rtspserver EXCLUDE_FROM_ALL)
