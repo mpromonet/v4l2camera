@@ -55,6 +55,8 @@ int main(int argc, char* argv[])
 	bool overlay = false;
 	std::string webroot = "vuejs/dist";
 	std::string nbthreads;
+	std::string htpasswdFile;
+	std::string authDomain = "";
 	unsigned int format = ~0;
 	std::list<unsigned int> videoformatList;	
 	std::string out_devname;	
@@ -66,7 +68,7 @@ int main(int argc, char* argv[])
 	std::list<snd_pcm_format_t> audioFmtList;
 #endif	
 	
-	while ((c = getopt (argc, argv, "?Vhv::" "f::W:H:F:G:" "O:" "Trw" "P:c:p:N:R:x:" "A:c:a:")) != -1)
+	while ((c = getopt (argc, argv, "?Vhv::" "f::W:H:F:G:" "O:" "Trw" "P:c:p:u:D:N:R:x:" "A:c:a:")) != -1)
 	{
 		switch (c)
 		{
@@ -82,6 +84,8 @@ int main(int argc, char* argv[])
 			case 'T': overlay = true; break;			
 
 			case 'P': port = optarg; break;
+			case 'u': htpasswdFile = optarg; break;
+			case 'D': authDomain = optarg; break;
 			case 'c': httpSslCertificate = optarg; break;
 			case 'R': rtspport = atoi(optarg); break;
 			case 'N': nbthreads = optarg; break;
@@ -110,6 +114,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -v v             : very verbose " << std::endl;
 				std::cout << "\t -P port          : server port (default "<< port << ")" << std::endl;
 				std::cout << "\t -p path          : server root path (default "<< webroot << ")" << std::endl;
+				std::cout << "\t -u htpasswd_file : enable HTTP digest authentication" << std::endl;
 				std::cout << "\t -c sslkeycert    : path to private key and certificate for HTTPS" << std::endl;
 				std::cout << "\t -R port          : RTSP server port (default "<< rtspport << ")" << std::endl;
 #ifndef NO_OPENSSL
@@ -208,7 +213,15 @@ int main(int argc, char* argv[])
 		if (!nbthreads.empty()) {
 			options.push_back("num_threads");
 			options.push_back(nbthreads);
-		}		
+		}
+		if (!htpasswdFile.empty()) {
+			options.push_back("global_auth_file");
+			options.push_back(htpasswdFile);
+		}
+		if (!authDomain.empty()) {
+			options.push_back("authentication_domain");
+			options.push_back(authDomain);
+		}
 		
 		// api server
 		V4l2web v4l2web(videoCapture.release(), audioCapture.get(), videoOutput.get(), options, rtspport, rtspSslKeyCert);
