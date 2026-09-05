@@ -21,19 +21,26 @@
       plugin: cmake
       source: .
       build-packages:
+        - cmake
+        - make
         - g++
         - pkg-config
+        - git
+        - curl
         - libssl-dev
+        - zlib1g-dev
         - libasound2-dev
         - npm
       stage-packages:
         - libssl-dev
-        - libasound2        
+        - zlib1g
+        - libasound2
+        - ca-certificates        
       cmake-parameters:
         - -DWITH_COMPRESS=OFF
 
   apps:
     v4l2camera:
-      command: usr/local/bin/v4l2camera -p $SNAP/usr/local/share/v4l2camera
+      command: $SNAP/usr/local/bin/v4l2camera -p $SNAP/usr/local/share/v4l2camera
       daemon: simple   
       plugs: [network-bind, camera, alsa]
