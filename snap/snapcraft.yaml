@@ -29,11 +29,13 @@
         - curl
         - libssl-dev
         - zlib1g-dev
+        - libzstd-dev
         - libasound2-dev
         - npm
       stage-packages:
         - libssl-dev
         - zlib1g
+        - libzstd1
         - libasound2
         - ca-certificates        
       cmake-parameters:
