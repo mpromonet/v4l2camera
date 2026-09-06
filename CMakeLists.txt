@@ -36,6 +36,19 @@ if (WITH_COMPRESS)
 	target_compile_definitions(${PROJECT_NAME} PRIVATE WITH_COMPRESS=1)
 endif()
 
+# static link of stdc++ if available
+if (STATICSTDCPP)
+  include(CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-static-libgcc" CXX_SUPPORTS_STATIC_LIBGCC)
+  if (CXX_SUPPORTS_STATIC_LIBGCC) 
+    target_link_libraries (${PROJECT_NAME} -static-libgcc)
+  endif()    
+  CHECK_CXX_COMPILER_FLAG("-static-libstdc++" CXX_SUPPORTS_STATIC_LIBSTDCPP)
+  if (CXX_SUPPORTS_STATIC_LIBSTDCPP) 
+    target_link_libraries (${PROJECT_NAME} -static-libstdc++)
+  endif()
+endif()
+
 # ui
 if (BUILD_UI)
 	add_custom_target(${PROJECT_NAME}-ui COMMAND npm install -C ${CMAKE_CURRENT_SOURCE_DIR}/vuejs && npm run build -C ${CMAKE_CURRENT_SOURCE_DIR}/vuejs)
