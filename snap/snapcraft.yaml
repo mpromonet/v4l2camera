@@ -30,14 +30,15 @@
         - libssl-dev
         - zlib1g-dev
         - libzstd-dev
+        - libjitterentropy3-dev        
         - libasound2-dev
         - npm
       stage-packages:
         - libssl-dev
-        - zlib1g
-        - libzstd1
-        - libasound2
-        - ca-certificates        
+        - zlib1g-dev
+        - libzstd-dev
+        - libjitterentropy3-dev        
+        - libasound2-dev
       cmake-parameters:
         - -DWITH_COMPRESS=OFF
 
