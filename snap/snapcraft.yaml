@@ -44,6 +44,6 @@
 
   apps:
     v4l2camera:
-      command: $SNAP/usr/local/bin/v4l2camera -p $SNAP/usr/local/share/v4l2camera
+      command: usr/local/bin/v4l2camera -p $SNAP/usr/local/share/v4l2camera
       daemon: simple   
       plugs: [network-bind, camera, alsa]
