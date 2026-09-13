@@ -79,7 +79,7 @@ export default {
       message: null,
       videoCanvas: null,
       format: {format: "", width: 0, height: 0},
-      frameResolved: null
+      frameResolvers: []
     };
   },
   mounted() {
@@ -149,7 +149,7 @@ export default {
     async onH264Frame(bytes) {
       if (!this.ws.decoder) {
         this.ws.decoder = new VideoDecoder({
-          output: (frame) => this.frameResolved(frame),
+          output: (frame) => this.frameResolvers.shift()?.(frame),
           error: (e) => console.log(e.message),
         });
       }
@@ -174,7 +174,7 @@ export default {
           data: bytes,
         });
         this.ws.decoder.decode(chunk);
-        return await new Promise(r => this.frameResolved = r);
+        return await new Promise(r => this.frameResolvers.push(r));
       } else {
         return Promise.reject(`H264 decoder not configured`);
       }
