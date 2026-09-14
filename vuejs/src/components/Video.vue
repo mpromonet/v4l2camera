@@ -70,6 +70,15 @@
 <script>
 import axios from "axios";
 
+// byte offsets of each 4:2:2 packed sample's y0/u/y1/v components within its 4-byte group
+const PACKED_422_LAYOUTS = {
+  YUYV: { y0: 0, u: 1, y1: 2, v: 3 },
+  YUY2: { y0: 0, u: 1, y1: 2, v: 3 },
+  YVYU: { y0: 0, v: 1, y1: 2, u: 3 },
+  UYVY: { u: 0, y0: 1, v: 2, y1: 3 },
+  VYUY: { v: 0, y0: 1, u: 2, y1: 3 },
+};
+
 export default {
   data() {
     return {
@@ -185,12 +194,100 @@ export default {
       return new VideoFrame(image.image, {timestamp: performance.now()});
     },
     onDefaultFrame(bytes) {
+      const packed422 = PACKED_422_LAYOUTS[this.format.format];
+      if (packed422) {
+        return this.packed422ToVideoFrame(bytes, packed422);
+      }
+      if (this.format.format === 'NV21') {
+        return this.nv21ToVideoFrame(bytes);
+      }
+      if (this.format.format === 'RGB3') {
+        return this.rgb24ToVideoFrame(bytes, 'RGBA');
+      }
+      if (this.format.format === 'BGR3') {
+        return this.rgb24ToVideoFrame(bytes, 'BGRA');
+      }
       return new VideoFrame(bytes, {
         format: this.format.format,
         timestamp: performance.now(),
         codedWidth: this.format.width,
         codedHeight: this.format.height,
       });
+    },
+    nv21ToVideoFrame(bytes) {
+      // NV21 (Y plane + interleaved V/U plane) isn't a valid VideoFrame format, convert to I420
+      const { width, height } = this.format;
+      const ySize = width * height;
+      const chromaSize = (width / 2) * (height / 2);
+      const i420 = new Uint8Array(ySize + chromaSize * 2);
+      i420.set(bytes.subarray(0, ySize), 0);
+      const uOffset = ySize;
+      const vOffset = ySize + chromaSize;
+      for (let i = 0; i < chromaSize; i++) {
+        i420[vOffset + i] = bytes[ySize + i * 2];     // NV21 order: V then U
+        i420[uOffset + i] = bytes[ySize + i * 2 + 1];
+      }
+      return new VideoFrame(i420, {
+        format: 'I420',
+        timestamp: performance.now(),
+        codedWidth: width,
+        codedHeight: height,
+      });
+    },
+    rgb24ToVideoFrame(bytes, outFormat) {
+      // packed 24bpp (RGB3/BGR3) isn't a valid VideoFrame format, expand to 32bpp by adding alpha
+      const { width, height } = this.format;
+      const stride = Math.floor(bytes.length / height); // row may be padded (bytesperline != width*3)
+      const rgba = new Uint8ClampedArray(width * height * 4);
+      let out = 0;
+      for (let row = 0; row < height; row++) {
+        let i = row * stride;
+        for (let col = 0; col < width; col++) {
+          rgba[out]     = bytes[i];
+          rgba[out + 1] = bytes[i + 1];
+          rgba[out + 2] = bytes[i + 2];
+          rgba[out + 3] = 255;
+          out += 4;
+          i += 3;
+        }
+      }
+      return new VideoFrame(rgba, {
+        format: outFormat,
+        timestamp: performance.now(),
+        codedWidth: width,
+        codedHeight: height,
+      });
+    },
+    packed422ToVideoFrame(bytes, layout) {
+      // packed 4:2:2 (YUYV/YVYU/UYVY/VYUY) isn't a valid VideoFrame format, convert to RGBA
+      const { width, height } = this.format;
+      const stride = Math.floor(bytes.length / height); // row may be padded (bytesperline != width*2)
+      const rgba = new Uint8ClampedArray(width * height * 4);
+      let out = 0;
+      for (let row = 0; row < height; row++) {
+        let i = row * stride;
+        for (let col = 0; col < width; col += 2) {
+          const y0 = bytes[i + layout.y0], u = bytes[i + layout.u], y1 = bytes[i + layout.y1], v = bytes[i + layout.v];
+          out = this.writeYUVPixel(rgba, out, y0, u, v);
+          out = this.writeYUVPixel(rgba, out, y1, u, v);
+          i += 4;
+        }
+      }
+      return new VideoFrame(rgba, {
+        format: 'RGBA',
+        timestamp: performance.now(),
+        codedWidth: width,
+        codedHeight: height,
+      });
+    },
+    writeYUVPixel(out, offset, y, u, v) {
+      const c = y - 16, d = u - 128, e = v - 128;
+      const clamp = (n) => Math.min(255, Math.max(0, n));
+      out[offset]     = clamp((298 * c + 409 * e + 128) >> 8);
+      out[offset + 1] = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
+      out[offset + 2] = clamp((298 * c + 516 * d + 128) >> 8);
+      out[offset + 3] = 255;
+      return offset + 4;
     },
     onFrame(bytes) {
       if ((bytes.length > 1) && (bytes[0] === 255) && (bytes[1] === 216)) {
