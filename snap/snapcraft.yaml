@@ -40,7 +40,7 @@
         - libasound2-dev
       override-pull: |
         craftctl default
-        craftctl set-version "$(git describe --tags --always)"
+        craftctl set version="$(git describe --tags --always)"
       cmake-parameters:
         - -DWITH_COMPRESS=OFF
 
