@@ -38,6 +38,7 @@
         - libzstd-dev
         - libjitterentropy3-dev        
         - libasound2-dev
+        - libasound2-data
       override-pull: |
         craftctl default
         craftctl set version="$(git describe --tags --always)"
@@ -49,3 +50,5 @@
       command: usr/local/bin/v4l2camera -p $SNAP/usr/local/share/v4l2camera
       daemon: simple   
       plugs: [network-bind, camera, alsa]
+      environment:
+        ALSA_CONFIG_PATH: $SNAP/usr/share/alsa/alsa.conf
