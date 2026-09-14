@@ -14,7 +14,6 @@
     amd64:
     arm64:
     armhf:
-    ppc64el:
   
   parts:  
     v4l2camera:

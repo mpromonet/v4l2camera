@@ -36,6 +36,15 @@ if (WITH_COMPRESS)
 	target_compile_definitions(${PROJECT_NAME} PRIVATE WITH_COMPRESS=1)
 endif()
 
+if (ALSA)
+    find_package(ALSA QUIET)
+    MESSAGE("ALSA_FOUND = ${ALSA_FOUND}")
+    if (ALSA_LIBRARY)
+        target_compile_definitions(libv4l2rtspserver PUBLIC HAVE_ALSA)
+        set(LIBRARIES ${LIBRARIES} ALSA::ALSA)
+    endif ()
+endif()
+
 # static link of stdc++ if available
 if (STATICSTDCPP)
   include(CheckCXXCompilerFlag)
