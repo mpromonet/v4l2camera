@@ -1,6 +1,6 @@
 
   name: v4l2camera
-  version: git
+  adopt-info: v4l2camera
   summary: Web interface to V4L2 
   description: |
     This is a Web interface to v4L2rtspserver, the http server use civetweb, the RTSP server live555. 
@@ -38,6 +38,9 @@
         - libzstd-dev
         - libjitterentropy3-dev        
         - libasound2-dev
+      override-pull: |
+        craftctl default
+        craftctl set-version "$(git describe --tags --always)"
       cmake-parameters:
         - -DWITH_COMPRESS=OFF
 
