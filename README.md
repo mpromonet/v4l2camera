@@ -1,3 +1,8 @@
+v4l2camera
+=======
+
+<img alt="A picture of v4l2camera app" src="images/screenshot.jpg" width="500">
+
 [![CircleCI](https://circleci.com/gh/mpromonet/v4l2camera.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2camera)
 [![Snap Status](https://snapcraft.io/v4l2camera/badge.svg)](https://snapcraft.io/v4l2camera)
 
@@ -7,11 +12,11 @@
 [![OpenWrt 24.10 x86_64 package](https://repology.org/badge/version-for-repo/openwrt_24_10_x86_64/v4l2camera.svg)](https://repology.org/project/v4l2camera/versions)
 
 
-v4l2camera
-=======
 Web server & UI for [v4l2rtspserver](https://github.com/mpromonet/v4l2rtspserver)
 
 The civetweb HTTP server give access to the Video4Linux interface, web interface is using VueJS, RTSP server is using project [v4l2rtspserver](https://github.com/mpromonet/v4l2rtspserver)
+
+
 
  
 Build
