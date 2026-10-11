@@ -11,6 +11,7 @@ v4l2camera
 [![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2camera.svg)](https://hub.docker.com/r/mpromonet/v4l2camera)
 [![OpenWrt 24.10 x86_64 package](https://repology.org/badge/version-for-repo/openwrt_24_10_x86_64/v4l2camera.svg)](https://repology.org/project/v4l2camera/versions)
 
+Convert a simple v4l2 device to a camera network device with RTSP streaming and HTTP controls.
 
 Web server & UI for [v4l2rtspserver](https://github.com/mpromonet/v4l2rtspserver)
 
